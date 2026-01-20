@@ -17,17 +17,27 @@ namespace FactCloudAPI.Controllers
     {
         private readonly ApplicationDbContext _context;
 
-        public UsuariosController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
-        //prueba 
-        // GET: api/usuarios
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Usuario>>> GetUsuarios()
-        {
-            return await _context.Usuarios.ToListAsync();
-        }
+    public UsuariosController(ApplicationDbContext context)
+    {
+        _context = context;
+    }
+    //comentario de prueba
+    // GET: api/Usuarios
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<UsuarioListDto>>> GetUsuarios()
+    {
+        var usuarios = await _context.Usuarios
+            .Select(u => new UsuarioListDto
+            {
+                Id = u.Id,
+                Nombre = u.Nombre,
+                Correo = u.Correo,
+                Estado = u.Estado
+            })
+            .ToListAsync();
+
+        return Ok(usuarios);
+    }
 
         // GET: api/usuarios/5
         [HttpGet("{id}")]
