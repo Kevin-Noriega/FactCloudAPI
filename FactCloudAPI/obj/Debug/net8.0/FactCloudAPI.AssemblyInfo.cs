@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("FactCloudAPI")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+762a85aba76ef18f7cf0c1634b423bb6da2ef69b")]
 [assembly: System.Reflection.AssemblyProductAttribute("FactCloudAPI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("FactCloudAPI")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
