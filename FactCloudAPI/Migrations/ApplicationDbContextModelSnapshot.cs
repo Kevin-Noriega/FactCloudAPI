@@ -503,6 +503,9 @@ namespace FactCloudAPI.Migrations
                     b.Property<bool>("Estado")
                         .HasColumnType("bit");
 
+                    b.Property<DateTime?>("FechaDesactivacion")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime>("FechaRegistro")
                         .HasColumnType("datetime2");
 
