@@ -21,7 +21,7 @@ namespace FactCloudAPI.Controllers
         {
             _context = context;
         }
-
+        //prueba 
         // GET: api/usuarios
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Usuario>>> GetUsuarios()
