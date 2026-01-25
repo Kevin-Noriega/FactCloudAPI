@@ -1,4 +1,4 @@
-using   FactCloudAPI.Data;
+ï»¿using   FactCloudAPI.Data;
 using FactCloudAPI.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
@@ -69,14 +69,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             IssuerSigningKey = new SymmetricSecurityKey(key)
         };
     });
-
-builder.Services.AddControllers()
-    .AddJsonOptions(opt =>
-        opt.JsonSerializerOptions.ReferenceHandler =
-            System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles);
-
-builder.Services.AddHostedService<UsuariosDesactivadosService>();
-
 var app = builder.Build();
 
 // ===== Middleware ordenado =====
@@ -86,11 +78,25 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.MapGet("/api/db-test", async (ApplicationDbContext db) =>
+{
+    try
+    {
+        await db.Database.CanConnectAsync();
+        return Results.Ok("BD CONECTADA");
+    }
+    catch (Exception ex)
+    {
+        return Results.Problem(ex.Message);
+    }
+});
 
-app.UseHttpsRedirection();  // 1. Primero redirección HTTPS
+
+
+app.UseHttpsRedirection();  // 1. Primero redirecciÃ³n HTTPS
 app.UseCors("AllowReact");  // 2. Luego CORS
-app.UseAuthentication();    // 3. Autenticación (lee el token)
-app.UseAuthorization();     // 4. Autorización (verifica permisos)
+app.UseAuthentication();    // 3. AutenticaciÃ³n (lee el token)
+app.UseAuthorization();     // 4. AutorizaciÃ³n (verifica permisos)
 app.MapHub<NotificacionesHub>("/notificacionesHub").AllowAnonymous();
 
 app.MapControllers();       // 5. Finalmente los controllers
