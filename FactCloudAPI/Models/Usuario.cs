@@ -96,7 +96,7 @@ namespace FactCloudAPI.Models
         public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;
 
         // Relaciones
-        public ICollection<string> ResponsabilidadesRut { get; set; } = new List<string>();
+        public ICollection<string>? ResponsabilidadesRut { get; set; } = new List<string>();
 
         public ICollection<Cliente>? Clientes { get; set; }
         public ICollection<Producto>? Productos { get; set; }
