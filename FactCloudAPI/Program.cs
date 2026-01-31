@@ -1,5 +1,11 @@
 ﻿using   FactCloudAPI.Data;
 using FactCloudAPI.Services;
+using FactCloudAPI.Services.AuthLogin;
+using FactCloudAPI.Services.Clientes;
+using FactCloudAPI.Services.Productos;
+using FactCloudAPI.Services.Usuarios;
+using FactCloudAPI.Services.Facturas;
+using FactCloudAPI.Utils.Exceptions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
@@ -38,6 +44,13 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSignalR();
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IClienteService, ClienteService>();
+builder.Services.AddScoped<IProductoService, ProductoService>();
+builder.Services.AddScoped<IFacturaService, FacturaService>();
+
+
 
 // ===== Base de datos =====
 var conn = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -70,6 +83,33 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 var app = builder.Build();
+// ===== Manejo global de excepciones =====
+app.UseExceptionHandler(errorApp =>
+{
+    errorApp.Run(async context =>
+    {
+        var exception = context.Features.Get<IExceptionHandlerFeature>()?.Error;
+
+        context.Response.ContentType = "application/json";
+
+        if (exception is BusinessException)
+        {
+            context.Response.StatusCode = StatusCodes.Status400BadRequest;
+            await context.Response.WriteAsJsonAsync(new
+            {
+                mensaje = exception.Message
+            });
+        }
+        else
+        {
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            await context.Response.WriteAsJsonAsync(new
+            {
+                mensaje = "Error interno del servidor"
+            });
+        }
+    });
+});
 
 // ===== Middleware ordenado =====
 
@@ -97,7 +137,7 @@ app.UseHttpsRedirection();  // 1. Primero redirección HTTPS
 app.UseCors("AllowReact");  // 2. Luego CORS
 app.UseAuthentication();    // 3. Autenticación (lee el token)
 app.UseAuthorization();     // 4. Autorización (verifica permisos)
-app.MapHub<NotificacionesHub>("/notificacionesHub").AllowAnonymous();
+app.MapHub<NotificacionesHub>("/api/notificacionesHub").AllowAnonymous();
 
 app.MapControllers();       // 5. Finalmente los controllers
 
