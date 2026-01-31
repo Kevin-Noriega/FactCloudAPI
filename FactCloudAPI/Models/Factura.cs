@@ -1,3 +1,4 @@
+using FactCloudAPI.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -143,5 +144,9 @@ namespace FactCloudAPI.Models
                 return horasRestantes > 0 ? (int)Math.Ceiling(horasRestantes) : 0;
             }
         }
+        public ICollection<NotaDebito> NotasDebito { get; set; } = new List<NotaDebito>();
+
+
+
     }
 }

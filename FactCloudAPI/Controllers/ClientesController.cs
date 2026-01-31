@@ -1,184 +1,58 @@
-using FactCloudAPI.Data;
+using FactCloudAPI.DTOs.Clientes;
 using FactCloudAPI.Models;
+using FactCloudAPI.Services.Clientes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-namespace FactCloudAPI.Controllers
+[Authorize]
+[ApiController]
+[Route("api/[controller]")]
+public class ClientesController : ControllerBase
 {
-    [Authorize]
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ClientesController : ControllerBase
+    private readonly IClienteService _clienteService;
+
+    public ClientesController(IClienteService clienteService)
     {
-        private readonly ApplicationDbContext _context;
+        _clienteService = clienteService;
+    }
 
-        public ClientesController(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+    private int UsuarioId =>
+        int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
 
-        // GET: api/Clientes
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Cliente>>> GetClientes()
-        {
-            try
-            {
-                var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+    [HttpGet]
+    public async Task<IActionResult> Get()
+    {
+        var clientes = await _clienteService.ObtenerClientesAsync(UsuarioId);
+        return Ok(clientes);
+    }
 
+    [HttpGet("{id}")]
+    public async Task<IActionResult> Get(int id)
+    {
+        var cliente = await _clienteService.ObtenerPorIdAsync(id, UsuarioId);
+        if (cliente == null) return NotFound();
+        return Ok(cliente);
+    }
 
-                var clientes = await _context.Clientes
-                    .Where(c => c.UsuarioId == usuarioId && c.Activo == true)
-                    .ToListAsync();
+    [HttpPost]
+    public async Task<IActionResult> Post(ClienteCreateDto dto)
+    {
+        await _clienteService.CrearAsync(dto, UsuarioId);
+        return Ok(new { message = "Cliente creado correctamente" });
+    }
 
-                return Ok(clientes);
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Put(int id, ClienteCreateDto dto)
+    {
+        await _clienteService.ActualizarAsync(id, dto, UsuarioId);
+        return NoContent();
+    }
 
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error al obtener clientes", error = ex.Message });
-            }
-        }
-
-        // GET: api/Clientes/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Cliente>> GetCliente(int id)
-        {
-            try
-            {
-                var cliente = await _context.Clientes.FindAsync(id);
-
-                if (cliente == null)
-                {
-                    return NotFound(new { message = $"Cliente con ID {id} no encontrado" });
-                }
-
-                return Ok(cliente);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error al obtener cliente", error = ex.Message });
-            }
-        }
-
-        // GET: api/Clientes/usuario/1
-        [HttpGet("usuario/{usuarioId}")]
-        public async Task<ActionResult<IEnumerable<Cliente>>> GetClientesPorUsuario(int usuarioId)
-        {
-            try
-            {
-                var clientes = await _context.Clientes
-                    .Where(c => c.UsuarioId == usuarioId)
-                    .ToListAsync();
-
-                return Ok(clientes);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error al obtener clientes", error = ex.Message });
-            }
-        }
-
-        // POST: api/Clientes
-        [HttpPost]
-        public async Task<ActionResult<Cliente>> PostCliente(Cliente cliente)
-        {
-            try
-            {
-                // Validar que el usuario existe
-                var usuario = await _context.Usuarios.FindAsync(cliente.UsuarioId);
-                if (usuario == null)
-                {
-                    return BadRequest(new { message = "El usuario especificado no existe" });
-                }
-
-                _context.Clientes.Add(cliente);
-                await _context.SaveChangesAsync();
-
-                return CreatedAtAction(nameof(GetCliente), new { id = cliente.Id }, cliente);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error al crear cliente", error = ex.Message });
-            }
-        }
-
-        // PUT: api/Clientes/5
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutCliente(int id, Cliente cliente)
-        {
-            if (id != cliente.Id)
-            {
-                return BadRequest(new { message = "El ID del cliente no coincide" });
-            }
-
-            _context.Entry(cliente).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-                return NoContent();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ClienteExists(id))
-                {
-                    return NotFound(new { message = $"Cliente con ID {id} no encontrado" });
-                }
-                throw;
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error al actualizar cliente", error = ex.Message });
-            }
-        }
-
-        // DELETE: api/Clientes/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCliente(int id)
-        {
-            try
-            {
-                var cliente = await _context.Clientes.FindAsync(id);
-
-                if (cliente == null)
-                {
-                    return NotFound(new { message = $"Cliente con ID {id} no encontrado" });
-                }
-
-                _context.Clientes.Remove(cliente);
-                await _context.SaveChangesAsync();
-
-                return Ok(new { message = "Cliente eliminado correctamente" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error al eliminar cliente", error = ex.Message });
-            }
-        }
-
-        [HttpPut("desactivar/{id}")]
-        public async Task<IActionResult> DesactivarCliente(int id)
-        {
-            var cliente = await _context.Clientes.FindAsync(id);
-
-            if (cliente == null)
-                return NotFound();
-
-            cliente.Activo = false;
-
-            await _context.SaveChangesAsync();
-
-            return Ok(new { message = "Cliente desactivado correctamente" });
-        }
-
-
-        // Método auxiliar para verificar si existe un cliente
-        private bool ClienteExists(int id)
-        {
-            return _context.Clientes.Any(e => e.Id == id);
-
-        }
+    [HttpPut("desactivar/{id}")]
+    public async Task<IActionResult> Desactivar(int id)
+    {
+        await _clienteService.DesactivarAsync(id, UsuarioId);
+        return Ok(new { message = "Cliente desactivado" });
     }
 }

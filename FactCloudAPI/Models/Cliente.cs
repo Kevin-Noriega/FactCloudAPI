@@ -96,5 +96,8 @@ public string? RegimenFiscal { get; set; }
 
         // Relación 1:N con Facturas
         public ICollection<Factura>? Facturas { get; set; }
+
+        public ICollection<FactCloudAPI.Models.NotaDebito> NotasDebito { get; set; }
+
     }
 }

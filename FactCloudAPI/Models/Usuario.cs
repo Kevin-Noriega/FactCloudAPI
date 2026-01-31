@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-
+using FactCloudAPI.Models;
 namespace FactCloudAPI.Models
 {
     public class Usuario
@@ -96,10 +96,13 @@ namespace FactCloudAPI.Models
         public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;
 
         // Relaciones
-        public ICollection<string> ResponsabilidadesRut { get; set; } = new List<string>();
+        public ICollection<string>? ResponsabilidadesRut { get; set; } = new List<string>();
 
         public ICollection<Cliente>? Clientes { get; set; }
         public ICollection<Producto>? Productos { get; set; }
         public ICollection<Factura>? Facturas { get; set; }
+        public ICollection<FactCloudAPI.Models.NotaDebito> NotasDebito { get; set; }
+
+
     }
 }

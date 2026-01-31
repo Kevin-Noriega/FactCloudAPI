@@ -1,4 +1,5 @@
-﻿using FactCloudAPI.Data;
+
+using FactCloudAPI.Data;
 using FactCloudAPI.DTOs.NotaCredito;
 using FactCloudAPI.DTOs.NotaDebito;
 using FactCloudAPI.Models;
@@ -432,6 +433,13 @@ namespace FactCloudAPI.Controllers
             {
                 return StatusCode(500, new { message = "Error al eliminar nota crédito", error = ex.Message });
             }
+        }
+    }
+
+namespace FactCloudAPI.Controllers
+    {
+        public class NotaCreditoController
+        {
         }
     }
 }

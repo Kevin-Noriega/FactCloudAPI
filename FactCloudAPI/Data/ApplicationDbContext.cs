@@ -24,42 +24,54 @@ namespace FactCloudAPI.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Cliente -> Usuario (relación 1:N)
+            // ===============================
+            // CLIENTE -> USUARIO (1:N)
+            // ===============================
             modelBuilder.Entity<Cliente>()
                 .HasOne(c => c.Usuario)
                 .WithMany(u => u.Clientes)
                 .HasForeignKey(c => c.UsuarioId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Producto -> Usuario (relación 1:N)
+            // ===============================
+            // PRODUCTO -> USUARIO (1:N)
+            // ===============================
             modelBuilder.Entity<Producto>()
                 .HasOne(p => p.Usuario)
                 .WithMany(u => u.Productos)
                 .HasForeignKey(p => p.UsuarioId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Factura -> Usuario (relación 1:N)
+            // ===============================
+            // FACTURA -> USUARIO (1:N)
+            // ===============================
             modelBuilder.Entity<Factura>()
                 .HasOne(f => f.Usuario)
                 .WithMany(u => u.Facturas)
                 .HasForeignKey(f => f.UsuarioId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // Factura -> Cliente (relación 1:N)
+            // ===============================
+            // FACTURA -> CLIENTE (1:N)
+            // ===============================
             modelBuilder.Entity<Factura>()
                 .HasOne(f => f.Cliente)
                 .WithMany(c => c.Facturas)
                 .HasForeignKey(f => f.ClienteId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // DetalleFactura -> Factura (relación 1:N con cascada)
+            // ===============================
+            // DETALLE FACTURA -> FACTURA (1:N, CASCADE)
+            // ===============================
             modelBuilder.Entity<DetalleFactura>()
                 .HasOne(d => d.Factura)
                 .WithMany(f => f.DetalleFacturas)
                 .HasForeignKey(d => d.FacturaId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // DetalleFactura -> Producto (relación 1:N)
+            // ===============================
+            // DETALLE FACTURA -> PRODUCTO (1:N)
+            // ===============================
             modelBuilder.Entity<DetalleFactura>()
                 .HasOne(d => d.Producto)
                 .WithMany()
@@ -221,5 +233,6 @@ namespace FactCloudAPI.Data
                     .HasDefaultValue("Efectivo");
             });
         }
+
     }
 }
