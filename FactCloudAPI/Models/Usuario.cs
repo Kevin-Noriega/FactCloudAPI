@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-
+using FactCloudAPI.Models.NotasDebito;
 namespace FactCloudAPI.Models
 {
     public class Usuario
@@ -101,5 +101,8 @@ namespace FactCloudAPI.Models
         public ICollection<Cliente>? Clientes { get; set; }
         public ICollection<Producto>? Productos { get; set; }
         public ICollection<Factura>? Facturas { get; set; }
+        public ICollection<FactCloudAPI.Models.NotasDebito.NotaDebito> NotasDebito { get; set; }
+
+
     }
 }
