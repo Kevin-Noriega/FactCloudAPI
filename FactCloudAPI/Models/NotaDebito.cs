@@ -88,7 +88,7 @@ namespace FactCloudAPI.Models
             public string? Observaciones { get; set; }
 
             // Colecciones
-            public ICollection<DetalleNotaDebito> DetalleNotaDebito { get; set; } = new List<DetalleNotaDebito>();
+            public ICollection<DetalleNotaDebito> Detalles{ get; set; } = new List<DetalleNotaDebito>();
             public ICollection<FormaPagoNotaDebito> FormasPago { get; set; } = new List<FormaPagoNotaDebito>();
         }
     
