@@ -1,7 +1,6 @@
 ﻿using FactCloudAPI.Data;
 using FactCloudAPI.DTOs.Productos;
 using FactCloudAPI.Models;
-using FactCloudAPI.Models.DTOs;
 using FactCloudAPI.Services.Productos;
 using Microsoft.EntityFrameworkCore;
 

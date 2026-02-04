@@ -3,6 +3,7 @@ using FactCloudAPI.DTOs.Usuarios;
 using FactCloudAPI.Models;
 using FactCloudAPI.Utils.Exceptions;
 using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations;
 
 namespace FactCloudAPI.Services.Usuarios
 {
@@ -99,7 +100,15 @@ namespace FactCloudAPI.Services.Usuarios
                 Correo = usuario.Correo,
                 Telefono = usuario.Telefono,
                 Estado = usuario.Estado,
-                FechaRegistro = usuario.FechaRegistro
+                NombreNegocio = usuario.NombreNegocio,
+                NitNegocio = usuario.NitNegocio,
+               DireccionNegocio = usuario.DireccionNegocio,
+                CiudadNegocio = usuario.CiudadNegocio,
+                DepartamentoNegocio = usuario.DepartamentoNegocio,
+                CorreoNegocio = usuario.CorreoNegocio,
+                LogoNegocio = usuario.LogoNegocio,
+                TelefonoNegocio = usuario.TelefonoNegocio,
+                 FechaRegistro = usuario.FechaRegistro
             };
         }
 

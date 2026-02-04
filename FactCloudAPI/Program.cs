@@ -2,9 +2,9 @@
 using FactCloudAPI.Services;
 using FactCloudAPI.Services.AuthLogin;
 using FactCloudAPI.Services.Clientes;
+using FactCloudAPI.Services.Facturas;
 using FactCloudAPI.Services.Productos;
 using FactCloudAPI.Services.Usuarios;
-using FactCloudAPI.Services.Facturas;
 using FactCloudAPI.Utils.Exceptions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
@@ -49,6 +49,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IProductoService, ProductoService>();
 builder.Services.AddScoped<IFacturaService, FacturaService>();
+builder.Services.AddScoped<IDocumentoSoporteService, DocumentoSoporteService>();
 
 
 
@@ -66,8 +67,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // ===== Servicios =====
 builder.Services.AddScoped<IEmailService, EmailService>();
 
-// ===== JWT Config =====
-var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key missing"));
+
+    // ===== JWT Config =====
+    var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key missing"));
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {

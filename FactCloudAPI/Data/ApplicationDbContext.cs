@@ -19,6 +19,7 @@ namespace FactCloudAPI.Data
         public DbSet<NotaCredito> NotasCredito { get; set; }
         public DbSet<DetalleNotaCredito> DetalleNotaCredito { get; set; }
         public DbSet<FormaPagoNotaCredito> FormasPagoNotaCredito { get; set; }
+        public DbSet<DocumentoSoporte> DocumentosSoporte { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
