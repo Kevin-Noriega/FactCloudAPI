@@ -52,6 +52,7 @@ builder.Services.AddScoped<IProductoService, ProductoService>();
 builder.Services.AddScoped<IFacturaService, FacturaService>();
 builder.Services.AddHttpClient<WompiService>();
 builder.Services.AddScoped<WompiService>();
+builder.Services.AddScoped<IDocumentoSoporteService, DocumentoSoporteService>();
 
 
 
@@ -69,8 +70,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // ===== Servicios =====
 builder.Services.AddScoped<IEmailService, EmailService>();
 
-// ===== JWT Config =====
-var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key missing"));
+
+    // ===== JWT Config =====
+    var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key missing"));
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
