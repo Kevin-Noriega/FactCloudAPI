@@ -105,6 +105,7 @@ namespace FactCloudAPI.Controllers
 
             var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             var usuario = await _context.Usuarios.FindAsync(usuarioId);
+            var negocio = await _context.Negocios.FindAsync(usuarioId);
 
             if (usuario == null)
                 return NotFound("Usuario no encontrado");
@@ -128,7 +129,7 @@ namespace FactCloudAPI.Controllers
                 prefijo,
                 nuevoConsecutivo,
                 DateTime.Now,
-                usuario.NitNegocio ?? usuario.NumeroIdentificacion ?? "",
+                negocio.Nit ?? usuario.NumeroIdentificacion ?? "",
                 documentoDto.ProveedorNit,
                 documentoDto.ValorTotal,
                 nitSoftware,
@@ -169,7 +170,7 @@ namespace FactCloudAPI.Controllers
             // Generar XML
             try
             {
-                var xmlContent = _documentoService.GenerarXML(documento, usuario);
+                var xmlContent = _documentoService.GenerarXML(documento, usuario, negocio);
                 var carpetaXML = Path.Combine(Directory.GetCurrentDirectory(), "documentos", "xml");
                 Directory.CreateDirectory(carpetaXML);
 

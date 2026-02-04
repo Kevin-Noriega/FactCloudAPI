@@ -102,14 +102,6 @@ namespace FactCloudAPI.Services.Usuarios
                 Correo = usuario.Correo,
                 Telefono = usuario.Telefono,
                 Estado = usuario.Estado,
-                NombreNegocio = usuario.NombreNegocio,
-                NitNegocio = usuario.NitNegocio,
-               DireccionNegocio = usuario.DireccionNegocio,
-                CiudadNegocio = usuario.CiudadNegocio,
-                DepartamentoNegocio = usuario.DepartamentoNegocio,
-                CorreoNegocio = usuario.CorreoNegocio,
-                LogoNegocio = usuario.LogoNegocio,
-                TelefonoNegocio = usuario.TelefonoNegocio,
                  FechaRegistro = usuario.FechaRegistro
             };
         }

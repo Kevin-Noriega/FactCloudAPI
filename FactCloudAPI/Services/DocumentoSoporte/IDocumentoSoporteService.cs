@@ -1,4 +1,5 @@
 ﻿using FactCloudAPI.Models;
+using FactCloudAPI.Models.Usuarios;
 using System.Security.Cryptography;
 using System.Text;
 using System.Xml.Linq;
@@ -9,7 +10,7 @@ namespace FactCloudAPI.Services
     {
         string GenerarCUDS(string prefijo, int consecutivo, DateTime fecha, string nitAdquiriente,
             string nitProveedor, decimal valorTotal, string nitSoftwareProvider, string pinSoftware);
-        string GenerarXML(DocumentoSoporte documento, Usuario usuario);
+        string GenerarXML(DocumentoSoporte documento, Usuario usuario, Negocio negocio);
         byte[] GenerarPDF(DocumentoSoporte documento, Usuario usuario);
         Task<bool> EnviarADIAN(DocumentoSoporte documento, string xmlContent);
     }
@@ -58,7 +59,7 @@ namespace FactCloudAPI.Services
         /// <summary>
         /// Genera el XML del documento soporte según anexo técnico DIAN
         /// </summary>
-        public string GenerarXML(DocumentoSoporte documento, Usuario usuario)
+        public string GenerarXML(DocumentoSoporte documento, Usuario usuario, Negocio negocio )
         {
             XNamespace cac = "urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2";
             XNamespace cbc = "urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2";
@@ -111,19 +112,19 @@ namespace FactCloudAPI.Services
                                     new XAttribute("schemeID", usuario.TipoIdentificacion),
                                     usuario.NumeroIdentificacion)),
                             new XElement(cac + "PartyName",
-                                new XElement(cbc + "Name", usuario.NombreNegocio)),
+                                new XElement(cbc + "Name", negocio.NombreNegocio)),
                             new XElement(cac + "PhysicalLocation",
                                 new XElement(cac + "Address",
                                     new XElement(cbc + "ID", "11001"), // Código ciudad
-                                    new XElement(cbc + "CityName", usuario.CiudadNegocio),
-                                    new XElement(cbc + "CountrySubentity", usuario.DepartamentoNegocio),
+                                    new XElement(cbc + "CityName", negocio.Ciudad),
+                                    new XElement(cbc + "CountrySubentity", negocio.Departamento),
                                     new XElement(cbc + "CountrySubentityCode", "11"),
                                     new XElement(cac + "AddressLine",
-                                        new XElement(cbc + "Line", usuario.DireccionNegocio)),
+                                        new XElement(cbc + "Line", negocio.Direccion)),
                                     new XElement(cac + "Country",
                                         new XElement(cbc + "IdentificationCode", "CO")))),
                             new XElement(cac + "PartyTaxScheme",
-                                new XElement(cbc + "RegistrationName", usuario.NombreNegocio),
+                                new XElement(cbc + "RegistrationName", negocio.NombreNegocio),
                                 new XElement(cbc + "CompanyID",
                                     new XAttribute("schemeName", usuario.TipoIdentificacion),
                                     usuario.NumeroIdentificacion),

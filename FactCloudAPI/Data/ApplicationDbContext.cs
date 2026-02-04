@@ -22,6 +22,11 @@ namespace FactCloudAPI.Data
         public DbSet<NotaCredito> NotasCredito { get; set; }
         public DbSet<DetalleNotaCredito> DetalleNotaCredito { get; set; }
         public DbSet<FormaPagoNotaCredito> FormasPagoNotaCredito { get; set; }
+        public DbSet<DocumentoSoporte> DocumentosSoporte { get; set; }
+        public DbSet<SuscripcionFacturacion> SuscripcionesFacturacion { get; set; }
+        public DbSet<PlanFacturacion> PlanesFacturacion { get; set; }
+        public DbSet<Negocio> Negocios { get; set; }
+        public DbSet<ConfiguracionDian> ConfiguracionesDian { get; set; }
 
 
 
