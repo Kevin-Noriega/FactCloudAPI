@@ -49,6 +49,8 @@ namespace FactCloudAPI.Services.Usuarios
                 Apellido = dto.Apellido,
                 Correo = dto.Correo,
                 Telefono = dto.Telefono,
+                TipoIdentificacion = dto.TipoIdentificacion,
+                NumeroIdentificacion = dto.NumeroIdentificacion,
                 ContrasenaHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
                 FechaRegistro = DateTime.UtcNow,
                 Estado = true

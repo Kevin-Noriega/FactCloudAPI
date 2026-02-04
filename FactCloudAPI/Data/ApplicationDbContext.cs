@@ -1,4 +1,7 @@
 ﻿using FactCloudAPI.Models;
+using FactCloudAPI.Models.Planes;
+using FactCloudAPI.Models.Suscripciones;
+using FactCloudAPI.Models.Usuarios;
 using Microsoft.EntityFrameworkCore;
 
 namespace FactCloudAPI.Data
@@ -19,7 +22,8 @@ namespace FactCloudAPI.Data
         public DbSet<NotaCredito> NotasCredito { get; set; }
         public DbSet<DetalleNotaCredito> DetalleNotaCredito { get; set; }
         public DbSet<FormaPagoNotaCredito> FormasPagoNotaCredito { get; set; }
-        public DbSet<DocumentoSoporte> DocumentosSoporte { get; set; }
+
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -33,6 +37,19 @@ namespace FactCloudAPI.Data
                 .WithMany(u => u.Clientes)
                 .HasForeignKey(c => c.UsuarioId)
                 .OnDelete(DeleteBehavior.Restrict);
+            // Usuario → Negocio (1 a 1)
+            modelBuilder.Entity<Usuario>()
+                .HasOne(u => u.Negocio)
+                .WithOne(n => n.Usuario)
+                .HasForeignKey<Negocio>(n => n.UsuarioId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Negocio → ConfiguracionDian (1 a 1)
+            modelBuilder.Entity<Negocio>()
+                .HasOne(n => n.ConfiguracionDIAN)
+                .WithOne(c => c.Negocio)
+                .HasForeignKey<ConfiguracionDian>(c => c.NegocioId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // ===============================
             // PRODUCTO -> USUARIO (1:N)
@@ -78,6 +95,41 @@ namespace FactCloudAPI.Data
                 .WithMany()
                 .HasForeignKey(d => d.ProductoId)
                 .OnDelete(DeleteBehavior.Restrict);
+            // ===============================
+            // SUSCRIPCION FACTURACION -> USUARIO (1:N)
+            modelBuilder.Entity<SuscripcionFacturacion>()
+               .HasOne(s => s.Usuario)
+               .WithMany(u => u.Suscripciones)
+                .HasForeignKey(s => s.UsuarioId);
+
+            modelBuilder.Entity<SuscripcionFacturacion>()
+                .HasOne(s => s.PlanFacturacion)
+                .WithMany(p => p.Suscripciones)
+                .HasForeignKey(s => s.PlanFacturacionId);
+            modelBuilder.Entity<PlanFacturacion>().HasData(
+                 new PlanFacturacion
+                 {
+                     Id = 1,
+                     Codigo = "STARTER",
+                     Nombre = "Starter",
+                     PrecioMensual = 5900,
+                     PrecioAnual = 70800,
+                     LimiteDocumentosMensual = 100,
+                     LimiteUsuarios = 1,
+                     Activo = true
+                 },
+                  new PlanFacturacion
+                  {
+                      Id = 2,
+                      Codigo = "PAY_PER_USE",
+                      Nombre = "Pago por Uso",
+                      PrecioMensual = 0,
+                      PrecioAnual = 0,
+                      LimiteDocumentosMensual = null,
+                      LimiteUsuarios = null,
+                      Activo = true
+                  }
+            );
 
             modelBuilder.Entity<Factura>()
         .Property(f => f.MontoPagado)
