@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FactCloudAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260131190331_AgregarNotasCredito")]
-    partial class AgregarNotasCredito
+    [Migration("20260204045146_arreglos clientes")]
+    partial class arreglosclientes
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -409,6 +409,7 @@ namespace FactCloudAPI.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<decimal?>("MontoPagado")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("NumeroFactura")
@@ -638,6 +639,9 @@ namespace FactCloudAPI.Migrations
                     b.Property<int?>("ClienteId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("ClienteId1")
+                        .HasColumnType("int");
+
                     b.Property<string>("Estado")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -646,6 +650,9 @@ namespace FactCloudAPI.Migrations
                         .HasDefaultValue("Pendiente");
 
                     b.Property<int>("FacturaId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("FacturaId1")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("FechaElaboracion")
@@ -701,6 +708,9 @@ namespace FactCloudAPI.Migrations
                     b.Property<int>("UsuarioId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("UsuarioId1")
+                        .HasColumnType("int");
+
                     b.Property<string>("XMLBase64")
                         .HasColumnType("nvarchar(max)");
 
@@ -708,15 +718,21 @@ namespace FactCloudAPI.Migrations
 
                     b.HasIndex("ClienteId");
 
+                    b.HasIndex("ClienteId1");
+
                     b.HasIndex("Estado");
 
                     b.HasIndex("FacturaId");
+
+                    b.HasIndex("FacturaId1");
 
                     b.HasIndex("FechaElaboracion");
 
                     b.HasIndex("NumeroNota");
 
                     b.HasIndex("UsuarioId");
+
+                    b.HasIndex("UsuarioId1");
 
                     b.ToTable("NotasDebito");
                 });
@@ -952,7 +968,6 @@ namespace FactCloudAPI.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.PrimitiveCollection<string>("ResponsabilidadesRut")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SoftwarePIN")
@@ -1037,7 +1052,7 @@ namespace FactCloudAPI.Migrations
             modelBuilder.Entity("FactCloudAPI.Models.DetalleNotaDebito", b =>
                 {
                     b.HasOne("FactCloudAPI.Models.NotaDebito", "NotaDebito")
-                        .WithMany("DetalleNotaDebito")
+                        .WithMany("Detalles")
                         .HasForeignKey("NotaDebitoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1127,17 +1142,29 @@ namespace FactCloudAPI.Migrations
                         .HasForeignKey("ClienteId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("FactCloudAPI.Models.Cliente", null)
+                        .WithMany("NotasDebito")
+                        .HasForeignKey("ClienteId1");
+
                     b.HasOne("FactCloudAPI.Models.Factura", "Factura")
                         .WithMany()
                         .HasForeignKey("FacturaId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("FactCloudAPI.Models.Factura", null)
+                        .WithMany("NotasDebito")
+                        .HasForeignKey("FacturaId1");
+
                     b.HasOne("FactCloudAPI.Models.Usuario", "Usuario")
                         .WithMany()
                         .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.HasOne("FactCloudAPI.Models.Usuario", null)
+                        .WithMany("NotasDebito")
+                        .HasForeignKey("UsuarioId1");
 
                     b.Navigation("Cliente");
 
@@ -1160,11 +1187,15 @@ namespace FactCloudAPI.Migrations
             modelBuilder.Entity("FactCloudAPI.Models.Cliente", b =>
                 {
                     b.Navigation("Facturas");
+
+                    b.Navigation("NotasDebito");
                 });
 
             modelBuilder.Entity("FactCloudAPI.Models.Factura", b =>
                 {
                     b.Navigation("DetalleFacturas");
+
+                    b.Navigation("NotasDebito");
                 });
 
             modelBuilder.Entity("FactCloudAPI.Models.NotaCredito", b =>
@@ -1176,7 +1207,7 @@ namespace FactCloudAPI.Migrations
 
             modelBuilder.Entity("FactCloudAPI.Models.NotaDebito", b =>
                 {
-                    b.Navigation("DetalleNotaDebito");
+                    b.Navigation("Detalles");
 
                     b.Navigation("FormasPago");
                 });
@@ -1191,6 +1222,8 @@ namespace FactCloudAPI.Migrations
                     b.Navigation("Clientes");
 
                     b.Navigation("Facturas");
+
+                    b.Navigation("NotasDebito");
 
                     b.Navigation("Productos");
                 });

@@ -78,6 +78,10 @@ namespace FactCloudAPI.Data
                 .HasForeignKey(d => d.ProductoId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            modelBuilder.Entity<Factura>()
+        .Property(f => f.MontoPagado)
+        .HasPrecision(18, 2);
+
             // NotaDebito
             modelBuilder.Entity<NotaDebito>(entity =>
             {
@@ -118,7 +122,7 @@ namespace FactCloudAPI.Data
                 entity.HasKey(d => d.Id);
 
                 entity.HasOne(d => d.NotaDebito)
-                    .WithMany(nd => nd.DetalleNotaDebito)
+                    .WithMany(nd => nd.Detalles)
                     .HasForeignKey(d => d.NotaDebitoId)
                     .OnDelete(DeleteBehavior.Cascade);
 

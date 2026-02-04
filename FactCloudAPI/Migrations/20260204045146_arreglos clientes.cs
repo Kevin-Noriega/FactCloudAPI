@@ -5,7 +5,7 @@
 namespace FactCloudAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class actualizacion20 : Migration
+    public partial class arreglosclientes : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

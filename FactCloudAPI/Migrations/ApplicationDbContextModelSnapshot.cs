@@ -406,6 +406,7 @@ namespace FactCloudAPI.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<decimal?>("MontoPagado")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("NumeroFactura")
@@ -463,7 +464,6 @@ namespace FactCloudAPI.Migrations
                 });
 
             modelBuilder.Entity("FactCloudAPI.Models.FormaPagoNotaCredito", b =>
-            modelBuilder.Entity("FactCloudAPI.Models.NotasDebito.NotaDebito", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -481,98 +481,7 @@ namespace FactCloudAPI.Migrations
                     b.Property<int>("NotaCreditoId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("Valor");
-                    b.Property<string>("ArchivoAdjunto")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("ClienteId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("FacturaId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("FechaCreacion")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("FechaElaboracion")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Numero")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Observaciones")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("Subtotal")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Tipo")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("TotalBruto")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("TotalDescuentos")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("TotalNeto")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("VendedorId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ClienteId");
-
-                    b.HasIndex("FacturaId");
-
-                    b.HasIndex("UsuarioId");
-
-                    b.HasIndex("VendedorId");
-
-                    b.ToTable("NotasDebito");
-                }));
-
-            modelBuilder.Entity("FactCloudAPI.Models.NotasDebito.NotaDebitoDetalle", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Cantidad")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Descripcion")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("ImpuestoCargo")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("ImpuestoRetencion")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("NotaDebitoId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("PorcentajeDescuento")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("ProductoId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("ValorTotal")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("ValorUnitario")
+                    b.Property<decimal>("Valor")
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
@@ -583,15 +492,6 @@ namespace FactCloudAPI.Migrations
                 });
 
             modelBuilder.Entity("FactCloudAPI.Models.FormaPagoNotaDebito", b =>
-            { 
-                    b.HasIndex("NotaDebitoId");
-
-                    b.HasIndex("ProductoId");
-
-                    b.ToTable("NotaDebitoDetalle");
-                });
-
-            modelBuilder.Entity("FactCloudAPI.Models.NotasDebito.NotaDebitoPago", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -605,9 +505,6 @@ namespace FactCloudAPI.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)")
                         .HasDefaultValue("Efectivo");
-                    b.Property<string>("FormaPago")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("NotaDebitoId")
                         .HasColumnType("int");
@@ -739,6 +636,9 @@ namespace FactCloudAPI.Migrations
                     b.Property<int?>("ClienteId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("ClienteId1")
+                        .HasColumnType("int");
+
                     b.Property<string>("Estado")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -747,6 +647,9 @@ namespace FactCloudAPI.Migrations
                         .HasDefaultValue("Pendiente");
 
                     b.Property<int>("FacturaId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("FacturaId1")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("FechaElaboracion")
@@ -802,6 +705,9 @@ namespace FactCloudAPI.Migrations
                     b.Property<int>("UsuarioId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("UsuarioId1")
+                        .HasColumnType("int");
+
                     b.Property<string>("XMLBase64")
                         .HasColumnType("nvarchar(max)");
 
@@ -809,9 +715,13 @@ namespace FactCloudAPI.Migrations
 
                     b.HasIndex("ClienteId");
 
+                    b.HasIndex("ClienteId1");
+
                     b.HasIndex("Estado");
 
                     b.HasIndex("FacturaId");
+
+                    b.HasIndex("FacturaId1");
 
                     b.HasIndex("FechaElaboracion");
 
@@ -819,8 +729,9 @@ namespace FactCloudAPI.Migrations
 
                     b.HasIndex("UsuarioId");
 
+                    b.HasIndex("UsuarioId1");
+
                     b.ToTable("NotasDebito");
-                    b.ToTable("NotaDebitoPago");
                 });
 
             modelBuilder.Entity("FactCloudAPI.Models.Producto", b =>
@@ -1138,7 +1049,7 @@ namespace FactCloudAPI.Migrations
             modelBuilder.Entity("FactCloudAPI.Models.DetalleNotaDebito", b =>
                 {
                     b.HasOne("FactCloudAPI.Models.NotaDebito", "NotaDebito")
-                        .WithMany("DetalleNotaDebito")
+                        .WithMany("Detalles")
                         .HasForeignKey("NotaDebitoId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -1187,186 +1098,133 @@ namespace FactCloudAPI.Migrations
             modelBuilder.Entity("FactCloudAPI.Models.FormaPagoNotaDebito", b =>
                 {
                     b.HasOne("FactCloudAPI.Models.NotaDebito", "NotaDebito")
-                        .WithMany("FormasPago");
-                    modelBuilder.Entity("FactCloudAPI.Models.NotasDebito.NotaDebito", b =>
-                        {
-                            b.HasOne("FactCloudAPI.Models.Cliente", "Cliente")
-                                .WithMany("NotasDebito")
-                                .HasForeignKey("ClienteId")
-                                .OnDelete(DeleteBehavior.Restrict)
-                                .IsRequired();
+                        .WithMany("FormasPago")
+                        .HasForeignKey("NotaDebitoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                            b.HasOne("FactCloudAPI.Models.Factura", "Factura")
-                                .WithMany("NotasDebito")
-                                .HasForeignKey("FacturaId")
-                                .OnDelete(DeleteBehavior.Restrict)
-                                .IsRequired();
-
-                            b.HasOne("FactCloudAPI.Models.Usuario", "Usuario")
-                                .WithMany("NotasDebito")
-                                .HasForeignKey("UsuarioId")
-                                .OnDelete(DeleteBehavior.Restrict)
-                                .IsRequired();
-
-                            b.HasOne("FactCloudAPI.Models.Usuario", "Vendedor")
-                                .WithMany()
-                                .HasForeignKey("VendedorId")
-                                .OnDelete(DeleteBehavior.Cascade)
-                                .IsRequired();
-
-                            b.Navigation("Cliente");
-
-                            b.Navigation("Factura");
-
-                            b.Navigation("Usuario");
-
-                            b.Navigation("Vendedor");
-                        });
-
-                    modelBuilder.Entity("FactCloudAPI.Models.NotasDebito.NotaDebitoDetalle", b =>
-                        {
-                            b.HasOne("FactCloudAPI.Models.NotasDebito.NotaDebito", "NotaDebito")
-                                .WithMany("Detalles")
-                                .HasForeignKey("NotaDebitoId")
-                                .OnDelete(DeleteBehavior.Cascade)
-                                .IsRequired();
-
-                            b.HasOne("FactCloudAPI.Models.Producto", "Producto")
-                                .WithMany()
-                                .HasForeignKey("ProductoId")
-                                .OnDelete(DeleteBehavior.Cascade)
-                                .IsRequired();
-
-                            b.Navigation("NotaDebito");
-
-                            b.Navigation("Producto");
-                        });
-
-                    modelBuilder.Entity("FactCloudAPI.Models.NotasDebito.NotaDebitoPago", b =>
-                        {
-                            b.HasOne("FactCloudAPI.Models.NotasDebito.NotaDebito", "NotaDebito")
-                                .WithMany("Pagos")
-                                .HasForeignKey("NotaDebitoId")
-                                .OnDelete(DeleteBehavior.Cascade)
-                                .IsRequired();
-
-                            b.Navigation("NotaDebito");
-                        });
-
-                    modelBuilder.Entity("FactCloudAPI.Models.NotaCredito", b =>
-                        {
-                            b.HasOne("FactCloudAPI.Models.Cliente", "Cliente")
-                                .WithMany()
-                                .HasForeignKey("ClienteId")
-                                .OnDelete(DeleteBehavior.SetNull);
-
-                            b.HasOne("FactCloudAPI.Models.Factura", "Factura")
-                                .WithMany()
-                                .HasForeignKey("FacturaId")
-                                .OnDelete(DeleteBehavior.Restrict)
-                                .IsRequired();
-
-                            b.HasOne("FactCloudAPI.Models.Usuario", "Usuario")
-                                .WithMany()
-                                .HasForeignKey("UsuarioId")
-                                .OnDelete(DeleteBehavior.Restrict)
-                                .IsRequired();
-
-                            b.Navigation("Cliente");
-
-                            b.Navigation("Factura");
-
-                            b.Navigation("Usuario");
-                        });
-
-                    modelBuilder.Entity("FactCloudAPI.Models.NotaDebito", b =>
-                        {
-                            b.HasOne("FactCloudAPI.Models.Cliente", "Cliente")
-                                .WithMany()
-                                .HasForeignKey("ClienteId")
-                                .OnDelete(DeleteBehavior.SetNull);
-
-                            b.HasOne("FactCloudAPI.Models.Factura", "Factura")
-                                .WithMany()
-                                .HasForeignKey("FacturaId")
-                                .OnDelete(DeleteBehavior.Restrict)
-                                .IsRequired();
-
-                            b.HasOne("FactCloudAPI.Models.Usuario", "Usuario")
-                                .WithMany()
-                                .HasForeignKey("UsuarioId")
-                                .OnDelete(DeleteBehavior.Restrict)
-                                .IsRequired();
-
-                            b.Navigation("Cliente");
-
-                            b.Navigation("Factura");
-
-                            b.Navigation("Usuario");
-                        });
-
-                    modelBuilder.Entity("FactCloudAPI.Models.Producto", b =>
-                        {
-                            b.HasOne("FactCloudAPI.Models.Usuario", "Usuario")
-                                .WithMany("Productos")
-                                .HasForeignKey("UsuarioId")
-                                .OnDelete(DeleteBehavior.Restrict)
-                                .IsRequired();
-
-                            b.Navigation("Usuario");
-                        });
-
-                    modelBuilder.Entity("FactCloudAPI.Models.Cliente", b =>
-                        {
-                            b.Navigation("Facturas");
-
-                            b.Navigation("NotasDebito");
-                        });
-
-                    modelBuilder.Entity("FactCloudAPI.Models.Factura", b =>
-                        {
-                            b.Navigation("DetalleFacturas");
-
-                            b.Navigation("NotasDebito");
-                        });
-
-                    modelBuilder.Entity("FactCloudAPI.Models.NotasDebito.NotaDebito", b =>
-                        {
-                            b.Navigation("Detalles");
-
-                            b.Navigation("Pagos");
-                        });
-
-                    modelBuilder.Entity("FactCloudAPI.Models.NotaCredito", b =>
-                        {
-                            b.Navigation("DetalleNotaCredito");
-
-                            b.Navigation("FormasPago");
-                        });
-
-                    modelBuilder.Entity("FactCloudAPI.Models.NotaDebito", b =>
-                        {
-                            b.Navigation("DetalleNotaDebito");
-
-                            b.Navigation("FormasPago");
-                        });
-
-                    modelBuilder.Entity("FactCloudAPI.Models.Producto", b =>
-                        {
-                            b.Navigation("DetalleFacturas");
-                        });
-
-                    modelBuilder.Entity("FactCloudAPI.Models.Usuario", b =>
-                        {
-                            b.Navigation("Clientes");
-
-                            b.Navigation("Facturas");
-
-                            b.Navigation("NotasDebito");
-
-                            b.Navigation("Productos");
-                        });
+                    b.Navigation("NotaDebito");
                 });
-                }
+
+            modelBuilder.Entity("FactCloudAPI.Models.NotaCredito", b =>
+                {
+                    b.HasOne("FactCloudAPI.Models.Cliente", "Cliente")
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("FactCloudAPI.Models.Factura", "Factura")
+                        .WithMany()
+                        .HasForeignKey("FacturaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FactCloudAPI.Models.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Cliente");
+
+                    b.Navigation("Factura");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("FactCloudAPI.Models.NotaDebito", b =>
+                {
+                    b.HasOne("FactCloudAPI.Models.Cliente", "Cliente")
+                        .WithMany()
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("FactCloudAPI.Models.Cliente", null)
+                        .WithMany("NotasDebito")
+                        .HasForeignKey("ClienteId1");
+
+                    b.HasOne("FactCloudAPI.Models.Factura", "Factura")
+                        .WithMany()
+                        .HasForeignKey("FacturaId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FactCloudAPI.Models.Factura", null)
+                        .WithMany("NotasDebito")
+                        .HasForeignKey("FacturaId1");
+
+                    b.HasOne("FactCloudAPI.Models.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FactCloudAPI.Models.Usuario", null)
+                        .WithMany("NotasDebito")
+                        .HasForeignKey("UsuarioId1");
+
+                    b.Navigation("Cliente");
+
+                    b.Navigation("Factura");
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("FactCloudAPI.Models.Producto", b =>
+                {
+                    b.HasOne("FactCloudAPI.Models.Usuario", "Usuario")
+                        .WithMany("Productos")
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("FactCloudAPI.Models.Cliente", b =>
+                {
+                    b.Navigation("Facturas");
+
+                    b.Navigation("NotasDebito");
+                });
+
+            modelBuilder.Entity("FactCloudAPI.Models.Factura", b =>
+                {
+                    b.Navigation("DetalleFacturas");
+
+                    b.Navigation("NotasDebito");
+                });
+
+            modelBuilder.Entity("FactCloudAPI.Models.NotaCredito", b =>
+                {
+                    b.Navigation("DetalleNotaCredito");
+
+                    b.Navigation("FormasPago");
+                });
+
+            modelBuilder.Entity("FactCloudAPI.Models.NotaDebito", b =>
+                {
+                    b.Navigation("Detalles");
+
+                    b.Navigation("FormasPago");
+                });
+
+            modelBuilder.Entity("FactCloudAPI.Models.Producto", b =>
+                {
+                    b.Navigation("DetalleFacturas");
+                });
+
+            modelBuilder.Entity("FactCloudAPI.Models.Usuario", b =>
+                {
+                    b.Navigation("Clientes");
+
+                    b.Navigation("Facturas");
+
+                    b.Navigation("NotasDebito");
+
+                    b.Navigation("Productos");
+                });
+#pragma warning restore 612, 618
+        }
     }
 }

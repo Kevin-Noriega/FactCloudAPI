@@ -23,7 +23,13 @@ public class ClienteService : IClienteService
                 Id = c.Id,
                 Nombre = c.Nombre,
                 Apellido = c.Apellido,
-                NombreComercial = c.NombreComercial,
+                NumeroIdentificacion = c.NumeroIdentificacion,
+                TipoIdentificacion = c.TipoIdentificacion,
+                Telefono = c.Telefono,
+                Departamento = c.Departamento,
+                Ciudad = c.Ciudad,
+                Direccion = c.Direccion,
+                CodigoPostal = c.CodigoPostal,
                 Correo = c.Correo,
                 Activo = c.Activo
             })
@@ -39,7 +45,13 @@ public class ClienteService : IClienteService
                 Id = c.Id,
                 Nombre = c.Nombre,
                 Apellido = c.Apellido,
-                NombreComercial = c.NombreComercial,
+                NumeroIdentificacion = c.NumeroIdentificacion,
+                TipoIdentificacion = c.TipoIdentificacion,
+                Telefono = c.Telefono,
+                Departamento = c.Departamento,
+                Ciudad = c.Ciudad,
+                Direccion = c.Direccion,
+                CodigoPostal = c.CodigoPostal,
                 Correo = c.Correo,
                 Activo = c.Activo
             })

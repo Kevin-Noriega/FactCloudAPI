@@ -29,7 +29,7 @@ namespace FactCloudAPI.Controllers
                 var notasDebito = await _context.NotasDebito
                     .Include(nd => nd.Cliente)
                     .Include(nd => nd.Factura)
-                    .Include(nd => nd.DetalleNotaDebito)
+                    .Include(nd => nd.Detalles)
                     .Include(nd => nd.FormasPago)
                     .OrderByDescending(nd => nd.FechaRegistro)
                     .ToListAsync();
@@ -62,7 +62,7 @@ namespace FactCloudAPI.Controllers
                     TotalNeto = nd.TotalNeto,
                     Estado = nd.Estado,
                     Observaciones = nd.Observaciones,
-                    DetalleNotaDebito = nd.DetalleNotaDebito.Select(d => new DetalleNotaDebitoResponseDto
+                    DetalleNotaDebito = nd.Detalles.Select(d => new DetalleNotaDebitoResponseDto
                     {
                         Id = d.Id,
                         ProductoId = d.ProductoId,
@@ -104,7 +104,7 @@ namespace FactCloudAPI.Controllers
                 var notaDebito = await _context.NotasDebito
                     .Include(nd => nd.Cliente)
                     .Include(nd => nd.Factura)
-                    .Include(nd => nd.DetalleNotaDebito)
+                    .Include(nd => nd.Detalles)
                     .Include(nd => nd.FormasPago)
                     .FirstOrDefaultAsync(nd => nd.Id == id);
 
@@ -141,7 +141,7 @@ namespace FactCloudAPI.Controllers
                     TotalNeto = notaDebito.TotalNeto,
                     Estado = notaDebito.Estado,
                     Observaciones = notaDebito.Observaciones,
-                    DetalleNotaDebito = notaDebito.DetalleNotaDebito.Select(d => new DetalleNotaDebitoResponseDto
+                    DetalleNotaDebito = notaDebito.Detalles.Select(d => new DetalleNotaDebitoResponseDto
                     {
                         Id = d.Id,
                         ProductoId = d.ProductoId,
@@ -258,7 +258,7 @@ namespace FactCloudAPI.Controllers
                 var notaCreada = await _context.NotasDebito
                     .Include(nd => nd.Cliente)
                     .Include(nd => nd.Factura)
-                    .Include(nd => nd.DetalleNotaDebito)
+                    .Include(nd => nd.Detalles)
                     .Include(nd => nd.FormasPago)
                     .FirstOrDefaultAsync(nd => nd.Id == notaDebito.Id);
 
@@ -290,7 +290,7 @@ namespace FactCloudAPI.Controllers
                     TotalNeto = notaCreada.TotalNeto,
                     Estado = notaCreada.Estado,
                     Observaciones = notaCreada.Observaciones,
-                    DetalleNotaDebito = notaCreada.DetalleNotaDebito.Select(d => new DetalleNotaDebitoResponseDto
+                    DetalleNotaDebito = notaCreada.Detalles.Select(d => new DetalleNotaDebitoResponseDto
                     {
                         Id = d.Id,
                         ProductoId = d.ProductoId,
@@ -330,7 +330,7 @@ namespace FactCloudAPI.Controllers
             try
             {
                 var notaDebito = await _context.NotasDebito
-                    .Include(nd => nd.DetalleNotaDebito)
+                    .Include(nd => nd.Detalles)
                     .Include(nd => nd.FormasPago)
                     .FirstOrDefaultAsync(nd => nd.Id == id);
 
@@ -355,7 +355,7 @@ namespace FactCloudAPI.Controllers
                 notaDebito.Observaciones = dto.Observaciones;
 
                 // Eliminar detalles antiguos
-                _context.DetalleNotaDebito.RemoveRange(notaDebito.DetalleNotaDebito);
+                _context.DetalleNotaDebito.RemoveRange(notaDebito.Detalles);
 
                 // Agregar nuevos detalles
                 foreach (var detalleDto in dto.DetalleNotaDebito)
@@ -412,7 +412,7 @@ namespace FactCloudAPI.Controllers
             try
             {
                 var notaDebito = await _context.NotasDebito
-                    .Include(nd => nd.DetalleNotaDebito)
+                    .Include(nd => nd.Detalles)
                     .Include(nd => nd.FormasPago)
                     .FirstOrDefaultAsync(nd => nd.Id == id);
 
@@ -421,7 +421,7 @@ namespace FactCloudAPI.Controllers
                     return NotFound(new { message = "Nota débito no encontrada" });
                 }
 
-                _context.DetalleNotaDebito.RemoveRange(notaDebito.DetalleNotaDebito);
+                _context.DetalleNotaDebito.RemoveRange(notaDebito.Detalles);
                 _context.FormasPagoNotaDebito.RemoveRange(notaDebito.FormasPago);
                 _context.NotasDebito.Remove(notaDebito);
                 await _context.SaveChangesAsync();
