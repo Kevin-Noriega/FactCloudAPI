@@ -4,6 +4,7 @@ using FactCloudAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FactCloudAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260206205246_checkout")]
+    partial class checkout
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -886,9 +889,6 @@ namespace FactCloudAPI.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<int>("DuracionMeses")
-                        .HasColumnType("int");
-
                     b.Property<int?>("LimiteDocumentosMensual")
                         .HasColumnType("int");
 
@@ -916,7 +916,6 @@ namespace FactCloudAPI.Migrations
                             Id = 1,
                             Activo = true,
                             Codigo = "STARTER",
-                            DuracionMeses = 12,
                             LimiteDocumentosMensual = 100,
                             LimiteUsuarios = 1,
                             Nombre = "Starter",
@@ -928,7 +927,6 @@ namespace FactCloudAPI.Migrations
                             Id = 2,
                             Activo = true,
                             Codigo = "PAY_PER_USE",
-                            DuracionMeses = 12,
                             Nombre = "Pago por Uso",
                             PrecioAnual = 0m,
                             PrecioMensual = 0m

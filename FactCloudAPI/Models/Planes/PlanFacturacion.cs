@@ -21,6 +21,7 @@ namespace FactCloudAPI.Models.Planes
         // null = ilimitado
         public int? LimiteDocumentosMensual { get; set; }
         public int? LimiteUsuarios { get; set; }
+        public int DuracionMeses { get; set; } = 12;
 
         public bool Activo { get; set; } = true;
         public ICollection<SuscripcionFacturacion> Suscripciones { get; set; } = new List<SuscripcionFacturacion>();
