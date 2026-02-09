@@ -112,29 +112,205 @@ namespace FactCloudAPI.Data
                 .WithMany(p => p.Suscripciones)
                 .HasForeignKey(s => s.PlanFacturacionId);
             modelBuilder.Entity<PlanFacturacion>().HasData(
+                
                  new PlanFacturacion
                  {
                      Id = 1,
                      Codigo = "STARTER",
                      Nombre = "Starter",
-                     PrecioMensual = 5900,
-                     PrecioAnual = 70800,
-                     LimiteDocumentosMensual = 100,
+                     Descripcion = "Ideal para emprendedores iniciando",
+                     PrecioAnual = 135000,
+                     DescuentoActivo = true,
+                     DescuentoPorcentaje = 15,
+                     LimiteDocumentosAnuales = 30,
                      LimiteUsuarios = 1,
+                     Destacado = false,
                      Activo = true
                  },
                   new PlanFacturacion
                   {
                       Id = 2,
-                      Codigo = "PAY_PER_USE",
-                      Nombre = "Pago por Uso",
-                      PrecioMensual = 0,
-                      PrecioAnual = 0,
-                      LimiteDocumentosMensual = null,
-                      LimiteUsuarios = null,
+                      Codigo = "BASICO",
+                      Nombre = "Básico",
+                      Descripcion = "Para pequeños negocios en crecimiento",
+                      PrecioAnual = 300000,
+                      DescuentoActivo = true,
+                      DescuentoPorcentaje = 10,
+                      LimiteDocumentosAnuales = 140,
+                      LimiteUsuarios = 1,
+                      Destacado = false,
                       Activo = true
-                  }
-            );
+                  },
+                  new PlanFacturacion
+                  {
+                      Id = 3,
+                      Codigo = "PROFESIONAL",
+                      Nombre = "Profesional",
+                      Descripcion = "Perfecto para PYMES establecidas",
+                      PrecioAnual = 770000,
+                      DescuentoActivo = true,
+                      DescuentoPorcentaje = 10,
+                      LimiteDocumentosAnuales = 540,
+                      LimiteUsuarios = 1,
+                      Destacado = false,
+                      Activo = true
+                  },
+                   new PlanFacturacion
+                   {
+                       Id = 4,
+                       Codigo = "EMPRESARIAL",
+                       Nombre = "Empresarial",
+                       Descripcion = "Solución completa para empresas grandes",
+                       PrecioAnual = 1300000,
+                       DescuentoActivo = true,
+                       DescuentoPorcentaje = 15,
+                       LimiteDocumentosAnuales = 1550,
+                       LimiteUsuarios = 1,
+                       Destacado = false,
+                       Activo = true
+                   }
+                    
+            ); 
+            modelBuilder.Entity<PlanFeature>().HasData(
+
+                    // STARTER
+                    new PlanFeature
+                    {
+                        Id = 1,
+                        PlanFacturacionId = 1,
+                        Texto = "1 Usuario",
+                        Tooltip = "Cuenta individual para emprendedores que están empezando."
+                    },
+                    new PlanFeature
+                    {
+                        Id = 2,
+                        PlanFacturacionId = 1,
+                        Texto = "30 Documentos anuales",
+                        Tooltip = "Emite hasta 30 facturas electrónicas al año."
+                    },
+                    new PlanFeature
+                    {
+                        Id = 3,
+                        PlanFacturacionId = 1,
+                        Texto = "Funciones básicas",
+                        Tooltip = "Creación de facturas, gestión de clientes y productos. Reportes simples incluidos."
+                    },
+                    new PlanFeature
+                    {
+                        Id = 4,
+                        PlanFacturacionId = 2,
+                        Texto = "1 Usuario",
+                        Tooltip = "Cuenta individual perfecta para emprendedores y negocios unipersonales.Acceso completo a todas las funciones."
+                    },
+
+                    new PlanFeature
+                    {
+                        Id = 5,
+                        PlanFacturacionId = 2,
+                        Texto = "140 Documentos electrónicos al año",
+                        Tooltip = "Perfecto para negocios que emiten hasta 8 documentos diarios."
+                    },
+                    new PlanFeature
+                    {
+                        Id = 6,
+                        PlanFacturacionId = 2,
+                        Texto = "Funciones básicas",
+                        Tooltip = "Creación de facturas, gestión de clientes, productos, notas débito y crédito. Reportes simples incluidos."
+                    },
+                    new PlanFeature
+                    {
+                        Id = 7,
+                        PlanFacturacionId = 3,
+                        Texto = "1 Usuario",
+                        Tooltip = "Cuenta individual con acceso completo a todas las funcionalidades del sistema."
+                    },
+                    new PlanFeature
+                    {
+                        Id = 8,
+                        PlanFacturacionId = 3,
+                        Texto = "540 Documentos electrónicos al año",
+                        Tooltip = "Ideal para PYMES que facturan de forma constante durante todo el año."
+                    },
+                    new PlanFeature
+                    {
+                        Id = 9,
+                        PlanFacturacionId = 3,
+                        Texto = "Facturación electrónica DIAN",
+                        Tooltip = "Emisión de facturas electrónicas válidas ante la DIAN, cumpliendo la normativa vigente."
+                    },
+                    new PlanFeature
+                    {
+                        Id = 10,
+                        PlanFacturacionId = 3,
+                        Texto = "Notas crédito y débito",
+                        Tooltip = "Corrección y ajustes de facturas mediante notas crédito y débito electrónicas."
+                    },
+                    new PlanFeature
+                    {
+                        Id = 11,
+                        PlanFacturacionId = 3,
+                        Texto = "Gestión avanzada de clientes y productos",
+                        Tooltip = "Administra clientes, productos, precios e impuestos de forma organizada."
+                    },
+                    new PlanFeature
+                    {
+                        Id = 12,
+                        PlanFacturacionId = 3,
+                        Texto = "Reportes y control de facturación",
+                        Tooltip = "Consulta reportes básicos de ventas, documentos emitidos y estado de facturación."
+                    },
+                    new PlanFeature
+                    {
+                        Id = 13,
+                        PlanFacturacionId = 4,
+                        Texto = "1 Usuario",
+                        Tooltip = "Acceso completo al sistema con control total de la facturación empresarial."
+                    },
+                    new PlanFeature
+                    {
+                        Id = 14,
+                        PlanFacturacionId = 4,
+                        Texto = "1550 Documentos electrónicos al año",
+                        Tooltip = "Pensado para empresas con alto volumen de facturación anual."
+                    },
+                    new PlanFeature
+                    {
+                        Id = 15,
+                        PlanFacturacionId = 4,
+                        Texto = "Facturación electrónica DIAN",
+                        Tooltip = "Cumple con todos los requisitos exigidos por la DIAN para facturación electrónica."
+                    },
+                    new PlanFeature
+                    {
+                        Id = 16,
+                        PlanFacturacionId = 4,
+                        Texto = "Notas crédito y débito ilimitadas",
+                        Tooltip = "Emite notas crédito y débito sin restricciones dentro del límite anual de documentos."
+                    },
+                    new PlanFeature
+                    {
+                        Id = 17,
+                        PlanFacturacionId = 4,
+                        Texto = "Gestión completa de clientes y productos",
+                        Tooltip = "Control detallado de clientes, productos, impuestos y precios."
+                    },
+                    new PlanFeature
+                    {
+                        Id = 18,
+                        PlanFacturacionId = 4,
+                        Texto = "Reportes administrativos",
+                        Tooltip = "Accede a reportes de ventas y facturación para control interno y contable."
+                    },
+                    new PlanFeature
+                    {
+                        Id = 19,
+                        PlanFacturacionId = 4,
+                        Texto = "Soporte prioritario",
+                        Tooltip = "Atención prioritaria para resolución de dudas y soporte técnico."
+                    }
+
+
+             );
 
             modelBuilder.Entity<Factura>()
         .Property(f => f.MontoPagado)

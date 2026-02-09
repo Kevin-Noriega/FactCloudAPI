@@ -28,6 +28,61 @@ namespace FactCloudAPI.Controllers
             _context = context;
             _configuration = configuration;
         }
+        // ? GET: Obtener usuario por ID (para React Query)
+        [HttpGet("{id}")]
+        [Authorize]  // Requiere token válido
+        public async Task<ActionResult> GetUsuario(int id)
+        {
+            try
+            {
+                var usuario = await _context.Usuarios
+                    .Include(u => u.Negocio)
+                    .Include(u => u.Suscripciones.Where(s => s.Activa))
+                        .ThenInclude(s => s.PlanFacturacion)
+                    .FirstOrDefaultAsync(u => u.Id == id);
+
+                if (usuario == null)
+                    return NotFound("Usuario no encontrado");
+
+                // Verificar que el usuario autenticado coincida
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (userIdClaim != id.ToString())
+                    return Forbid("No autorizado para ver este usuario");
+
+                var suscripcionActiva = usuario.Suscripciones
+                    .FirstOrDefault(s => s.Activa && (s.FechaFin == null || s.FechaFin > DateTime.UtcNow));
+
+                return Ok(new
+                {
+                    usuario = new
+                    {
+                        id = usuario.Id,
+                        nombre = usuario.Nombre,
+                        apellido = usuario.Apellido,
+                        correo = usuario.Correo,
+                        telefono = usuario.Telefono,
+                        estado = usuario.Estado,
+                        tipoIdentificacion = usuario.TipoIdentificacion,
+                        numeroIdentificacion = usuario.NumeroIdentificacion
+                    },
+                    negocio = usuario.Negocio != null ? new
+                    {
+                        id = usuario.Negocio.Id,
+                        nombreNegocio = usuario.Negocio.NombreNegocio,
+                        nit = usuario.Negocio.Nit,
+                        dvNit = usuario.Negocio.DvNit,
+                        direccion = usuario.Negocio.Direccion,
+                        ciudad = usuario.Negocio.Ciudad,
+                        departamento = usuario.Negocio.Departamento
+                    } : null
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
 
         [HttpPost("crear-y-activar")]
         [AllowAnonymous]
@@ -94,12 +149,12 @@ namespace FactCloudAPI.Controllers
                 if (dto.TipoPago == "anual" || dto.PrecioPagado >= plan.PrecioAnual)
                 {
                     fechaFin = fechaInicio.AddYears(1);
-                    documentosRestantes = (plan.LimiteDocumentosMensual ?? 0) * 12;
+                    documentosRestantes = (plan.LimiteDocumentosAnuales ?? 0) * 12;
                 }
                 else
                 {
                     fechaFin = fechaInicio.AddMonths(1);
-                    documentosRestantes = plan.LimiteDocumentosMensual ?? 0;
+                    documentosRestantes = plan.LimiteDocumentosAnuales?? 0;
                 }
 
                 var suscripcion = new SuscripcionFacturacion
@@ -284,7 +339,7 @@ namespace FactCloudAPI.Controllers
                     suscripcion = new
                     {
                         plan = plan.Nombre,
-                        documentosIncluidos = plan.LimiteDocumentosMensual,
+                        documentosIncluidos = plan.LimiteDocumentosAnuales,
                         fechaExpiracion = suscripcion.FechaFin
                     }
                 });
@@ -343,13 +398,13 @@ namespace FactCloudAPI.Controllers
                 }
 
                 // ? Verificar límite de documentos (si aplica)
-                if (suscripcionActiva.PlanFacturacion.LimiteDocumentosMensual > 0 &&
-                    suscripcionActiva.DocumentosUsados >= suscripcionActiva.PlanFacturacion.LimiteDocumentosMensual)
+                if (suscripcionActiva.PlanFacturacion.LimiteDocumentosAnuales > 0 &&
+                    suscripcionActiva.DocumentosUsados >= suscripcionActiva.PlanFacturacion.LimiteDocumentosAnuales)
                 {
                     return Unauthorized(new
                     {
                         codigo = "LIMITE_DOCUMENTOS",
-                        mensaje = $"Has alcanzado el límite de {suscripcionActiva.PlanFacturacion.LimiteDocumentosMensual} documentos de tu plan."
+                        mensaje = $"Has alcanzado el límite de {suscripcionActiva.PlanFacturacion.LimiteDocumentosAnuales} documentos de tu plan."
                     });
                 }
 
@@ -376,9 +431,9 @@ namespace FactCloudAPI.Controllers
                     suscripcion = new
                     {
                         plan = suscripcionActiva.PlanFacturacion.Nombre,
-                        documentosIncluidos = suscripcionActiva.PlanFacturacion.LimiteDocumentosMensual,
+                        documentosIncluidos = suscripcionActiva.PlanFacturacion.LimiteDocumentosAnuales,
                         documentosUsados = suscripcionActiva.DocumentosUsados,
-                        documentosRestantes = suscripcionActiva.PlanFacturacion.LimiteDocumentosMensual - suscripcionActiva.DocumentosUsados,
+                        documentosRestantes = suscripcionActiva.PlanFacturacion.LimiteDocumentosAnuales - suscripcionActiva.DocumentosUsados,
                         fechaExpiracion = suscripcionActiva.FechaFin,
                         activa = suscripcionActiva.Activa
                     }
@@ -423,5 +478,7 @@ namespace FactCloudAPI.Controllers
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
+
     }
+
 }

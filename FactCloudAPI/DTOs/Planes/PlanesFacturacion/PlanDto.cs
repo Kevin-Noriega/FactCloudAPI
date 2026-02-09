@@ -3,16 +3,19 @@
     public class PlanDto
     {
         public int Id { get; set; }
-        public string Codigo { get; set; } = null!;
-        public string Nombre { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
 
-        public decimal PrecioMensual { get; set; }
-        public decimal PrecioAnual { get; set; }
+        public decimal MonthlyPrice { get; set; }
+        public decimal AnnualPrice { get; set; }
 
-        public int? LimiteDocumentosMensual { get; set; }
-        public int? LimiteUsuarios { get; set; }
+        public bool HasDiscount { get; set; }
+        public int? DiscountPercentage { get; set; }
+        public decimal? OriginalAnnualPrice { get; set; }
 
-        public bool FacturacionIlimitada { get; set; }
-        public decimal? PrecioPorDocumento { get; set; }
+        public bool Featured { get; set; }
+        public string? Tag { get; set; }
+
+        public List<PlanFeatureDto> Features { get; set; }
     }
 }
