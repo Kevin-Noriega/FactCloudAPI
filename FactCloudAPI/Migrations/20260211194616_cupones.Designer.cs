@@ -4,6 +4,7 @@ using FactCloudAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FactCloudAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260211194616_cupones")]
+    partial class cupones
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -187,7 +190,7 @@ namespace FactCloudAPI.Migrations
                             Id = 1,
                             Codigo = "WELCOMEFC",
                             DescuentoPorcentaje = 20m,
-                            IsActive = true,
+                            IsActive = false,
                             MaxUsos = 30,
                             UsosCodigo = 0
                         },
@@ -196,7 +199,7 @@ namespace FactCloudAPI.Migrations
                             Id = 2,
                             Codigo = "FACTCLOUDPRO",
                             DescuentoPorcentaje = 30m,
-                            IsActive = true,
+                            IsActive = false,
                             MaxUsos = 30,
                             PlanId = 3,
                             UsosCodigo = 0
@@ -206,7 +209,7 @@ namespace FactCloudAPI.Migrations
                             Id = 3,
                             Codigo = "STARTEFC25",
                             DescuentoPorcentaje = 12m,
-                            IsActive = true,
+                            IsActive = false,
                             MaxUsos = 20,
                             PlanId = 1,
                             UsosCodigo = 0
