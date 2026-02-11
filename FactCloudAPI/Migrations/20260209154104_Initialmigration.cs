@@ -3,62 +3,80 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace FactCloudAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class actualizado : Migration
+    public partial class Initialmigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "PlanesFacturacion",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Codigo = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Nombre = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Descripcion = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    PrecioAnual = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Destacado = table.Column<bool>(type: "bit", nullable: false),
+                    DescuentoPorcentaje = table.Column<int>(type: "int", nullable: true),
+                    DescuentoActivo = table.Column<bool>(type: "bit", nullable: false),
+                    LimiteDocumentosAnuales = table.Column<int>(type: "int", nullable: true),
+                    LimiteUsuarios = table.Column<int>(type: "int", nullable: true),
+                    DuracionMeses = table.Column<int>(type: "int", nullable: false),
+                    Activo = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PlanesFacturacion", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "Usuarios",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    TipoIdentificacion = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    NumeroIdentificacion = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Nombre = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     Apellido = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    Correo = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Telefono = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    Correo = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ContrasenaHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    NitNegocio = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    DvNitNegocio = table.Column<int>(type: "int", nullable: true),
-                    NombreNegocio = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: true),
-                    DireccionNegocio = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
-                    CiudadNegocio = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    DepartamentoNegocio = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    CorreoNegocio = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: true),
-                    LogoNegocio = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: true),
-                    TipoIdentificacion = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    TipoPersona = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    NumeroIdentificacion = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    CodigoPostal = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    DepartamentoCodigo = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    CiudadCodigo = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    TelefonoNegocio = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    ActividadEconomicaCIIU = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    RegimenFiscal = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    RegimenTributario = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Pais = table.Column<string>(type: "nvarchar(5)", maxLength: 5, nullable: false),
-                    SoftwareProveedor = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    SoftwarePIN = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PrefijoAutorizadoDIAN = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    NumeroResolucionDIAN = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    FechaResolucionDIAN = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    RangoNumeracionDesde = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    RangoNumeracionHasta = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    AmbienteDIAN = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    FechaVigenciaInicio = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    FechaVigenciaFinal = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Estado = table.Column<bool>(type: "bit", nullable: false),
-                    FechaDesactivacion = table.Column<DateTime>(type: "datetime2", nullable: true),
                     FechaRegistro = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    ResponsabilidadesRut = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    FechaDesactivacion = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Usuarios", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PlanFeature",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PlanFacturacionId = table.Column<int>(type: "int", nullable: false),
+                    Texto = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Tooltip = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PlanFeature", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PlanFeature_PlanesFacturacion_PlanFacturacionId",
+                        column: x => x.PlanFacturacionId,
+                        principalTable: "PlanesFacturacion",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -103,6 +121,84 @@ namespace FactCloudAPI.Migrations
                         principalTable: "Usuarios",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "DocumentosSoporte",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    NumeroDocumento = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Prefijo = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Consecutivo = table.Column<int>(type: "int", nullable: false),
+                    CUDS = table.Column<string>(type: "nvarchar(96)", maxLength: 96, nullable: false),
+                    FechaGeneracion = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ProveedorNombre = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    ProveedorNit = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    ProveedorTipoIdentificacion = table.Column<string>(type: "nvarchar(5)", maxLength: 5, nullable: false),
+                    ProveedorDireccion = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    ProveedorCiudad = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    ProveedorDepartamento = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    ProveedorEmail = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    ProveedorTelefono = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Descripcion = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    Subtotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    IVA = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Descuento = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    ValorTotal = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Observaciones = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    EstadoDian = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    MensajeDian = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    FechaRespuestaDian = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    NumeroRespuestaDian = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    RutaXML = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RutaPDF = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UsuarioId = table.Column<int>(type: "int", nullable: false),
+                    Estado = table.Column<bool>(type: "bit", nullable: false),
+                    FechaRegistro = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    FechaActualizacion = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_DocumentosSoporte", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_DocumentosSoporte_Usuarios_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "Usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Negocios",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    NombreNegocio = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RazonSocial = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Nit = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DvNit = table.Column<int>(type: "int", nullable: true),
+                    Direccion = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Ciudad = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Departamento = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Pais = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Telefono = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Correo = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    TipoPersona = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ActividadEconomicaCIIU = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UsuarioId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Negocios", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Negocios_Usuarios_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "Usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -151,6 +247,61 @@ namespace FactCloudAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "RefreshTokens",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Token = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    JwtId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    UsuarioId = table.Column<int>(type: "int", nullable: false),
+                    FechaCreacion = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    FechaExpiracion = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Usado = table.Column<bool>(type: "bit", nullable: false),
+                    Revocado = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RefreshTokens", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_RefreshTokens_Usuarios_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "Usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SuscripcionesFacturacion",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UsuarioId = table.Column<int>(type: "int", nullable: false),
+                    PlanFacturacionId = table.Column<int>(type: "int", nullable: false),
+                    FechaInicio = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    FechaFin = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    DocumentosUsados = table.Column<int>(type: "int", nullable: false),
+                    Activa = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SuscripcionesFacturacion", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SuscripcionesFacturacion_PlanesFacturacion_PlanFacturacionId",
+                        column: x => x.PlanFacturacionId,
+                        principalTable: "PlanesFacturacion",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_SuscripcionesFacturacion_Usuarios_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "Usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Facturas",
                 columns: table => new
                 {
@@ -183,7 +334,7 @@ namespace FactCloudAPI.Migrations
                     FechaRegistro = table.Column<DateTime>(type: "datetime2", nullable: false),
                     EnviadaCliente = table.Column<bool>(type: "bit", nullable: false),
                     FechaEnvioCliente = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    MontoPagado = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    MontoPagado = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
                     FechaPago = table.Column<DateTime>(type: "datetime2", nullable: true),
                     XmlBase64 = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
@@ -202,6 +353,34 @@ namespace FactCloudAPI.Migrations
                         principalTable: "Usuarios",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ConfiguracionesDian",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SoftwareProveedor = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SoftwarePIN = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PrefijoAutorizadoDIAN = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    NumeroResolucionDIAN = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RangoNumeracionDesde = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    RangoNumeracionHasta = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    AmbienteDIAN = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    FechaVigenciaInicio = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    FechaVigenciaFinal = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    NegocioId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ConfiguracionesDian", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ConfiguracionesDian_Negocios_NegocioId",
+                        column: x => x.NegocioId,
+                        principalTable: "Negocios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -484,10 +663,53 @@ namespace FactCloudAPI.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.InsertData(
+                table: "PlanesFacturacion",
+                columns: new[] { "Id", "Activo", "Codigo", "Descripcion", "DescuentoActivo", "DescuentoPorcentaje", "Destacado", "DuracionMeses", "LimiteDocumentosAnuales", "LimiteUsuarios", "Nombre", "PrecioAnual" },
+                values: new object[,]
+                {
+                    { 1, true, "STARTER", "Ideal para emprendedores iniciando", true, 15, false, 12, 30, 1, "Starter", 135000m },
+                    { 2, true, "BASICO", "Para pequeños negocios en crecimiento", true, 10, false, 12, 140, 1, "Básico", 300000m },
+                    { 3, true, "PROFESIONAL", "Perfecto para PYMES establecidas", true, 10, false, 12, 540, 1, "Profesional", 770000m },
+                    { 4, true, "EMPRESARIAL", "Solución completa para empresas grandes", true, 15, false, 12, 1550, 1, "Empresarial", 1300000m }
+                });
+
+            migrationBuilder.InsertData(
+                table: "PlanFeature",
+                columns: new[] { "Id", "PlanFacturacionId", "Texto", "Tooltip" },
+                values: new object[,]
+                {
+                    { 1, 1, "1 Usuario", "Cuenta individual para emprendedores que están empezando." },
+                    { 2, 1, "30 Documentos anuales", "Emite hasta 30 facturas electrónicas al año." },
+                    { 3, 1, "Funciones básicas", "Creación de facturas, gestión de clientes y productos. Reportes simples incluidos." },
+                    { 4, 2, "1 Usuario", "Cuenta individual perfecta para emprendedores y negocios unipersonales.Acceso completo a todas las funciones." },
+                    { 5, 2, "140 Documentos electrónicos al año", "Perfecto para negocios que emiten hasta 8 documentos diarios." },
+                    { 6, 2, "Funciones básicas", "Creación de facturas, gestión de clientes, productos, notas débito y crédito. Reportes simples incluidos." },
+                    { 7, 3, "1 Usuario", "Cuenta individual con acceso completo a todas las funcionalidades del sistema." },
+                    { 8, 3, "540 Documentos electrónicos al año", "Ideal para PYMES que facturan de forma constante durante todo el año." },
+                    { 9, 3, "Facturación electrónica DIAN", "Emisión de facturas electrónicas válidas ante la DIAN, cumpliendo la normativa vigente." },
+                    { 10, 3, "Notas crédito y débito", "Corrección y ajustes de facturas mediante notas crédito y débito electrónicas." },
+                    { 11, 3, "Gestión avanzada de clientes y productos", "Administra clientes, productos, precios e impuestos de forma organizada." },
+                    { 12, 3, "Reportes y control de facturación", "Consulta reportes básicos de ventas, documentos emitidos y estado de facturación." },
+                    { 13, 4, "1 Usuario", "Acceso completo al sistema con control total de la facturación empresarial." },
+                    { 14, 4, "1550 Documentos electrónicos al año", "Pensado para empresas con alto volumen de facturación anual." },
+                    { 15, 4, "Facturación electrónica DIAN", "Cumple con todos los requisitos exigidos por la DIAN para facturación electrónica." },
+                    { 16, 4, "Notas crédito y débito ilimitadas", "Emite notas crédito y débito sin restricciones dentro del límite anual de documentos." },
+                    { 17, 4, "Gestión completa de clientes y productos", "Control detallado de clientes, productos, impuestos y precios." },
+                    { 18, 4, "Reportes administrativos", "Accede a reportes de ventas y facturación para control interno y contable." },
+                    { 19, 4, "Soporte prioritario", "Atención prioritaria para resolución de dudas y soporte técnico." }
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_Clientes_UsuarioId",
                 table: "Clientes",
                 column: "UsuarioId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ConfiguracionesDian_NegocioId",
+                table: "ConfiguracionesDian",
+                column: "NegocioId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_DetalleFacturas_FacturaId",
@@ -525,6 +747,11 @@ namespace FactCloudAPI.Migrations
                 column: "ProductoId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_DocumentosSoporte_UsuarioId",
+                table: "DocumentosSoporte",
+                column: "UsuarioId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Facturas_ClienteId",
                 table: "Facturas",
                 column: "ClienteId");
@@ -543,6 +770,12 @@ namespace FactCloudAPI.Migrations
                 name: "IX_FormasPagoNotaDebito_NotaDebitoId",
                 table: "FormasPagoNotaDebito",
                 column: "NotaDebitoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Negocios_UsuarioId",
+                table: "Negocios",
+                column: "UsuarioId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_NotasCredito_ClienteId",
@@ -625,14 +858,43 @@ namespace FactCloudAPI.Migrations
                 column: "UsuarioId1");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PlanFeature_PlanFacturacionId",
+                table: "PlanFeature",
+                column: "PlanFacturacionId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Productos_UsuarioId",
                 table: "Productos",
+                column: "UsuarioId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RefreshTokens_Token",
+                table: "RefreshTokens",
+                column: "Token",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RefreshTokens_UsuarioId",
+                table: "RefreshTokens",
+                column: "UsuarioId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SuscripcionesFacturacion_PlanFacturacionId",
+                table: "SuscripcionesFacturacion",
+                column: "PlanFacturacionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SuscripcionesFacturacion_UsuarioId",
+                table: "SuscripcionesFacturacion",
                 column: "UsuarioId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropTable(
+                name: "ConfiguracionesDian");
+
             migrationBuilder.DropTable(
                 name: "DetalleFacturas");
 
@@ -643,10 +905,25 @@ namespace FactCloudAPI.Migrations
                 name: "DetalleNotaDebito");
 
             migrationBuilder.DropTable(
+                name: "DocumentosSoporte");
+
+            migrationBuilder.DropTable(
                 name: "FormasPagoNotaCredito");
 
             migrationBuilder.DropTable(
                 name: "FormasPagoNotaDebito");
+
+            migrationBuilder.DropTable(
+                name: "PlanFeature");
+
+            migrationBuilder.DropTable(
+                name: "RefreshTokens");
+
+            migrationBuilder.DropTable(
+                name: "SuscripcionesFacturacion");
+
+            migrationBuilder.DropTable(
+                name: "Negocios");
 
             migrationBuilder.DropTable(
                 name: "Productos");
@@ -656,6 +933,9 @@ namespace FactCloudAPI.Migrations
 
             migrationBuilder.DropTable(
                 name: "NotasDebito");
+
+            migrationBuilder.DropTable(
+                name: "PlanesFacturacion");
 
             migrationBuilder.DropTable(
                 name: "Facturas");

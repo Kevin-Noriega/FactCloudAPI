@@ -27,6 +27,7 @@ builder.Services.AddCors(options =>
         policy.SetIsOriginAllowed(origin =>
                 origin.StartsWith("http://localhost") ||
                 origin.StartsWith("https://localhost"))
+              .AllowCredentials()
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -140,6 +141,7 @@ app.MapGet("/api/db-test", async (ApplicationDbContext db) =>
 
 app.UseHttpsRedirection();  // 1. Primero redirección HTTPS
 app.UseCors("AllowReact");  // 2. Luego CORS
+app.UseCors("AllowReact");  // 2. Luego CORS (repetido para SignalR)
 app.UseAuthentication();    // 3. Autenticación (lee el token)
 app.UseAuthorization();     // 4. Autorización (verifica permisos)
 app.MapHub<NotificacionesHub>("/api/notificacionesHub").AllowAnonymous();

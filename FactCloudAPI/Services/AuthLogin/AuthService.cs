@@ -1,11 +1,12 @@
 ﻿using FactCloudAPI.Data;
-using FactCloudAPI.Models;
 using FactCloudAPI.DTOs.Login;
+using FactCloudAPI.Models;
 using FactCloudAPI.Services.AuthLogin;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 public class AuthService : IAuthService
@@ -43,35 +44,46 @@ public class AuthService : IAuthService
             FechaDesactivacion = usuario.FechaDesactivacion
         };
 
-        var token = GenerarToken(usuario);
+        var token = GenerarAccessToken(usuario);
 
         return (token, usuarioDto);
     }
 
-    private string GenerarToken(Usuario usuario)
+    // MÉTODO 1: Generar Access Token (corta duración)
+    public string GenerarAccessToken(Usuario usuario)
     {
-        var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(_config["Jwt:Key"])
-        );
+        var claims = new List<Claim>
+    {
+        new Claim(JwtRegisteredClaimNames.Sub, usuario.Correo),
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // ID único del token
+        new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
+        new Claim(ClaimTypes.Email, usuario.Correo),
+        new Claim(ClaimTypes.Role, "Usuario") // O rol real desde tu tabla
+    };
 
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var claims = new[]
-        {
-            new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.Sub, usuario.Correo),
-            new Claim(ClaimTypes.Email, usuario.Correo),
-            new Claim("role", "Usuario")
-        };
 
         var token = new JwtSecurityToken(
             issuer: _config["Jwt:Issuer"],
             audience: _config["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.Now.AddHours(3),
+            expires: DateTime.UtcNow.AddMinutes(15), // ← CORTA DURACIÓN (15-30 min)
             signingCredentials: creds
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
+
+    // MÉTODO 2: Generar Refresh Token (string aleatorio seguro)
+    public string GenerarRefreshToken()
+    {
+        var randomNumber = new byte[64];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(randomNumber);
+        return Convert.ToBase64String(randomNumber);
+    }
+
+
+
 }

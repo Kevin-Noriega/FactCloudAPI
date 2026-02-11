@@ -20,19 +20,56 @@ namespace FactCloudAPI.Services.Wompi
         }
 
         // Obtener token de aceptación
-        public async Task<AcceptanceTokenResponse> GetAcceptanceTokenAsync()
+        public async Task<object> GetAcceptanceTokenAsync()
         {
-            var publicKey = _config["Wompi:PublicKey"];
-            var response = await _httpClient.GetAsync($"/merchants/{publicKey}");
-
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var content = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<AcceptanceTokenResponse>(content);
-            }
+                var publicKey = _config["Wompi:PublicKey"];
+                Console.WriteLine($"🔍 PublicKey: {publicKey}");
 
-            throw new Exception("Error obteniendo acceptance token");
+                if (string.IsNullOrEmpty(publicKey))
+                {
+                    return new { error = "Wompi:PublicKey no configurada" };
+                }
+
+                Console.WriteLine($"🔍 URL: {_httpClient.BaseAddress}/merchants/{publicKey}");
+
+                var response = await _httpClient.GetAsync($"/merchants/{publicKey}");
+
+                Console.WriteLine($"🔍 StatusCode: {response.StatusCode}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var content = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine($"✅ Response: {content}");
+                    return JsonConvert.DeserializeObject<dynamic>(content);
+                }
+
+                var errorContent = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"❌ Error: {errorContent}");
+
+                // ✅ NO lanzar excepción, devolver objeto con error
+                return new
+                {
+                    error = true,
+                    statusCode = (int)response.StatusCode,
+                    message = errorContent
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Exception: {ex.Message}");
+                // ✅ NO lanzar excepción, devolver objeto con error
+                return new
+                {
+                    error = true,
+                    message = ex.Message
+                };
+            }
         }
+
+
+
 
         // Tokenizar tarjeta (llamar desde frontend)
         public async Task<string> TokenizeCard(CardData cardData)

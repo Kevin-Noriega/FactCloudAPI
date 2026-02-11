@@ -1,4 +1,4 @@
-using FactCloudAPI.Data;
+ï»¿using FactCloudAPI.Data;
 using FactCloudAPI.DTOs.Login;
 using FactCloudAPI.DTOs.Usuarios;
 using FactCloudAPI.Models;
@@ -28,6 +28,71 @@ namespace FactCloudAPI.Controllers
             _context = context;
             _configuration = configuration;
         }
+        // ? GET: Obtener usuario por ID (para React Query)
+        [HttpGet("{id}")]
+        [Authorize]  // Requiere token vÃ¡lido
+        public async Task<ActionResult> GetUsuario(int id)
+        {
+            try
+            {
+                var usuario = await _context.Usuarios
+                    .Include(u => u.Negocio)
+                    .Include(u => u.Suscripciones.Where(s => s.Activa))
+                        .ThenInclude(s => s.PlanFacturacion)
+                    .FirstOrDefaultAsync(u => u.Id == id);
+
+                if (usuario == null)
+                    return NotFound(new { message = "Usuario no encontrado" });
+
+                // Verificar que el usuario autenticado coincida
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (userIdClaim != id.ToString())
+                    return Unauthorized(new { message = "No autorizado para ver este usuario" }); 
+
+                var suscripcionActiva = usuario.Suscripciones
+                    .FirstOrDefault(s => s.Activa && (s.FechaFin == null || s.FechaFin > DateTime.UtcNow));
+
+                return Ok(new
+                {
+                    usuario = new
+                    {
+                        id = usuario.Id,
+                        nombre = usuario.Nombre,
+                        apellido = usuario.Apellido,
+                        correo = usuario.Correo,
+                        telefono = usuario.Telefono,
+                        estado = usuario.Estado,
+                        tipoIdentificacion = usuario.TipoIdentificacion,
+                        numeroIdentificacion = usuario.NumeroIdentificacion
+                    },
+                    negocio = usuario.Negocio != null ? new
+                    {
+                        id = usuario.Negocio.Id,
+                        nombreNegocio = usuario.Negocio.NombreNegocio,
+                        nit = usuario.Negocio.Nit,
+                        dvNit = usuario.Negocio.DvNit,
+                        direccion = usuario.Negocio.Direccion,
+                        ciudad = usuario.Negocio.Ciudad,
+                        departamento = usuario.Negocio.Departamento
+                    } : null,
+                    suscripcion = suscripcionActiva != null ? new
+                    {
+                        plan = suscripcionActiva.PlanFacturacion.Nombre,
+                        documentosIncluidos = suscripcionActiva.PlanFacturacion.LimiteDocumentosAnuales,
+                        documentosUsados = suscripcionActiva.DocumentosUsados,
+                        documentosRestantes = (suscripcionActiva.PlanFacturacion.LimiteDocumentosAnuales ?? 0) - suscripcionActiva.DocumentosUsados,
+                        fechaExpiracion = suscripcionActiva.FechaFin,
+                        activa = suscripcionActiva.Activa
+                    } : null
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
+        }
+
+
 
         [HttpPost("crear-y-activar")]
         [AllowAnonymous]
@@ -40,10 +105,10 @@ namespace FactCloudAPI.Controllers
                 // 1. Verificar si el correo ya existe
                 if (await _context.Usuarios.AnyAsync(u => u.Correo == dto.Correo))
                 {
-                    return BadRequest(new { error = "El correo ya está registrado" });
+                    return BadRequest(new { error = "El correo ya estÃ¡ registrado" });
                 }
 
-                // 2. Hash de contraseña
+                // 2. Hash de contraseÃ±a
                 string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
                 // 3. Crear usuario
@@ -79,7 +144,7 @@ namespace FactCloudAPI.Controllers
                 _context.Negocios.Add(negocio);
                 await _context.SaveChangesAsync();
 
-                // 5. Crear suscripción
+                // 5. Crear suscripciÃ³n
                 var plan = await _context.PlanesFacturacion.FindAsync(dto.PlanFacturacionId);
                 if (plan == null)
                 {
@@ -90,16 +155,16 @@ namespace FactCloudAPI.Controllers
                 DateTime fechaFin;
                 int documentosRestantes;
 
-                // ? Determinar duración según si es mensual o anual (basado en el precio pagado)
+                // ? Determinar duraciÃ³n segÃºn si es mensual o anual (basado en el precio pagado)
                 if (dto.TipoPago == "anual" || dto.PrecioPagado >= plan.PrecioAnual)
                 {
                     fechaFin = fechaInicio.AddYears(1);
-                    documentosRestantes = (plan.LimiteDocumentosMensual ?? 0) * 12;
+                    documentosRestantes = (plan.LimiteDocumentosAnuales ?? 0) * 12;
                 }
                 else
                 {
                     fechaFin = fechaInicio.AddMonths(1);
-                    documentosRestantes = plan.LimiteDocumentosMensual ?? 0;
+                    documentosRestantes = plan.LimiteDocumentosAnuales?? 0;
                 }
 
                 var suscripcion = new SuscripcionFacturacion
@@ -115,7 +180,7 @@ namespace FactCloudAPI.Controllers
                 _context.SuscripcionesFacturacion.Add(suscripcion);
                 await _context.SaveChangesAsync();
 
-                // 6. Commit de la transacción
+                // 6. Commit de la transacciÃ³n
                 await transaction.CommitAsync();
 
                 // 7. Generar token JWT
@@ -159,14 +224,14 @@ namespace FactCloudAPI.Controllers
         {
             try
             {
-                // Validar correo único
+                // Validar correo Ãºnico
                 var existe = await _context.Usuarios
                     .AnyAsync(u => u.Correo == dto.Correo);
 
                 if (existe)
-                    return BadRequest("El correo ya está registrado");
+                    return BadRequest("El correo ya estÃ¡ registrado");
 
-                // Hash de contraseña
+                // Hash de contraseÃ±a
                 string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
 
                 var usuario = new Usuario
@@ -200,7 +265,7 @@ namespace FactCloudAPI.Controllers
             }
         }
 
-        // ========== FASE 2: ACTIVAR CUENTA DESPUÉS DEL PAGO ==========
+        // ========== FASE 2: ACTIVAR CUENTA DESPUÃ‰S DEL PAGO ==========
         [HttpPost("{usuarioId}/activar")]
         public async Task<ActionResult> ActivarCuentaConPago(
             int usuarioId,
@@ -219,7 +284,7 @@ namespace FactCloudAPI.Controllers
                     return NotFound("Usuario no encontrado");
 
                 if (usuario.Estado)
-                    return BadRequest("La cuenta ya está activa");
+                    return BadRequest("La cuenta ya estÃ¡ activa");
 
                 // 2?? Obtener el plan seleccionado
                 var plan = await _context.PlanesFacturacion
@@ -248,7 +313,7 @@ namespace FactCloudAPI.Controllers
                     _context.Negocios.Add(negocio);
                 }
 
-                // 4?? Crear Suscripción Activa
+                // 4?? Crear SuscripciÃ³n Activa
                 var suscripcion = new SuscripcionFacturacion
                 {
                     UsuarioId = usuario.Id,
@@ -267,12 +332,12 @@ namespace FactCloudAPI.Controllers
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
-                // 6?? Generar Token JWT para login automático
+                // 6?? Generar Token JWT para login automÃ¡tico
                 var token = GenerarTokenJWT(usuario);
 
                 return Ok(new
                 {
-                    mensaje = "¡Cuenta activada exitosamente!",
+                    mensaje = "Â¡Cuenta activada exitosamente!",
                     token,
                     usuario = new
                     {
@@ -284,7 +349,7 @@ namespace FactCloudAPI.Controllers
                     suscripcion = new
                     {
                         plan = plan.Nombre,
-                        documentosIncluidos = plan.LimiteDocumentosMensual,
+                        documentosIncluidos = plan.LimiteDocumentosAnuales,
                         fechaExpiracion = suscripcion.FechaFin
                     }
                 });
@@ -296,14 +361,14 @@ namespace FactCloudAPI.Controllers
             }
         }
 
-        // ========== LOGIN (Solo usuarios activos con suscripción) ==========
+        // ========== LOGIN (Solo usuarios activos con suscripciÃ³n) ==========
         [HttpPost("login")]
         public async Task<ActionResult> Login([FromBody] LoginDto dto)
         {
             try
             {
                 if (string.IsNullOrEmpty(dto.Correo) || string.IsNullOrEmpty(dto.Password))
-                    return BadRequest("Email y contraseña son requeridos");
+                    return BadRequest("Email y contraseÃ±a son requeridos");
 
                 // Obtener usuario con sus relaciones
                 var usuario = await _context.Usuarios
@@ -315,21 +380,21 @@ namespace FactCloudAPI.Controllers
                 if (usuario == null)
                     return NotFound("Usuario no encontrado");
 
-                // ? Verificar que la cuenta esté activa
+                // ? Verificar que la cuenta estÃ© activa
                 if (!usuario.Estado)
                 {
                     return Unauthorized(new
                     {
                         codigo = "CUENTA_INACTIVA",
-                        mensaje = "Tu cuenta está pendiente de activación. Completa el pago para acceder."
+                        mensaje = "Tu cuenta estÃ¡ pendiente de activaciÃ³n. Completa el pago para acceder."
                     });
                 }
 
-                // Verificar contraseña
+                // Verificar contraseÃ±a
                 if (!BCrypt.Net.BCrypt.Verify(dto.Password, usuario.ContrasenaHash))
-                    return Unauthorized("Contraseña incorrecta");
+                    return Unauthorized("ContraseÃ±a incorrecta");
 
-                // ? Verificar suscripción activa
+                // ? Verificar suscripciÃ³n activa
                 var suscripcionActiva = usuario.Suscripciones
                     .FirstOrDefault(s => s.Activa && (s.FechaFin == null || s.FechaFin > DateTime.UtcNow));
 
@@ -338,18 +403,18 @@ namespace FactCloudAPI.Controllers
                     return Unauthorized(new
                     {
                         codigo = "SIN_SUSCRIPCION",
-                        mensaje = "No tienes una suscripción activa. Renueva tu plan para continuar."
+                        mensaje = "No tienes una suscripciÃ³n activa. Renueva tu plan para continuar."
                     });
                 }
 
-                // ? Verificar límite de documentos (si aplica)
-                if (suscripcionActiva.PlanFacturacion.LimiteDocumentosMensual > 0 &&
-                    suscripcionActiva.DocumentosUsados >= suscripcionActiva.PlanFacturacion.LimiteDocumentosMensual)
+                // ? Verificar lÃ­mite de documentos (si aplica)
+                if (suscripcionActiva.PlanFacturacion.LimiteDocumentosAnuales > 0 &&
+                    suscripcionActiva.DocumentosUsados >= suscripcionActiva.PlanFacturacion.LimiteDocumentosAnuales)
                 {
                     return Unauthorized(new
                     {
                         codigo = "LIMITE_DOCUMENTOS",
-                        mensaje = $"Has alcanzado el límite de {suscripcionActiva.PlanFacturacion.LimiteDocumentosMensual} documentos de tu plan."
+                        mensaje = $"Has alcanzado el lÃ­mite de {suscripcionActiva.PlanFacturacion.LimiteDocumentosAnuales} documentos de tu plan."
                     });
                 }
 
@@ -376,9 +441,9 @@ namespace FactCloudAPI.Controllers
                     suscripcion = new
                     {
                         plan = suscripcionActiva.PlanFacturacion.Nombre,
-                        documentosIncluidos = suscripcionActiva.PlanFacturacion.LimiteDocumentosMensual,
+                        documentosIncluidos = suscripcionActiva.PlanFacturacion.LimiteDocumentosAnuales,
                         documentosUsados = suscripcionActiva.DocumentosUsados,
-                        documentosRestantes = suscripcionActiva.PlanFacturacion.LimiteDocumentosMensual - suscripcionActiva.DocumentosUsados,
+                        documentosRestantes = suscripcionActiva.PlanFacturacion.LimiteDocumentosAnuales - suscripcionActiva.DocumentosUsados,
                         fechaExpiracion = suscripcionActiva.FechaFin,
                         activa = suscripcionActiva.Activa
                     }
@@ -390,7 +455,7 @@ namespace FactCloudAPI.Controllers
             }
         }
 
-        // ========== MÉTODO AUXILIAR: Generar JWT ==========
+        // ========== MÃ‰TODO AUXILIAR: Generar JWT ==========
         private string GenerarTokenJWT(Usuario usuario)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
@@ -423,5 +488,7 @@ namespace FactCloudAPI.Controllers
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
+
     }
+
 }

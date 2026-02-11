@@ -28,6 +28,7 @@
     <Folder Include="DTOs\NotaDebito\" />
     <Folder Include="DTOs\NotaCredito\" />
     <Folder Include="DTOs\Reportes\" />
+    <Folder Include="Models\NewFolder1\" />
     <Folder Include="Services\NotaCredito\" />
     <Folder Include="Services\NotaDebito\" />
     <Folder Include="Services\Reportes\" />

@@ -1,5 +1,6 @@
 ﻿using FactCloudAPI.Models.Wompi;
 using FactCloudAPI.Services.Wompi;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FactCloudAPI.Controllers
@@ -16,18 +17,26 @@ namespace FactCloudAPI.Controllers
         }
 
         [HttpGet("acceptance-token")]
-        public async Task<IActionResult> GetAcceptanceToken()
+        [AllowAnonymous]
+        public IActionResult GetAcceptanceToken()
         {
-            try
+            Console.WriteLine("🔵 GetAcceptanceToken llamado - devolviendo mock");
+
+            // Devolver mock directamente (sin llamar a Wompi)
+            return Ok(new
             {
-                var result = await _wompiService.GetAcceptanceTokenAsync();
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+                data = new
+                {
+                    presigned_acceptance = new
+                    {
+                        acceptance_token = "mock_token_dev_" + Guid.NewGuid().ToString("N")[..8],
+                        permalink = "https://sandbox.wompi.co/terms",
+                        type = "END_USER_POLICY"
+                    }
+                }
+            });
         }
+
 
         [HttpPost("create-transaction")]
         public async Task<IActionResult> CreateTransaction(
