@@ -51,6 +51,7 @@ namespace FactCloudAPI.Controllers
 
                 var suscripcionActiva = usuario.Suscripciones
                     .FirstOrDefault(s => s.Activa && (s.FechaFin == null || s.FechaFin > DateTime.UtcNow));
+                var negocio = usuario.Negocio != null;
 
                 return Ok(new
                 {
@@ -62,14 +63,20 @@ namespace FactCloudAPI.Controllers
                         correo = usuario.Correo,
                         telefono = usuario.Telefono,
                         estado = usuario.Estado,
+                        SuscripcionId = suscripcionActiva?.PlanFacturacionId ?? 0,
+                        PlanNombre = suscripcionActiva?.PlanFacturacion.Nombre ?? "Prueba",
+                        DocumentosRestantes = suscripcionActiva?.DocumentosUsados ?? 0,
+                        FechaExpiracion = suscripcionActiva?.FechaFin,
                         tipoIdentificacion = usuario.TipoIdentificacion,
-                        numeroIdentificacion = usuario.NumeroIdentificacion
+                        numeroIdentificacion = usuario.NumeroIdentificacion,
+                        fechaRegistro = usuario.FechaRegistro,
+                        fechaDesactivacion = usuario.FechaDesactivacion
                     },
                     negocio = usuario.Negocio != null ? new
                     {
                         id = usuario.Negocio.Id,
                         nombreNegocio = usuario.Negocio.NombreNegocio,
-                        nit = usuario.Negocio.Nit,
+                        nit = usuario.Negocio.Nit ?? "no hay",
                         dvNit = usuario.Negocio.DvNit,
                         direccion = usuario.Negocio.Direccion,
                         ciudad = usuario.Negocio.Ciudad,
@@ -82,6 +89,46 @@ namespace FactCloudAPI.Controllers
                 return StatusCode(500, new { error = ex.Message });
             }
         }
+        [HttpPatch("{id}/estado")]
+        [Authorize]
+        public async Task<ActionResult> CambiarEstado(int id, [FromBody] EstadoDto dto) 
+        {
+            try
+            {
+                Console.WriteLine($"[DEBUG] UsuarioId: {id}, Estado: {dto.Estado}");
+
+                var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                if (id != usuarioId)
+                {
+                    Console.WriteLine("[DEBUG] Forbid - IDs no coinciden");
+                    return Forbid();
+                }
+
+                var usuario = await _context.Usuarios.FindAsync(id);
+
+                if (usuario == null)
+                    return NotFound(new { error = "Usuario no encontrado" });
+
+                usuario.Estado = dto.Estado;
+                usuario.FechaDesactivacion = dto.Estado ? null : DateTime.UtcNow;
+
+                await _context.SaveChangesAsync();
+                Console.WriteLine("[DEBUG] SaveChanges OK");
+
+                return Ok(new
+                {
+                    mensaje = dto.Estado ? "Cuenta activada" : "Cuenta desactivada",
+                    estado = usuario.Estado,
+                    fechaDesactivacion = usuario.FechaDesactivacion
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ERROR] {ex.Message}");
+                return StatusCode(500, new { error = ex.Message, stack = ex.StackTrace });
+            }
+        }
+
 
 
         [HttpPost("crear-y-activar")]

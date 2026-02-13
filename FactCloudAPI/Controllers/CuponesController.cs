@@ -54,7 +54,7 @@ namespace FactCloudAPI.Controllers
                 IsValid = true,
                 Code = cupon.Codigo,
                 DiscountPercentage = cupon.DescuentoPorcentaje,
-                Message = $"Cupón válido: -{cupon.DescuentoPorcentaje}% sobre {precioFinalPlan:C}",
+                Message = "Cupón aplicado correctamente",
                 PriceAfterDiscount = precioFinalConCupón
             });
         }

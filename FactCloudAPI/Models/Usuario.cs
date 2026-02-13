@@ -28,6 +28,9 @@ namespace FactCloudAPI.Models
 
         [Required]
         public string ContrasenaHash { get; set; }
+        public int? FotoPerfilId { get; set; }
+        public FotoPerfil? FotoPerfil { get; set; }
+
 
         public bool Estado { get; set; } = true;
         public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;
@@ -41,7 +44,7 @@ namespace FactCloudAPI.Models
         public ICollection<Producto>? Productos { get; set; }
         public ICollection<Factura>? Facturas { get; set; }
         public ICollection<NotaDebito>? NotasDebito { get; set; }
-
+        public string FotoPerfilUrl => FotoPerfil?.Url;
         public ICollection<SuscripcionFacturacion> Suscripciones { get; set; }
             = new List<SuscripcionFacturacion>();
     }

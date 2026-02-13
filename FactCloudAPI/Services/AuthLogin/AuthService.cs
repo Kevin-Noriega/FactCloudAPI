@@ -22,16 +22,23 @@ public class AuthService : IAuthService
     public async Task<(string token, UsuarioLoginDto usuario)> LoginAsync(LoginDTO model)
     {
         var usuario = await _context.Usuarios
-            .FirstOrDefaultAsync(u => u.Correo == model.Correo);
+        .Include(u => u.Suscripciones) 
+        .ThenInclude(s => s.PlanFacturacion) 
+        .FirstOrDefaultAsync(u => u.Correo == model.Correo);
+        if (usuario == null)
+            throw new UnauthorizedAccessException("Correo no encontrado");
 
-        if (usuario == null || usuario.ContrasenaHash != model.Contrasena)
+        if (!BCrypt.Net.BCrypt.Verify(model.Contrasena, usuario.ContrasenaHash))
             throw new UnauthorizedAccessException("Credenciales incorrectas");
 
         if (!usuario.Estado)
         {
             var diasRestantes = (int)(usuario.FechaDesactivacion.Value.AddDays(30) - DateTime.Now).TotalDays;
-            throw new InvalidOperationException(diasRestantes.ToString());
+            throw new InvalidOperationException($"Cuenta suspendida. {diasRestantes} días restantes.");
         }
+        var suscripcionActiva = usuario.Suscripciones
+       ?.FirstOrDefault(s => s.Activa && s.FechaFin > DateTime.Now);
+        
 
         var usuarioDto = new UsuarioLoginDto
         {
@@ -40,6 +47,10 @@ public class AuthService : IAuthService
             Apellido = usuario.Apellido,
             Correo = usuario.Correo,
             Estado = usuario.Estado,
+            SuscripcionId = suscripcionActiva?.PlanFacturacionId ?? 0,
+            PlanNombre = suscripcionActiva?.PlanFacturacion.Nombre ?? "", 
+            DocumentosRestantes = suscripcionActiva?.DocumentosUsados ?? 0,
+            FechaExpiracion = suscripcionActiva?.FechaFin,
             FechaDesactivacion = usuario.FechaDesactivacion
         };
 

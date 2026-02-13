@@ -1,6 +1,7 @@
 ﻿using FactCloudAPI.Models;
 using FactCloudAPI.Models.Cupones;
 using FactCloudAPI.Models.Planes;
+using FactCloudAPI.Models.Sesiones;
 using FactCloudAPI.Models.Suscripciones;
 using FactCloudAPI.Models.Usuarios;
 using Microsoft.EntityFrameworkCore;
@@ -26,9 +27,11 @@ namespace FactCloudAPI.Data
         public DbSet<DocumentoSoporte> DocumentosSoporte { get; set; }
         public DbSet<SuscripcionFacturacion> SuscripcionesFacturacion { get; set; }
         public DbSet<PlanFacturacion> PlanesFacturacion { get; set; }
+        public DbSet<FotoPerfil> FotoPerfils { get; set; }
         public DbSet<Cupon> Cupones { get; set; }
         public DbSet<Negocio> Negocios { get; set; }
         public DbSet<ConfiguracionDian> ConfiguracionesDian { get; set; }
+        public DbSet<HistorialSesion> HistorialSesiones { get; set; }
 
 
 
@@ -348,8 +351,23 @@ namespace FactCloudAPI.Data
 
 
                 );
+              //Foto perfil
+               modelBuilder.Entity<Usuario>()
+              .HasOne(u => u.FotoPerfil)
+              .WithOne(fp => fp.Usuario)
+              .HasForeignKey<FotoPerfil>("UsuarioId")
+              .OnDelete(DeleteBehavior.Cascade);
 
-           modelBuilder.Entity<Factura>()
+    
+             modelBuilder.Entity<HistorialSesion>()
+             .HasOne(h => h.Usuario)
+             .WithMany()
+             .HasForeignKey(h => h.UsuarioId)
+             .OnDelete(DeleteBehavior.Cascade);
+
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<Factura>()
         .Property(f => f.MontoPagado)
         .HasPrecision(18, 2);
 
