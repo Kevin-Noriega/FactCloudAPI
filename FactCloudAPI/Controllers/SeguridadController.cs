@@ -1,6 +1,7 @@
 ﻿using FactCloudAPI.Data;
 using FactCloudAPI.DTOs.Usuarios;
 using FactCloudAPI.Models.Sesiones;
+using FactCloudAPI.Services.Seguridad;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,17 +13,21 @@ namespace FactCloudAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class SeguridadController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly SeguridadService _seguridadService;
 
         public SeguridadController(
             ApplicationDbContext context,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            SeguridadService seguridadService)
         {
             _context = context;
             _httpContextAccessor = httpContextAccessor;
+            _seguridadService = seguridadService;
         }
 
         // CAMBIAR CONTRASEÑA
@@ -57,7 +62,7 @@ namespace FactCloudAPI.Controllers
                 await _context.SaveChangesAsync();
 
                 // Registrar cambio en historial
-                await RegistrarSesion(usuarioId, "Cambio de contraseña", true);
+                await _seguridadService.RegistrarSesion(usuarioId, "Cambio de contraseña", true);
 
                 return Ok(new { mensaje = "Contraseña actualizada correctamente" });
             }
@@ -168,36 +173,8 @@ namespace FactCloudAPI.Controllers
             }
         }
 
-        // Registrar sesión
-        private async Task RegistrarSesion(int usuarioId, string accion = "Login", bool exitoso = true)
-        {
-            var httpContext = _httpContextAccessor.HttpContext;
-            if (httpContext == null) return;
+       
 
-            var ipAddress = httpContext.Connection.RemoteIpAddress?.ToString() ?? "Desconocida";
-            var userAgent = httpContext.Request.Headers["User-Agent"].ToString();
-
-            // Parse User Agent
-            var uaParser = UAParser.Parser.GetDefault();
-            var clientInfo = uaParser.Parse(userAgent);
-
-            var sesion = new HistorialSesion
-            {
-                UsuarioId = usuarioId,
-                FechaHora = DateTime.UtcNow,
-                IpAddress = ipAddress,
-                UserAgent = userAgent,
-                Navegador = $"{clientInfo.UA.Family} {clientInfo.UA.Major}",
-                SistemaOperativo = $"{clientInfo.OS.Family} {clientInfo.OS.Major}",
-                Dispositivo = clientInfo.Device.Family,
-                Exitoso = exitoso,
-                SesionActual = accion == "Login"
-            };
-
-            _context.HistorialSesiones.Add(sesion);
-            await _context.SaveChangesAsync();
-        }
-      
 
     }
 

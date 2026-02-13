@@ -1,6 +1,7 @@
 ﻿using FactCloudAPI.Data;
-using FactCloudAPI.Models;
 using FactCloudAPI.DTOs.Login;
+using FactCloudAPI.Models;
+using FactCloudAPI.Services.Seguridad;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -14,11 +15,13 @@ public class AuthController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
     private readonly IConfiguration _config;
+    private readonly SeguridadService _seguridadService;
 
-    public AuthController(ApplicationDbContext context, IConfiguration config)
+    public AuthController(ApplicationDbContext context, IConfiguration config, SeguridadService seguridadService)
     {
         _context = context;
         _config = config;
+        _seguridadService = seguridadService;
     }
 
     [HttpPost("login")]
@@ -48,6 +51,7 @@ public class AuthController : ControllerBase
         };
 
         var token = GenerarToken(usuario);
+        await _seguridadService.RegistrarSesion(usuario.Id,"Login", true);
         return Ok(new { token, usuario = usuarioDto });
     }
 

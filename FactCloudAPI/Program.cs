@@ -4,6 +4,7 @@ using FactCloudAPI.Services.AuthLogin;
 using FactCloudAPI.Services.Clientes;
 using FactCloudAPI.Services.Facturas;
 using FactCloudAPI.Services.Productos;
+using FactCloudAPI.Services.Seguridad;
 using FactCloudAPI.Services.Usuarios;
 using FactCloudAPI.Services.Wompi;
 using FactCloudAPI.Utils.Exceptions;
@@ -45,6 +46,8 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddSignalR();
+builder.Services.AddScoped<SeguridadService>();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
