@@ -40,9 +40,9 @@ namespace FactCloudAPI.DTOs.Usuarios
         public int PlanFacturacionId { get; set; }
 
         [Required]
-        public int TransaccionId { get; set; } 
+        public string TransaccionId { get; set; } = null!;
 
-        public string TipoPago { get; set; } = "mensual"; // "mensual" o "anual"
+        public string TipoPago { get; set; } = "anual"; // "mensual" o "anual"
         public decimal PrecioPagado { get; set; }
     }
     }

@@ -1,4 +1,5 @@
 ﻿using FactCloudAPI.Models;
+using FactCloudAPI.Models.Cupones;
 using FactCloudAPI.Models.Planes;
 using FactCloudAPI.Models.Suscripciones;
 using FactCloudAPI.Models.Usuarios;
@@ -25,10 +26,11 @@ namespace FactCloudAPI.Data
         public DbSet<DocumentoSoporte> DocumentosSoporte { get; set; }
         public DbSet<SuscripcionFacturacion> SuscripcionesFacturacion { get; set; }
         public DbSet<PlanFacturacion> PlanesFacturacion { get; set; }
+        public DbSet<Cupon> Cupones { get; set; }
         public DbSet<Negocio> Negocios { get; set; }
         public DbSet<ConfiguracionDian> ConfiguracionesDian { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
-
+        public DbSet<RegistroPendiente> RegistrosPendientes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -144,6 +146,8 @@ namespace FactCloudAPI.Data
                     .IsRequired()
                     .HasMaxLength(100);
             });
+
+
 
 
             modelBuilder.Entity<PlanFacturacion>().HasData(
@@ -346,8 +350,43 @@ namespace FactCloudAPI.Data
 
 
              );
+            modelBuilder.Entity<Cupon>().HasData(
+                    new Cupon
+                    {
+                        Id = 1,
+                        Codigo = "WELCOMEFC",
+                        DescuentoPorcentaje = 20,
+                        MaxUsos =30,
+                        IsActive = true,
 
-            modelBuilder.Entity<Factura>()
+                    },
+                    new Cupon
+                    {
+                        Id= 2,
+                        Codigo = "FACTCLOUDPRO",
+                        DescuentoPorcentaje = 30,
+                        MaxUsos = 30,
+                        PlanId = 3,
+                        IsActive= true,
+
+                    },
+                    new Cupon
+                    {
+                        Id= 3,
+                        Codigo = "STARTEFC25",
+                        DescuentoPorcentaje = 12,
+                        MaxUsos = 20,
+                        PlanId = 1,
+                        IsActive= true,
+
+                    }
+
+
+
+
+                );
+
+           modelBuilder.Entity<Factura>()
         .Property(f => f.MontoPagado)
         .HasPrecision(18, 2);
 
@@ -505,7 +544,33 @@ namespace FactCloudAPI.Data
                     .HasMaxLength(50)
                     .HasDefaultValue("Efectivo");
             });
-        }
 
+            modelBuilder.Entity<RegistroPendiente>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                // Índice único en TransaccionId para búsquedas rápidas
+                entity.HasIndex(e => e.TransaccionId)
+                    .IsUnique()
+                    .HasDatabaseName("IX_RegistrosPendientes_TransaccionId");
+
+                // Índice en Email para búsquedas por correo
+                entity.HasIndex(e => e.Email)
+                    .HasDatabaseName("IX_RegistrosPendientes_Email");
+
+                // Índice en Estado para filtrar por estado
+                entity.HasIndex(e => e.Estado)
+                    .HasDatabaseName("IX_RegistrosPendientes_Estado");
+
+                // Configurar valores por defecto
+                entity.Property(e => e.Estado)
+                    .HasDefaultValue("PENDING");
+
+                entity.Property(e => e.FechaCreacion)
+                    .HasDefaultValueSql("GETUTCDATE()");
+            });
+        }
     }
+
+    
 }

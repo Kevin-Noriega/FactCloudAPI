@@ -92,8 +92,6 @@ namespace FactCloudAPI.Controllers
             }
         }
 
-
-
         [HttpPost("crear-y-activar")]
         [AllowAnonymous]
         public async Task<ActionResult> CrearYActivarUsuario([FromBody] CrearYActivarDto dto)
@@ -164,7 +162,7 @@ namespace FactCloudAPI.Controllers
                 else
                 {
                     fechaFin = fechaInicio.AddMonths(1);
-                    documentosRestantes = plan.LimiteDocumentosAnuales?? 0;
+                    documentosRestantes = plan.LimiteDocumentosAnuales ?? 0;
                 }
 
                 var suscripcion = new SuscripcionFacturacion
@@ -174,7 +172,7 @@ namespace FactCloudAPI.Controllers
                     FechaInicio = fechaInicio,
                     FechaFin = fechaFin,
                     Activa = true,
-                    Id = dto.TransaccionId,
+                    TransaccionId = dto.TransaccionId,
                 };
 
                 _context.SuscripcionesFacturacion.Add(suscripcion);
@@ -217,6 +215,9 @@ namespace FactCloudAPI.Controllers
                 return StatusCode(500, new { error = ex.Message });
             }
         }
+
+
+
 
         // ========== FASE 1: PRE-REGISTRO (Solo crear usuario inactivo) ==========
         [HttpPost]
