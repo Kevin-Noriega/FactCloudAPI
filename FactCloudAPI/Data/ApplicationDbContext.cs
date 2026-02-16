@@ -31,13 +31,24 @@ namespace FactCloudAPI.Data
         public DbSet<Cupon> Cupones { get; set; }
         public DbSet<Negocio> Negocios { get; set; }
         public DbSet<ConfiguracionDian> ConfiguracionesDian { get; set; }
-        public DbSet<HistorialSesion> HistorialSesiones { get; set; }
-
-
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<RegistroPendiente> RegistrosPendientes { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // Configurar relación Usuario → RefreshTokens (1 a muchos)
+            modelBuilder.Entity<RefreshToken>()
+                .HasOne(rt => rt.Usuario)
+                .WithMany()  
+                .HasForeignKey(rt => rt.UsuarioId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Índice en Token para búsquedas rápidas
+            modelBuilder.Entity<RefreshToken>()
+                .HasIndex(rt => rt.Token)
+                .IsUnique();
 
             // ===============================
             // CLIENTE -> USUARIO (1:N)
@@ -116,6 +127,31 @@ namespace FactCloudAPI.Data
                 .HasOne(s => s.PlanFacturacion)
                 .WithMany(p => p.Suscripciones)
                 .HasForeignKey(s => s.PlanFacturacionId);
+
+            modelBuilder.Entity<RefreshToken>(entity =>
+            {
+                entity.HasKey(rt => rt.Id);
+
+                entity.HasOne(rt => rt.Usuario)
+                    .WithMany()
+                    .HasForeignKey(rt => rt.UsuarioId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(rt => rt.Token)
+                    .IsUnique();
+
+                entity.Property(rt => rt.Token)
+                    .IsRequired()
+                    .HasMaxLength(500);
+
+                entity.Property(rt => rt.JwtId)
+                    .IsRequired()
+                    .HasMaxLength(100);
+            });
+
+
+
+
             modelBuilder.Entity<PlanFacturacion>().HasData(
                 
                  new PlanFacturacion
@@ -525,7 +561,33 @@ namespace FactCloudAPI.Data
                     .HasMaxLength(50)
                     .HasDefaultValue("Efectivo");
             });
-        }
 
+            modelBuilder.Entity<RegistroPendiente>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                // Índice único en TransaccionId para búsquedas rápidas
+                entity.HasIndex(e => e.TransaccionId)
+                    .IsUnique()
+                    .HasDatabaseName("IX_RegistrosPendientes_TransaccionId");
+
+                // Índice en Email para búsquedas por correo
+                entity.HasIndex(e => e.Email)
+                    .HasDatabaseName("IX_RegistrosPendientes_Email");
+
+                // Índice en Estado para filtrar por estado
+                entity.HasIndex(e => e.Estado)
+                    .HasDatabaseName("IX_RegistrosPendientes_Estado");
+
+                // Configurar valores por defecto
+                entity.Property(e => e.Estado)
+                    .HasDefaultValue("PENDING");
+
+                entity.Property(e => e.FechaCreacion)
+                    .HasDefaultValueSql("GETUTCDATE()");
+            });
+        }
     }
+
+    
 }

@@ -28,6 +28,7 @@ builder.Services.AddCors(options =>
         policy.SetIsOriginAllowed(origin =>
                 origin.StartsWith("http://localhost") ||
                 origin.StartsWith("https://localhost"))
+              .AllowCredentials()
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -56,7 +57,11 @@ builder.Services.AddScoped<IFacturaService, FacturaService>();
 builder.Services.AddHttpClient<WompiService>();
 builder.Services.AddScoped<WompiService>();
 builder.Services.AddScoped<IDocumentoSoporteService, DocumentoSoporteService>();
-
+builder.Services.AddHttpClient<WompiService>(client =>
+{
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
 
 
 // ===== Base de datos =====
@@ -64,11 +69,10 @@ var conn = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(conn, sqlServerOptions =>
     {
-        sqlServerOptions.EnableRetryOnFailure(
-            maxRetryCount: 5,
-            maxRetryDelay: TimeSpan.FromSeconds(30),
-            errorNumbersToAdd: null);
+        // ✅ Cambiar a 0 reintentos
+        sqlServerOptions.EnableRetryOnFailure(maxRetryCount: 0);
     }));
+
 
 // ===== Servicios =====
 builder.Services.AddScoped<IEmailService, EmailService>();

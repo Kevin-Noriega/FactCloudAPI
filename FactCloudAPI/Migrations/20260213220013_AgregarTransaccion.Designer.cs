@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FactCloudAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260206205246_checkout")]
-    partial class checkout
+    [Migration("20260213220013_AgregarTransaccion")]
+    partial class AgregarTransaccion
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -144,6 +144,105 @@ namespace FactCloudAPI.Migrations
                     b.HasIndex("UsuarioId");
 
                     b.ToTable("Clientes");
+                });
+
+            modelBuilder.Entity("FactCloudAPI.Models.Cupones.Cupon", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Codigo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<decimal>("DescuentoPorcentaje")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("Expiracion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("MaxUsos")
+                        .HasMaxLength(20)
+                        .HasColumnType("int");
+
+                    b.Property<int?>("PlanId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UsosCodigo")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlanId");
+
+                    b.ToTable("Cupones");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Codigo = "WELCOMEFC",
+                            DescuentoPorcentaje = 20m,
+                            IsActive = true,
+                            MaxUsos = 30,
+                            UsosCodigo = 0
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Codigo = "FACTCLOUDPRO",
+                            DescuentoPorcentaje = 30m,
+                            IsActive = true,
+                            MaxUsos = 30,
+                            PlanId = 3,
+                            UsosCodigo = 0
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Codigo = "STARTEFC25",
+                            DescuentoPorcentaje = 12m,
+                            IsActive = true,
+                            MaxUsos = 20,
+                            PlanId = 1,
+                            UsosCodigo = 0
+                        });
+                });
+
+            modelBuilder.Entity("FactCloudAPI.Models.Cupones.CuponUso", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CuponId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("DescuentoAplicado")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("SuscripcionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UsadoAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CuponId");
+
+                    b.HasIndex("SuscripcionId");
+
+                    b.ToTable("CuponUso");
                 });
 
             modelBuilder.Entity("FactCloudAPI.Models.DetalleFactura", b =>
@@ -889,7 +988,23 @@ namespace FactCloudAPI.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
-                    b.Property<int?>("LimiteDocumentosMensual")
+                    b.Property<string>("Descripcion")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("DescuentoActivo")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("DescuentoPorcentaje")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Destacado")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("DuracionMeses")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("LimiteDocumentosAnuales")
                         .HasColumnType("int");
 
                     b.Property<int?>("LimiteUsuarios")
@@ -903,9 +1018,6 @@ namespace FactCloudAPI.Migrations
                     b.Property<decimal>("PrecioAnual")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal>("PrecioMensual")
-                        .HasColumnType("decimal(18,2)");
-
                     b.HasKey("Id");
 
                     b.ToTable("PlanesFacturacion");
@@ -916,20 +1028,220 @@ namespace FactCloudAPI.Migrations
                             Id = 1,
                             Activo = true,
                             Codigo = "STARTER",
-                            LimiteDocumentosMensual = 100,
+                            Descripcion = "Ideal para emprendedores iniciando",
+                            DescuentoActivo = true,
+                            DescuentoPorcentaje = 15,
+                            Destacado = false,
+                            DuracionMeses = 12,
+                            LimiteDocumentosAnuales = 30,
                             LimiteUsuarios = 1,
                             Nombre = "Starter",
-                            PrecioAnual = 70800m,
-                            PrecioMensual = 5900m
+                            PrecioAnual = 135000m
                         },
                         new
                         {
                             Id = 2,
                             Activo = true,
-                            Codigo = "PAY_PER_USE",
-                            Nombre = "Pago por Uso",
-                            PrecioAnual = 0m,
-                            PrecioMensual = 0m
+                            Codigo = "BASICO",
+                            Descripcion = "Para pequeños negocios en crecimiento",
+                            DescuentoActivo = true,
+                            DescuentoPorcentaje = 10,
+                            Destacado = false,
+                            DuracionMeses = 12,
+                            LimiteDocumentosAnuales = 140,
+                            LimiteUsuarios = 1,
+                            Nombre = "Básico",
+                            PrecioAnual = 300000m
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Activo = true,
+                            Codigo = "PROFESIONAL",
+                            Descripcion = "Perfecto para PYMES establecidas",
+                            DescuentoActivo = true,
+                            DescuentoPorcentaje = 10,
+                            Destacado = false,
+                            DuracionMeses = 12,
+                            LimiteDocumentosAnuales = 540,
+                            LimiteUsuarios = 1,
+                            Nombre = "Profesional",
+                            PrecioAnual = 770000m
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Activo = true,
+                            Codigo = "EMPRESARIAL",
+                            Descripcion = "Solución completa para empresas grandes",
+                            DescuentoActivo = true,
+                            DescuentoPorcentaje = 15,
+                            Destacado = false,
+                            DuracionMeses = 12,
+                            LimiteDocumentosAnuales = 1550,
+                            LimiteUsuarios = 1,
+                            Nombre = "Empresarial",
+                            PrecioAnual = 1300000m
+                        });
+                });
+
+            modelBuilder.Entity("FactCloudAPI.Models.Planes.PlanFeature", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("PlanFacturacionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Texto")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Tooltip")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PlanFacturacionId");
+
+                    b.ToTable("PlanFeature");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            PlanFacturacionId = 1,
+                            Texto = "1 Usuario",
+                            Tooltip = "Cuenta individual para emprendedores que están empezando."
+                        },
+                        new
+                        {
+                            Id = 2,
+                            PlanFacturacionId = 1,
+                            Texto = "30 Documentos anuales",
+                            Tooltip = "Emite hasta 30 facturas electrónicas al año."
+                        },
+                        new
+                        {
+                            Id = 3,
+                            PlanFacturacionId = 1,
+                            Texto = "Funciones básicas",
+                            Tooltip = "Creación de facturas, gestión de clientes y productos. Reportes simples incluidos."
+                        },
+                        new
+                        {
+                            Id = 4,
+                            PlanFacturacionId = 2,
+                            Texto = "1 Usuario",
+                            Tooltip = "Cuenta individual perfecta para emprendedores y negocios unipersonales.Acceso completo a todas las funciones."
+                        },
+                        new
+                        {
+                            Id = 5,
+                            PlanFacturacionId = 2,
+                            Texto = "140 Documentos electrónicos al año",
+                            Tooltip = "Perfecto para negocios que emiten hasta 8 documentos diarios."
+                        },
+                        new
+                        {
+                            Id = 6,
+                            PlanFacturacionId = 2,
+                            Texto = "Funciones básicas",
+                            Tooltip = "Creación de facturas, gestión de clientes, productos, notas débito y crédito. Reportes simples incluidos."
+                        },
+                        new
+                        {
+                            Id = 7,
+                            PlanFacturacionId = 3,
+                            Texto = "1 Usuario",
+                            Tooltip = "Cuenta individual con acceso completo a todas las funcionalidades del sistema."
+                        },
+                        new
+                        {
+                            Id = 8,
+                            PlanFacturacionId = 3,
+                            Texto = "540 Documentos electrónicos al año",
+                            Tooltip = "Ideal para PYMES que facturan de forma constante durante todo el año."
+                        },
+                        new
+                        {
+                            Id = 9,
+                            PlanFacturacionId = 3,
+                            Texto = "Facturación electrónica DIAN",
+                            Tooltip = "Emisión de facturas electrónicas válidas ante la DIAN, cumpliendo la normativa vigente."
+                        },
+                        new
+                        {
+                            Id = 10,
+                            PlanFacturacionId = 3,
+                            Texto = "Notas crédito y débito",
+                            Tooltip = "Corrección y ajustes de facturas mediante notas crédito y débito electrónicas."
+                        },
+                        new
+                        {
+                            Id = 11,
+                            PlanFacturacionId = 3,
+                            Texto = "Gestión avanzada de clientes y productos",
+                            Tooltip = "Administra clientes, productos, precios e impuestos de forma organizada."
+                        },
+                        new
+                        {
+                            Id = 12,
+                            PlanFacturacionId = 3,
+                            Texto = "Reportes y control de facturación",
+                            Tooltip = "Consulta reportes básicos de ventas, documentos emitidos y estado de facturación."
+                        },
+                        new
+                        {
+                            Id = 13,
+                            PlanFacturacionId = 4,
+                            Texto = "1 Usuario",
+                            Tooltip = "Acceso completo al sistema con control total de la facturación empresarial."
+                        },
+                        new
+                        {
+                            Id = 14,
+                            PlanFacturacionId = 4,
+                            Texto = "1550 Documentos electrónicos al año",
+                            Tooltip = "Pensado para empresas con alto volumen de facturación anual."
+                        },
+                        new
+                        {
+                            Id = 15,
+                            PlanFacturacionId = 4,
+                            Texto = "Facturación electrónica DIAN",
+                            Tooltip = "Cumple con todos los requisitos exigidos por la DIAN para facturación electrónica."
+                        },
+                        new
+                        {
+                            Id = 16,
+                            PlanFacturacionId = 4,
+                            Texto = "Notas crédito y débito ilimitadas",
+                            Tooltip = "Emite notas crédito y débito sin restricciones dentro del límite anual de documentos."
+                        },
+                        new
+                        {
+                            Id = 17,
+                            PlanFacturacionId = 4,
+                            Texto = "Gestión completa de clientes y productos",
+                            Tooltip = "Control detallado de clientes, productos, impuestos y precios."
+                        },
+                        new
+                        {
+                            Id = 18,
+                            PlanFacturacionId = 4,
+                            Texto = "Reportes administrativos",
+                            Tooltip = "Accede a reportes de ventas y facturación para control interno y contable."
+                        },
+                        new
+                        {
+                            Id = 19,
+                            PlanFacturacionId = 4,
+                            Texto = "Soporte prioritario",
+                            Tooltip = "Atención prioritaria para resolución de dudas y soporte técnico."
                         });
                 });
 
@@ -1043,6 +1355,114 @@ namespace FactCloudAPI.Migrations
                     b.ToTable("Productos");
                 });
 
+            modelBuilder.Entity("FactCloudAPI.Models.RefreshToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("FechaExpiracion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("JwtId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<bool>("Revocado")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("Usado")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Token")
+                        .IsUnique();
+
+                    b.HasIndex("UsuarioId");
+
+                    b.ToTable("RefreshTokens");
+                });
+
+            modelBuilder.Entity("FactCloudAPI.Models.RegistroPendiente", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("DatosNegocio")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DatosPlan")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DatosRegistro")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("PENDING");
+
+                    b.Property<DateTime?>("FechaActualizacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("NotasError")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("TransaccionId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .HasDatabaseName("IX_RegistrosPendientes_Email");
+
+                    b.HasIndex("Estado")
+                        .HasDatabaseName("IX_RegistrosPendientes_Estado");
+
+                    b.HasIndex("TransaccionId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_RegistrosPendientes_TransaccionId");
+
+                    b.ToTable("RegistrosPendientes");
+                });
+
             modelBuilder.Entity("FactCloudAPI.Models.Suscripciones.SuscripcionFacturacion", b =>
                 {
                     b.Property<int>("Id")
@@ -1065,6 +1485,9 @@ namespace FactCloudAPI.Migrations
 
                     b.Property<int>("PlanFacturacionId")
                         .HasColumnType("int");
+
+                    b.Property<string>("TransaccionId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("UsuarioId")
                         .HasColumnType("int");
@@ -1240,6 +1663,34 @@ namespace FactCloudAPI.Migrations
                         .IsRequired();
 
                     b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("FactCloudAPI.Models.Cupones.Cupon", b =>
+                {
+                    b.HasOne("FactCloudAPI.Models.Planes.PlanFacturacion", "PlanFacturacion")
+                        .WithMany()
+                        .HasForeignKey("PlanId");
+
+                    b.Navigation("PlanFacturacion");
+                });
+
+            modelBuilder.Entity("FactCloudAPI.Models.Cupones.CuponUso", b =>
+                {
+                    b.HasOne("FactCloudAPI.Models.Cupones.Cupon", "Cupon")
+                        .WithMany("usos")
+                        .HasForeignKey("CuponId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("FactCloudAPI.Models.Suscripciones.SuscripcionFacturacion", "Suscripcion")
+                        .WithMany()
+                        .HasForeignKey("SuscripcionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Cupon");
+
+                    b.Navigation("Suscripcion");
                 });
 
             modelBuilder.Entity("FactCloudAPI.Models.DetalleFactura", b =>
@@ -1419,12 +1870,34 @@ namespace FactCloudAPI.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("FactCloudAPI.Models.Planes.PlanFeature", b =>
+                {
+                    b.HasOne("FactCloudAPI.Models.Planes.PlanFacturacion", "PlanFacturacion")
+                        .WithMany("Features")
+                        .HasForeignKey("PlanFacturacionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PlanFacturacion");
+                });
+
             modelBuilder.Entity("FactCloudAPI.Models.Producto", b =>
                 {
                     b.HasOne("FactCloudAPI.Models.Usuario", "Usuario")
                         .WithMany("Productos")
                         .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("FactCloudAPI.Models.RefreshToken", b =>
+                {
+                    b.HasOne("FactCloudAPI.Models.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Usuario");
@@ -1478,6 +1951,11 @@ namespace FactCloudAPI.Migrations
                     b.Navigation("NotasDebito");
                 });
 
+            modelBuilder.Entity("FactCloudAPI.Models.Cupones.Cupon", b =>
+                {
+                    b.Navigation("usos");
+                });
+
             modelBuilder.Entity("FactCloudAPI.Models.Factura", b =>
                 {
                     b.Navigation("DetalleFacturas");
@@ -1501,6 +1979,8 @@ namespace FactCloudAPI.Migrations
 
             modelBuilder.Entity("FactCloudAPI.Models.Planes.PlanFacturacion", b =>
                 {
+                    b.Navigation("Features");
+
                     b.Navigation("Suscripciones");
                 });
 
