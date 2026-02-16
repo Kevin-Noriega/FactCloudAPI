@@ -54,26 +54,42 @@ public class AuthService : IAuthService
     {
         var claims = new List<Claim>
     {
-        new Claim(JwtRegisteredClaimNames.Sub, usuario.Correo),
-        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // ID único del token
+        new Claim(JwtRegisteredClaimNames.Sub, usuario.Id.ToString()), // ✅ CAMBIAR: ID en lugar de Correo
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
         new Claim(ClaimTypes.Email, usuario.Correo),
-        new Claim(ClaimTypes.Role, "Usuario") // O rol real desde tu tabla
+        new Claim(ClaimTypes.Role, "Usuario"),
+        new Claim(ClaimTypes.Name, $"{usuario.Nombre} {usuario.Apellido}")
     };
 
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+        var keyString = _config["Jwt:Key"];
+        if (string.IsNullOrEmpty(keyString))
+            throw new InvalidOperationException("JWT Key no configurada en appsettings.json");
+
+        if (keyString.Length < 32)
+            throw new InvalidOperationException("JWT Key debe tener al menos 32 caracteres");
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyString));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var token = new JwtSecurityToken(
             issuer: _config["Jwt:Issuer"],
             audience: _config["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(15), // ← CORTA DURACIÓN (15-30 min)
+            expires: DateTime.UtcNow.AddMinutes(30),
             signingCredentials: creds
         );
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+
+        Console.WriteLine($"✅ Token generado para usuario {usuario.Correo}");
+        Console.WriteLine($"   - ID en claim: {usuario.Id}");
+        Console.WriteLine($"   - Sub: {usuario.Id}"); // ✅ Verificar que sea el ID
+        Console.WriteLine($"   - Claims totales: {claims.Count}");
+
+        return tokenString;
     }
+
 
     // MÉTODO 2: Generar Refresh Token (string aleatorio seguro)
     public string GenerarRefreshToken()

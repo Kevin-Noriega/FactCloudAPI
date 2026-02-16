@@ -30,9 +30,28 @@ namespace FactCloudAPI.Controllers
         }
         // ? GET: Obtener usuario por ID (para React Query)
         [HttpGet("{id}")]
-        [Authorize]  // Requiere token válido
+        [Authorize]
         public async Task<ActionResult> GetUsuario(int id)
         {
+            Console.WriteLine("\n=== GET /Usuarios/{id} ===");
+            Console.WriteLine($"ID solicitado: {id}");
+            Console.WriteLine($"IsAuthenticated: {User.Identity?.IsAuthenticated}");
+            Console.WriteLine($"Identity Name: {User.Identity?.Name}");
+
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                Console.WriteLine("Claims del usuario:");
+                foreach (var claim in User.Claims)
+                {
+                    Console.WriteLine($"  - {claim.Type}: {claim.Value}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("❌ Usuario NO autenticado");
+                return Unauthorized(new { message = "No autenticado" });
+            }
+
             try
             {
                 var usuario = await _context.Usuarios
@@ -42,15 +61,27 @@ namespace FactCloudAPI.Controllers
                     .FirstOrDefaultAsync(u => u.Id == id);
 
                 if (usuario == null)
+                {
+                    Console.WriteLine($"❌ Usuario {id} no encontrado en BD");
                     return NotFound(new { message = "Usuario no encontrado" });
+                }
 
                 // Verificar que el usuario autenticado coincida
                 var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                Console.WriteLine($"UserID del token: {userIdClaim}");
+                Console.WriteLine($"UserID solicitado: {id}");
+
                 if (userIdClaim != id.ToString())
-                    return Unauthorized(new { message = "No autorizado para ver este usuario" }); 
+                {
+                    Console.WriteLine("❌ ID no coincide - No autorizado");
+                    return Unauthorized(new { message = "No autorizado para ver este usuario" });
+                }
 
                 var suscripcionActiva = usuario.Suscripciones
                     .FirstOrDefault(s => s.Activa && (s.FechaFin == null || s.FechaFin > DateTime.UtcNow));
+
+                Console.WriteLine($"✅ Usuario encontrado: {usuario.Correo}");
+                Console.WriteLine("=== GET EXITOSO ===\n");
 
                 return Ok(new
                 {
@@ -88,9 +119,12 @@ namespace FactCloudAPI.Controllers
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"❌ Error en GetUsuario: {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
                 return StatusCode(500, new { error = ex.Message });
             }
         }
+
 
         [HttpPost("crear-y-activar")]
         [AllowAnonymous]
