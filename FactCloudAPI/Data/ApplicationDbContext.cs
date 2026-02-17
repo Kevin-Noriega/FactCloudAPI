@@ -26,6 +26,7 @@ namespace FactCloudAPI.Data
         public DbSet<FormaPagoNotaCredito> FormasPagoNotaCredito { get; set; }
         public DbSet<DocumentoSoporte> DocumentosSoporte { get; set; }
         public DbSet<SuscripcionFacturacion> SuscripcionesFacturacion { get; set; }
+        public DbSet<Addon> Addons { get; set; }
         public DbSet<PlanFacturacion> PlanesFacturacion { get; set; }
         public DbSet<FotoPerfil> FotoPerfils { get; set; }
         public DbSet<Cupon> Cupones { get; set; }
@@ -316,6 +317,24 @@ namespace FactCloudAPI.Data
 
 
              );
+            modelBuilder.Entity<SuscripcionFacturacion>()
+            .HasOne(s => s.Usuario)
+            .WithMany(u => u.Suscripciones)
+            .HasForeignKey(s => s.UsuarioId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<SuscripcionFacturacion>()
+                .HasOne(s => s.PlanFacturacion)
+                .WithMany(p => p.Suscripciones)
+                .HasForeignKey(s => s.PlanFacturacionId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<PlanFeature>()
+                .HasOne(f => f.PlanFacturacion)
+                .WithMany(p => p.Features)
+                .HasForeignKey(f => f.PlanFacturacionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             modelBuilder.Entity<Cupon>().HasData(
                     new Cupon
                     {

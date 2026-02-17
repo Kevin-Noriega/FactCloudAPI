@@ -1,6 +1,7 @@
-using System.ComponentModel.DataAnnotations;
-using FactCloudAPI.Models.Usuarios;
 using FactCloudAPI.Models.Suscripciones;
+using FactCloudAPI.Models.Usuarios;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FactCloudAPI.Models
 {
@@ -47,5 +48,9 @@ namespace FactCloudAPI.Models
         public string FotoPerfilUrl => FotoPerfil?.Url;
         public ICollection<SuscripcionFacturacion> Suscripciones { get; set; }
             = new List<SuscripcionFacturacion>();
+        [NotMapped]
+        public SuscripcionFacturacion? SuscripcionActual =>
+            Suscripciones?.FirstOrDefault(s => s.Activa);
     }
 }
+
