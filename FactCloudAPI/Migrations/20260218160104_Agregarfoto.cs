@@ -8,11 +8,30 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace FactCloudAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class Initialmigration : Migration
+    public partial class Agregarfoto : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "Addons",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Nombre = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Descripcion = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    Precio = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    Unidad = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Tipo = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Color = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    Activo = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Addons", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "PlanesFacturacion",
                 columns: table => new
@@ -37,6 +56,27 @@ namespace FactCloudAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "RegistrosPendientes",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    TransaccionId = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    DatosRegistro = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DatosNegocio = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DatosPlan = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Email = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    Estado = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false, defaultValue: "PENDING"),
+                    FechaCreacion = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    FechaActualizacion = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    NotasError = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_RegistrosPendientes", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Usuarios",
                 columns: table => new
                 {
@@ -49,6 +89,7 @@ namespace FactCloudAPI.Migrations
                     Telefono = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
                     Correo = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     ContrasenaHash = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FotoPerfilId = table.Column<int>(type: "int", nullable: true),
                     Estado = table.Column<bool>(type: "bit", nullable: false),
                     FechaRegistro = table.Column<DateTime>(type: "datetime2", nullable: false),
                     FechaDesactivacion = table.Column<DateTime>(type: "datetime2", nullable: true)
@@ -56,6 +97,30 @@ namespace FactCloudAPI.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Usuarios", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Cupones",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Codigo = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    DescuentoPorcentaje = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
+                    MaxUsos = table.Column<int>(type: "int", maxLength: 20, nullable: false),
+                    UsosCodigo = table.Column<int>(type: "int", nullable: false),
+                    Expiracion = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    PlanId = table.Column<int>(type: "int", nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Cupones", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Cupones_PlanesFacturacion_PlanId",
+                        column: x => x.PlanId,
+                        principalTable: "PlanesFacturacion",
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -164,6 +229,58 @@ namespace FactCloudAPI.Migrations
                     table.PrimaryKey("PK_DocumentosSoporte", x => x.Id);
                     table.ForeignKey(
                         name: "FK_DocumentosSoporte_Usuarios_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "Usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "FotoPerfils",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UsuarioId = table.Column<int>(type: "int", nullable: false),
+                    Url = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    UrlExterna = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    FechaSubida = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EsPrincipal = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FotoPerfils", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_FotoPerfils_Usuarios_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "Usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "HistorialSesiones",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UsuarioId = table.Column<int>(type: "int", nullable: false),
+                    FechaHora = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    IpAddress = table.Column<string>(type: "nvarchar(45)", maxLength: 45, nullable: false),
+                    UserAgent = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    Navegador = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    SistemaOperativo = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Dispositivo = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Ciudad = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Pais = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Exitoso = table.Column<bool>(type: "bit", nullable: false),
+                    SesionActual = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_HistorialSesiones", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_HistorialSesiones_Usuarios_UsuarioId",
                         column: x => x.UsuarioId,
                         principalTable: "Usuarios",
                         principalColumn: "Id",
@@ -282,7 +399,8 @@ namespace FactCloudAPI.Migrations
                     FechaInicio = table.Column<DateTime>(type: "datetime2", nullable: false),
                     FechaFin = table.Column<DateTime>(type: "datetime2", nullable: true),
                     DocumentosUsados = table.Column<int>(type: "int", nullable: false),
-                    Activa = table.Column<bool>(type: "bit", nullable: false)
+                    Activa = table.Column<bool>(type: "bit", nullable: false),
+                    TransaccionId = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -292,7 +410,7 @@ namespace FactCloudAPI.Migrations
                         column: x => x.PlanFacturacionId,
                         principalTable: "PlanesFacturacion",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_SuscripcionesFacturacion_Usuarios_UsuarioId",
                         column: x => x.UsuarioId,
@@ -379,6 +497,34 @@ namespace FactCloudAPI.Migrations
                         name: "FK_ConfiguracionesDian_Negocios_NegocioId",
                         column: x => x.NegocioId,
                         principalTable: "Negocios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "CuponUso",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    CuponId = table.Column<int>(type: "int", nullable: false),
+                    SuscripcionId = table.Column<int>(type: "int", nullable: false),
+                    UsadoAt = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    DescuentoAplicado = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CuponUso", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CuponUso_Cupones_CuponId",
+                        column: x => x.CuponId,
+                        principalTable: "Cupones",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_CuponUso_SuscripcionesFacturacion_SuscripcionId",
+                        column: x => x.SuscripcionId,
+                        principalTable: "SuscripcionesFacturacion",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -664,6 +810,11 @@ namespace FactCloudAPI.Migrations
                 });
 
             migrationBuilder.InsertData(
+                table: "Cupones",
+                columns: new[] { "Id", "Codigo", "DescuentoPorcentaje", "Expiracion", "IsActive", "MaxUsos", "PlanId", "UsosCodigo" },
+                values: new object[] { 1, "WELCOMEFC", 20m, null, true, 30, null, 0 });
+
+            migrationBuilder.InsertData(
                 table: "PlanesFacturacion",
                 columns: new[] { "Id", "Activo", "Codigo", "Descripcion", "DescuentoActivo", "DescuentoPorcentaje", "Destacado", "DuracionMeses", "LimiteDocumentosAnuales", "LimiteUsuarios", "Nombre", "PrecioAnual" },
                 values: new object[,]
@@ -672,6 +823,15 @@ namespace FactCloudAPI.Migrations
                     { 2, true, "BASICO", "Para pequeños negocios en crecimiento", true, 10, false, 12, 140, 1, "Básico", 300000m },
                     { 3, true, "PROFESIONAL", "Perfecto para PYMES establecidas", true, 10, false, 12, 540, 1, "Profesional", 770000m },
                     { 4, true, "EMPRESARIAL", "Solución completa para empresas grandes", true, 15, false, 12, 1550, 1, "Empresarial", 1300000m }
+                });
+
+            migrationBuilder.InsertData(
+                table: "Cupones",
+                columns: new[] { "Id", "Codigo", "DescuentoPorcentaje", "Expiracion", "IsActive", "MaxUsos", "PlanId", "UsosCodigo" },
+                values: new object[,]
+                {
+                    { 2, "FACTCLOUDPRO", 30m, null, true, 30, 3, 0 },
+                    { 3, "STARTEFC25", 12m, null, true, 20, 1, 0 }
                 });
 
             migrationBuilder.InsertData(
@@ -710,6 +870,21 @@ namespace FactCloudAPI.Migrations
                 table: "ConfiguracionesDian",
                 column: "NegocioId",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Cupones_PlanId",
+                table: "Cupones",
+                column: "PlanId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CuponUso_CuponId",
+                table: "CuponUso",
+                column: "CuponId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_CuponUso_SuscripcionId",
+                table: "CuponUso",
+                column: "SuscripcionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_DetalleFacturas_FacturaId",
@@ -770,6 +945,17 @@ namespace FactCloudAPI.Migrations
                 name: "IX_FormasPagoNotaDebito_NotaDebitoId",
                 table: "FormasPagoNotaDebito",
                 column: "NotaDebitoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FotoPerfils_UsuarioId",
+                table: "FotoPerfils",
+                column: "UsuarioId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_HistorialSesiones_UsuarioId",
+                table: "HistorialSesiones",
+                column: "UsuarioId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Negocios_UsuarioId",
@@ -879,6 +1065,22 @@ namespace FactCloudAPI.Migrations
                 column: "UsuarioId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_RegistrosPendientes_Email",
+                table: "RegistrosPendientes",
+                column: "Email");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RegistrosPendientes_Estado",
+                table: "RegistrosPendientes",
+                column: "Estado");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_RegistrosPendientes_TransaccionId",
+                table: "RegistrosPendientes",
+                column: "TransaccionId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_SuscripcionesFacturacion_PlanFacturacionId",
                 table: "SuscripcionesFacturacion",
                 column: "PlanFacturacionId");
@@ -893,7 +1095,13 @@ namespace FactCloudAPI.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "Addons");
+
+            migrationBuilder.DropTable(
                 name: "ConfiguracionesDian");
+
+            migrationBuilder.DropTable(
+                name: "CuponUso");
 
             migrationBuilder.DropTable(
                 name: "DetalleFacturas");
@@ -914,16 +1122,28 @@ namespace FactCloudAPI.Migrations
                 name: "FormasPagoNotaDebito");
 
             migrationBuilder.DropTable(
+                name: "FotoPerfils");
+
+            migrationBuilder.DropTable(
+                name: "HistorialSesiones");
+
+            migrationBuilder.DropTable(
                 name: "PlanFeature");
 
             migrationBuilder.DropTable(
                 name: "RefreshTokens");
 
             migrationBuilder.DropTable(
-                name: "SuscripcionesFacturacion");
+                name: "RegistrosPendientes");
 
             migrationBuilder.DropTable(
                 name: "Negocios");
+
+            migrationBuilder.DropTable(
+                name: "Cupones");
+
+            migrationBuilder.DropTable(
+                name: "SuscripcionesFacturacion");
 
             migrationBuilder.DropTable(
                 name: "Productos");

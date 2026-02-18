@@ -21,6 +21,7 @@ namespace FactCloudAPI.Controllers
         }
 
         // GET: api/planes
+        [AllowAnonymous]
         [HttpGet]
         public async Task<ActionResult<IEnumerable<object>>> GetPlanes()
         {
