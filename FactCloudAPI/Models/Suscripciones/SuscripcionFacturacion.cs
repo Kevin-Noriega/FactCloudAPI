@@ -28,5 +28,6 @@ namespace FactCloudAPI.Models.Suscripciones
 
         // Estado
         public bool Activa { get; set; } = true;
+        public string? TransaccionId { get; set; }
     }
 }

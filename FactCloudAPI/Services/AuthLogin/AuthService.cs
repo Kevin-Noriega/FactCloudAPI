@@ -1,11 +1,12 @@
 ﻿using FactCloudAPI.Data;
-using FactCloudAPI.Models;
 using FactCloudAPI.DTOs.Login;
+using FactCloudAPI.Models;
 using FactCloudAPI.Services.AuthLogin;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 public class AuthService : IAuthService
@@ -54,35 +55,62 @@ public class AuthService : IAuthService
             FechaDesactivacion = usuario.FechaDesactivacion
         };
 
-        var token = GenerarToken(usuario);
+        var token = GenerarAccessToken(usuario);
 
         return (token, usuarioDto);
     }
 
-    private string GenerarToken(Usuario usuario)
+    // MÉTODO 1: Generar Access Token (corta duración)
+    public string GenerarAccessToken(Usuario usuario)
     {
-        var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(_config["Jwt:Key"])
-        );
+        var claims = new List<Claim>
+    {
+        new Claim(JwtRegisteredClaimNames.Sub, usuario.Id.ToString()), // ✅ CAMBIAR: ID en lugar de Correo
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+        new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
+        new Claim(ClaimTypes.Email, usuario.Correo),
+        new Claim(ClaimTypes.Role, "Usuario"),
+        new Claim(ClaimTypes.Name, $"{usuario.Nombre} {usuario.Apellido}")
+    };
 
+        var keyString = _config["Jwt:Key"];
+        if (string.IsNullOrEmpty(keyString))
+            throw new InvalidOperationException("JWT Key no configurada en appsettings.json");
+
+        if (keyString.Length < 32)
+            throw new InvalidOperationException("JWT Key debe tener al menos 32 caracteres");
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyString));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-        var claims = new[]
-        {
-            new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
-            new Claim(JwtRegisteredClaimNames.Sub, usuario.Correo),
-            new Claim(ClaimTypes.Email, usuario.Correo),
-            new Claim("role", "Usuario")
-        };
 
         var token = new JwtSecurityToken(
             issuer: _config["Jwt:Issuer"],
             audience: _config["Jwt:Audience"],
             claims: claims,
-            expires: DateTime.Now.AddHours(3),
+            expires: DateTime.UtcNow.AddMinutes(30),
             signingCredentials: creds
         );
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
+
+        Console.WriteLine($"✅ Token generado para usuario {usuario.Correo}");
+        Console.WriteLine($"   - ID en claim: {usuario.Id}");
+        Console.WriteLine($"   - Sub: {usuario.Id}"); // ✅ Verificar que sea el ID
+        Console.WriteLine($"   - Claims totales: {claims.Count}");
+
+        return tokenString;
     }
+
+
+    // MÉTODO 2: Generar Refresh Token (string aleatorio seguro)
+    public string GenerarRefreshToken()
+    {
+        var randomNumber = new byte[64];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(randomNumber);
+        return Convert.ToBase64String(randomNumber);
+    }
+
+
+
 }
