@@ -15,12 +15,15 @@ namespace FactCloudAPI.Models
         public int UsuarioId { get; set; }
         public Usuario? Usuario { get; set; }
 
+        // Producto o servicio
+        public bool EsServicio { get; set; }
+
         // Información general
         [Required]
         [MaxLength(500)]
-        public string Nombre { get; set; }
+        public string Nombre { get; set; } = string.Empty;
 
-        [MaxLength(1000)]
+        [MaxLength(2000)]
         public string? Descripcion { get; set; }
 
         // Codificación estándar
@@ -28,20 +31,26 @@ namespace FactCloudAPI.Models
         public string? CodigoInterno { get; set; }
 
         [MaxLength(100)]
-        public string? CodigoUNSPSC { get; set; }
-
+        public string? CodigoUNSPSC { get; set; }  // ← Código arancelario DIAN
 
         // Unidad de medida
         [Required]
         [MaxLength(50)]
         public string UnidadMedida { get; set; } = "Unidad";
 
-        // Marca y modelo
+        // Marca, modelo, categoría (producto)
         [MaxLength(200)]
         public string? Marca { get; set; }
 
         [MaxLength(200)]
         public string? Modelo { get; set; }
+
+        [MaxLength(200)]
+        public string? Categoria { get; set; }
+
+        // Código de barras (solo producto)
+        [MaxLength(200)]
+        public string? CodigoBarras { get; set; }
 
         // Valores monetarios
         [Required]
@@ -51,53 +60,33 @@ namespace FactCloudAPI.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal? Costo { get; set; }
 
-        // Impuestos - requisitos DIAN
-        [Required]
+        public bool IncluyeIVA { get; set; }
+
+        // Impuestos simplificados tipo Siigo
         [MaxLength(50)]
-        public string TipoImpuesto { get; set; } = "IVA";
+        public string? ImpuestoCargo { get; set; }
 
-        [Required]
-        [Column(TypeName = "decimal(5,2)")]
-        public decimal TarifaIVA { get; set; } // Ej: 0, 5, 19
+        [MaxLength(50)]
+        public string? Retencion { get; set; }
 
-        public bool ProductoExcluido { get; set; } = false;
-        public bool ProductoExento { get; set; } = false;
+        // Inventario (solo producto)
+        [Column(TypeName = "int")]
+        public int? CantidadDisponible { get; set; }  // ← ✅ Nullable
 
-        // Impuesto al consumo (INC)
-        public bool GravaINC { get; set; } = false;
+        [Column(TypeName = "int")]
+        public int CantidadMinima { get; set; } = 0;  // ← ✅ Stock mínimo
 
-        [Column(TypeName = "decimal(5,2)")]
-        public decimal? TarifaINC { get; set; }
-
-        // Inventario
-        public int CantidadDisponible { get; set; }
-        public int CantidadMinima { get; set; } = 0;
-
-        [MaxLength(200)]
-        public string? Categoria { get; set; }
-
-        [MaxLength(200)]
-        public string? CodigoBarras { get; set; }
-
-        // Nuevos campos tributarios relacionados a retenciones y base gravable
+        // Tipo producto/servicio DIAN
         [MaxLength(50)]
         public string? TipoProducto { get; set; }
 
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal? BaseGravable { get; set; }
-
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal? RetencionFuente { get; set; }
-
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal? RetencionIVA { get; set; }
-
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal? RetencionICA { get; set; }
-
-        public bool Activo { get; set; } = true;
+        // Estado / tracking
+        public bool Activo { get; set; } = true;  // ← `estado` del front
         public DateTime FechaRegistro { get; set; } = DateTime.Now;
 
+        // Relaciones
         public ICollection<DetalleFactura>? DetalleFacturas { get; set; }
     }
+
+
 }
