@@ -23,8 +23,9 @@ public class ProductoService : IProductoService
                 Nombre = p.Nombre,
                 UnidadMedida = p.UnidadMedida,
                 PrecioUnitario = p.PrecioUnitario,
-                CantidadDisponible = p.CantidadDisponible,
-                Activo = p.Activo
+                CantidadDisponible = p.CantidadDisponible,  // ← Ya es nullable
+                Activo = p.Activo,
+                EsServicio = p.EsServicio                   // ← Agrega
             })
             .ToListAsync();
     }
@@ -36,6 +37,7 @@ public class ProductoService : IProductoService
             .Select(p => new ProductoDetalleDto
             {
                 Id = p.Id,
+                EsServicio = p.EsServicio,                  // ← Agrega
                 Nombre = p.Nombre,
                 Descripcion = p.Descripcion,
                 CodigoInterno = p.CodigoInterno,
@@ -43,47 +45,49 @@ public class ProductoService : IProductoService
                 UnidadMedida = p.UnidadMedida,
                 PrecioUnitario = p.PrecioUnitario,
                 Costo = p.Costo,
-                TipoImpuesto = p.TipoImpuesto,
-                TarifaIVA = p.TarifaIVA,
-                ProductoExento = p.ProductoExento,
-                ProductoExcluido = p.ProductoExcluido,
-                CantidadDisponible = p.CantidadDisponible,
+                ImpuestoCargo = p.ImpuestoCargo,            // ← Nuevo
+                Retencion = p.Retencion,                    // ← Nuevo
+                CantidadDisponible = p.CantidadDisponible,  // ← Nullable
                 CantidadMinima = p.CantidadMinima,
                 Categoria = p.Categoria,
+                IncluyeIVA = p.IncluyeIVA,                  // ← Nuevo
                 Activo = p.Activo
             })
             .FirstOrDefaultAsync();
     }
+
 
     public async Task CrearAsync(ProductoCreateDto dto, int usuarioId)
     {
         var producto = new Producto
         {
             UsuarioId = usuarioId,
-            Nombre = dto.Nombre,
-            Descripcion = dto.Descripcion,
-            CodigoInterno = dto.CodigoInterno,
-            CodigoUNSPSC = dto.CodigoUNSPSC,
-            UnidadMedida = dto.UnidadMedida,
-            Marca = dto.Marca,
-            Modelo = dto.Modelo,
+            EsServicio = dto.EsServicio,
+            Nombre = dto.Nombre?.Trim() ?? "",
+            Descripcion = dto.Descripcion?.Trim(),
+            CodigoInterno = dto.CodigoInterno?.Trim(),
+            CodigoUNSPSC = dto.CodigoUNSPSC?.Trim(),
+            UnidadMedida = dto.UnidadMedida ?? "Unidad",
+            Marca = dto.Marca?.Trim(),
+            Modelo = dto.Modelo?.Trim(),
+            Categoria = dto.Categoria?.Trim(),
+            CodigoBarras = dto.CodigoBarras?.Trim(),
             PrecioUnitario = dto.PrecioUnitario,
             Costo = dto.Costo,
-            TipoImpuesto = dto.TipoImpuesto,
-            TarifaIVA = dto.TarifaIVA,
-            ProductoExento = dto.ProductoExento,
-            ProductoExcluido = dto.ProductoExcluido,
-            GravaINC = dto.GravaINC,
-            TarifaINC = dto.TarifaINC,
-            CantidadDisponible = dto.CantidadDisponible,
+            IncluyeIVA = dto.IncluyeIVA,
+            ImpuestoCargo = dto.ImpuestoCargo?.Trim(),
+            Retencion = dto.Retencion?.Trim(),
+            CantidadDisponible = dto.EsServicio ? null : dto.CantidadDisponible,
             CantidadMinima = dto.CantidadMinima,
-            Categoria = dto.Categoria,
-            CodigoBarras = dto.CodigoBarras
+            TipoProducto = dto.TipoProducto?.Trim(),
+            Activo = true,
+            FechaRegistro = DateTime.Now
         };
 
         _context.Productos.Add(producto);
         await _context.SaveChangesAsync();
     }
+
 
     public async Task ActualizarAsync(int id, ProductoUpdateDto dto, int usuarioId)
     {

@@ -4,6 +4,7 @@ using FactCloudAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FactCloudAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260304152847_Cambioenproductos")]
+    partial class Cambioenproductos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1330,7 +1333,10 @@ namespace FactCloudAPI.Migrations
                     b.Property<bool>("Activo")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("CantidadDisponible")
+                    b.Property<decimal?>("BaseGravable")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("CantidadDisponible")
                         .HasColumnType("int");
 
                     b.Property<int>("CantidadMinima")
@@ -1356,20 +1362,13 @@ namespace FactCloudAPI.Migrations
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Descripcion")
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<bool>("EsServicio")
-                        .HasColumnType("bit");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<DateTime>("FechaRegistro")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("ImpuestoCargo")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<bool>("IncluyeIVA")
+                    b.Property<bool>("GravaINC")
                         .HasColumnType("bit");
 
                     b.Property<string>("Marca")
@@ -1388,7 +1387,29 @@ namespace FactCloudAPI.Migrations
                     b.Property<decimal>("PrecioUnitario")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("Retencion")
+                    b.Property<bool>("ProductoExcluido")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("ProductoExento")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal?>("RetencionFuente")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("RetencionICA")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("RetencionIVA")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("TarifaINC")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<decimal>("TarifaIVA")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<string>("TipoImpuesto")
+                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
@@ -1398,23 +1419,15 @@ namespace FactCloudAPI.Migrations
 
                     b.Property<string>("UnidadMedida")
                         .IsRequired()
-                        .ValueGeneratedOnAdd()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)")
-                        .HasDefaultValue("Unidad");
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("UsuarioId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CodigoInterno");
-
-                    b.HasIndex("CodigoUNSPSC");
-
                     b.HasIndex("UsuarioId");
-
-                    b.HasIndex("UsuarioId", "Activo");
 
                     b.ToTable("Productos");
                 });

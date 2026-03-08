@@ -1,5 +1,7 @@
-using FactCloudAPI.Data;
+﻿using FactCloudAPI.Data;
+using FactCloudAPI.DTOs.Productos;
 using FactCloudAPI.Models;
+using FactCloudAPI.Services.Productos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,10 +18,12 @@ namespace FactCloudAPI.Controllers
     public class ProductosController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly IProductoService _productoService;
 
-        public ProductosController(ApplicationDbContext context)
+        public ProductosController(ApplicationDbContext context, IProductoService productoService)
         {
             _context = context;
+            _productoService = productoService;
         }
 
         // GET: api/productos
@@ -28,9 +32,8 @@ namespace FactCloudAPI.Controllers
         {
             var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
 
-
             var productos = await _context.Productos
-                .Where(p => p.UsuarioId == usuarioId && p.Activo == true)
+                .Where(p => p.UsuarioId == usuarioId) // ← sin filtro de Activo
                 .ToListAsync();
 
             return Ok(productos);
@@ -49,37 +52,39 @@ namespace FactCloudAPI.Controllers
 
         // POST: api/productos
         [HttpPost]
-        public async Task<ActionResult<Producto>> PostProducto(Producto producto)
+        public async Task<ActionResult<Producto>> PostProducto([FromBody] ProductoCreateDto dto)
         {
-            producto.FechaRegistro = DateTime.Now;
-            _context.Productos.Add(producto);
-            await _context.SaveChangesAsync();
+            try
+            {
+                var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                await _productoService.CrearAsync(dto, usuarioId);
 
-            return CreatedAtAction(nameof(GetProducto), new { id = producto.Id }, producto);
+                return Ok(new { message = "Producto creado correctamente" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         // PUT: api/productos/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutProducto(int id, Producto producto)
+        public async Task<IActionResult> PutProducto(int id, [FromBody] ProductoUpdateDto dto)
         {
-            if (id != producto.Id)
-                return BadRequest();
-
-            _context.Entry(producto).State = EntityState.Modified;
-
             try
             {
-                await _context.SaveChangesAsync();
+                var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+                await _productoService.ActualizarAsync(id, dto, usuarioId);
+                return NoContent();
             }
-            catch (DbUpdateConcurrencyException)
+            catch (KeyNotFoundException)
             {
-                if (!_context.Productos.Any(e => e.Id == id))
-                    return NotFound();
-                else
-                    throw;
+                return NotFound();
             }
-
-            return NoContent();
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
         [HttpPut("desactivar/{id}")]
         public async Task<IActionResult> DesactivarProducto(int id)

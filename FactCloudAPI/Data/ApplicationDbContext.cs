@@ -40,6 +40,52 @@ namespace FactCloudAPI.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // ── PRODUCTO ──
+            modelBuilder.Entity<Producto>(entity =>
+            {
+                entity.HasKey(p => p.Id);
+
+                // Usuario → Producto (1:N)
+                entity.HasOne(p => p.Usuario)
+                    .WithMany(u => u.Productos)
+                    .HasForeignKey(p => p.UsuarioId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // DetalleFactura → Producto (N:1)
+                entity.HasMany(p => p.DetalleFacturas)
+                    .WithOne(df => df.Producto)
+                    .HasForeignKey(df => df.ProductoId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Configuraciones específicas
+                entity.Property(p => p.Nombre)
+                    .IsRequired()
+                    .HasMaxLength(500);
+
+                entity.Property(p => p.UnidadMedida)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasDefaultValue("Unidad");
+
+                entity.Property(p => p.PrecioUnitario)
+                    .IsRequired()
+                    .HasColumnType("decimal(18,2)");
+
+                entity.Property(p => p.Costo)
+                    .HasColumnType("decimal(18,2)");
+
+                // Stock nullable para servicios
+                entity.Property(p => p.CantidadDisponible)
+                    .HasColumnType("int");
+
+                // Índices para consultas frecuentes
+                entity.HasIndex(p => p.UsuarioId);
+                entity.HasIndex(p => new { p.UsuarioId, p.Activo });
+                entity.HasIndex(p => p.CodigoInterno);
+                entity.HasIndex(p => p.CodigoUNSPSC);
+            });
+
+
             // Configurar relación Usuario → RefreshTokens (1 a muchos)
             modelBuilder.Entity<RefreshToken>()
                 .HasOne(rt => rt.Usuario)
