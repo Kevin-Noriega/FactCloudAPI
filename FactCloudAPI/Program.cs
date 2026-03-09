@@ -46,6 +46,7 @@ builder.Services.AddControllers()
 // ===== Swagger =====
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddHttpClient();
 builder.Services.AddSignalR();
 builder.Services.AddScoped<SeguridadService>();
 builder.Services.AddHttpContextAccessor();
