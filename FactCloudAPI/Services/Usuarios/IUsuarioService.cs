@@ -1,4 +1,5 @@
 ﻿using FactCloudAPI.DTOs.Usuarios;
+using FactCloudAPI.Models;
 namespace FactCloudAPI.Services.Usuarios
 {
     public interface IUsuarioService
@@ -9,6 +10,7 @@ namespace FactCloudAPI.Services.Usuarios
         Task<int> CreateAsync(CreateUsuarioDto dto);
         Task UpdateAsync(int id, UpdateUsuarioDto dto);
         Task DeleteAsync(int id);
+        Task<(Usuario usuario, string token)> CrearYActivarAsync(CrearYActivarDto dto);
 
     }
 }

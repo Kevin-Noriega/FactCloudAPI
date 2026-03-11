@@ -4,6 +4,7 @@ using FactCloudAPI.Models.Planes;
 using FactCloudAPI.Models.Sesiones;
 using FactCloudAPI.Models.Suscripciones;
 using FactCloudAPI.Models.Usuarios;
+using FactCloudAPI.Models.Wompi;
 using Microsoft.EntityFrameworkCore;
 
 namespace FactCloudAPI.Data
@@ -35,6 +36,10 @@ namespace FactCloudAPI.Data
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<HistorialSesion> HistorialSesiones {get; set; }
         public DbSet<RegistroPendiente> RegistrosPendientes { get; set; }
+        public DbSet<Transaccion> Transacciones { get; set; }
+        public DbSet<ContactoCliente> ContactosCliente { get; set; }
+
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

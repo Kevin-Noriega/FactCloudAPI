@@ -5,6 +5,8 @@
         public string Nombre { get; set; }
         public string? Apellido { get; set; }
         public string? NombreComercial { get; set; }
+        // ✅ Agrega esto
+        public List<ContactoDto> Contactos { get; set; } = new();
 
         public string TipoIdentificacion { get; set; }
         public string NumeroIdentificacion { get; set; }
@@ -21,6 +23,15 @@
         public string Direccion { get; set; }
 
         public string? CodigoPostal { get; set; }
+    }
+    public class ContactoDto
+    {
+        public string Nombre { get; set; } = null!;
+        public string? Apellido { get; set; }
+        public string? Correo { get; set; }
+        public string? Cargo { get; set; }
+        public string? Indicativo { get; set; }
+        public string? Telefono { get; set; }
     }
 
 }
