@@ -98,6 +98,7 @@ public string? RegimenFiscal { get; set; }
         public ICollection<Factura>? Facturas { get; set; }
 
         public ICollection<FactCloudAPI.Models.NotaDebito> NotasDebito { get; set; }
+        public ICollection<ContactoCliente> Contactos { get; set; } = new List<ContactoCliente>();
 
     }
 }

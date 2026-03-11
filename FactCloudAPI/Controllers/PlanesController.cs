@@ -5,6 +5,7 @@ using FactCloudAPI.Models.Suscripciones;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace FactCloudAPI.Controllers
 {
@@ -52,24 +53,23 @@ namespace FactCloudAPI.Controllers
         [HttpGet("actual")]
         public async Task<ActionResult<object>> GetPlanActual()
         {
-            var userId = User.FindFirst("id")?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
-            var usuario = await _context.Usuarios
-                .Include(u => u.SuscripcionActual)
-                    .ThenInclude(s => s.PlanFacturacion)
-                        .ThenInclude(p => p.Features)
-                .FirstOrDefaultAsync(u => u.Id == int.Parse(userId));
+            var suscripcion = await _context.SuscripcionesFacturacion
+                .Include(s => s.PlanFacturacion)
+                    .ThenInclude(p => p.Features)
+                .Where(s => s.UsuarioId == int.Parse(userId) && s.Activa)
+                .OrderByDescending(s => s.FechaInicio)
+                .FirstOrDefaultAsync();
 
-            if (usuario == null)
-                return NotFound("Usuario no encontrado");
-
-            var suscripcionActual = usuario.SuscripcionActual;
-            if (suscripcionActual == null)
+            if (suscripcion == null)
                 return NotFound("No se encontró suscripción activa");
 
-            var plan = suscripcionActual.PlanFacturacion;
+            var plan = suscripcion.PlanFacturacion;
+            if (plan == null)
+                return NotFound("El plan de la suscripción no existe");
 
             return Ok(new
             {
@@ -84,25 +84,31 @@ namespace FactCloudAPI.Controllers
             });
         }
 
+
         // GET: api/planes/estadisticas
         [HttpGet("estadisticas")]
         public async Task<ActionResult<object>> GetEstadisticas()
         {
-            var userId = User.FindFirst("id")?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
-            var usuario = await _context.Usuarios
-                .Include(u => u.SuscripcionActual)
-                    .ThenInclude(s => s.PlanFacturacion)
-                .FirstOrDefaultAsync(u => u.Id == int.Parse(userId));
+            var id = int.Parse(userId);
 
-            if (usuario?.SuscripcionActual == null)
+            // ✅ Buscar directamente la suscripción activa, sin pasar por SuscripcionActual
+            var suscripcion = await _context.SuscripcionesFacturacion
+                .Include(s => s.PlanFacturacion)
+                .Where(s => s.UsuarioId == id && s.Activa)
+                .OrderByDescending(s => s.FechaInicio)
+                .FirstOrDefaultAsync();
+
+            if (suscripcion == null)
                 return NotFound("No se encontró suscripción activa");
 
-            var suscripcion = usuario.SuscripcionActual;
-            var plan = suscripcion.PlanFacturacion;
+            if (suscripcion.PlanFacturacion == null)
+                return NotFound("El plan de la suscripción no existe");
 
+            var plan = suscripcion.PlanFacturacion;
             var documentosLimite = plan.LimiteDocumentosAnuales ?? -1;
             var porcentajeUso = documentosLimite > 0
                 ? (double)suscripcion.DocumentosUsados / documentosLimite * 100
@@ -124,20 +130,17 @@ namespace FactCloudAPI.Controllers
             });
         }
 
+
+
         // POST: api/planes/actualizar
         [HttpPost("actualizar")]
         public async Task<ActionResult> ActualizarPlan([FromBody] ActualizarPlanRequest request)
         {
-            var userId = User.FindFirst("id")?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
-            var usuario = await _context.Usuarios
-                .Include(u => u.Suscripciones)
-                .FirstOrDefaultAsync(u => u.Id == int.Parse(userId));
-
-            if (usuario == null)
-                return NotFound("Usuario no encontrado");
+            var id = int.Parse(userId);
 
             var planNuevo = await _context.PlanesFacturacion
                 .FirstOrDefaultAsync(p => p.Id == request.PlanId);
@@ -145,17 +148,21 @@ namespace FactCloudAPI.Controllers
             if (planNuevo == null)
                 return NotFound("Plan no encontrado");
 
-            // Desactivar suscripción actual
-            if (usuario.SuscripcionActual != null)
+            // Desactivar suscripción activa actual
+            var suscripcionActiva = await _context.SuscripcionesFacturacion
+                .Where(s => s.UsuarioId == id && s.Activa)
+                .FirstOrDefaultAsync();
+
+            if (suscripcionActiva != null)
             {
-                usuario.SuscripcionActual.Activa = false;
-                usuario.SuscripcionActual.FechaFin = DateTime.Now;
+                suscripcionActiva.Activa = false;
+                suscripcionActiva.FechaFin = DateTime.Now;
             }
 
             // Crear nueva suscripción
             var nuevaSuscripcion = new SuscripcionFacturacion
             {
-                UsuarioId = usuario.Id,
+                UsuarioId = id,
                 PlanFacturacionId = request.PlanId,
                 FechaInicio = DateTime.Now,
                 FechaFin = DateTime.Now.AddMonths(request.PeriodoAnual ? 12 : 1),
@@ -168,6 +175,7 @@ namespace FactCloudAPI.Controllers
 
             return Ok(new { mensaje = "Plan actualizado exitosamente" });
         }
+
     }
 
     public class ActualizarPlanRequest

@@ -36,7 +36,9 @@ namespace FactCloudAPI.Data
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<HistorialSesion> HistorialSesiones {get; set; }
         public DbSet<RegistroPendiente> RegistrosPendientes { get; set; }
-        public DbSet<Transaccion> Transacciones { get; set; } // ✅ verificar que existe
+        public DbSet<Transaccion> Transacciones { get; set; }
+        public DbSet<ContactoCliente> ContactosCliente { get; set; }
+
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -13,6 +13,8 @@ using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using FactCloudAPI.DTOs.Usuarios;
+
 
 namespace FactCloudAPI.Controllers
 {
@@ -199,9 +201,9 @@ namespace FactCloudAPI.Controllers
                    PropertyNameCaseInsensitive = true,
                   PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
               });
-            var asyncUrl = result.Data.PaymentMethod?.Extra?.AsyncPaymentUrl;
-            var status = result.Data.Status;
-
+            dynamic transaccion = result.Data;
+            var status = (string)transaccion.Status;
+            var asyncUrl = (string?)transaccion.PaymentMethodObject?.Extra?.AsyncPaymentUrl;
             // Si está aprobada, crear usuario
             // En GetEstado (línea ~199):
             if (status == "APPROVED")
@@ -227,7 +229,7 @@ namespace FactCloudAPI.Controllers
                         NumeroIdentificacion = datosRegistro.NumeroIdentificacion,
                         NombreNegocio = datosNegocio!.NombreNegocio,
                         Nit = datosNegocio.Nit,
-                        DvNit = datosNegocio.DvNit,
+                        DvNit = int.TryParse(datosNegocio.DvNit, out var dv) ? dv : null,
                         Direccion = datosNegocio.Direccion,
                         Ciudad = datosNegocio.Ciudad,
                         Departamento = datosNegocio.Departamento,

@@ -3,6 +3,8 @@ using FactCloudAPI.DTOs.Clientes;
 using FactCloudAPI.Models;
 using FactCloudAPI.Services.Clientes;
 using Microsoft.EntityFrameworkCore;
+using FactCloudAPI.Models; 
+
 
 public class ClienteService : IClienteService
 {
@@ -75,7 +77,16 @@ public class ClienteService : IClienteService
             Departamento = dto.Departamento,
             Ciudad = dto.Ciudad,
             Direccion = dto.Direccion,
-            CodigoPostal = dto.CodigoPostal
+            CodigoPostal = dto.CodigoPostal,
+             Contactos = dto.Contactos.Select(c => new ContactoCliente
+             {
+                 Nombre = c.Nombre,
+                 Apellido = c.Apellido,
+                 Correo = c.Correo,
+                 Cargo = c.Cargo,
+                 Indicativo = c.Indicativo,
+                 Telefono = c.Telefono,
+             }).ToList()
         };
 
         _context.Clientes.Add(cliente);
@@ -96,6 +107,17 @@ public class ClienteService : IClienteService
         cliente.Correo = dto.Correo;
         cliente.Telefono = dto.Telefono;
         cliente.Direccion = dto.Direccion;
+        // Agrega los campos faltantes:
+        cliente.TipoIdentificacion = dto.TipoIdentificacion;
+        cliente.NumeroIdentificacion = dto.NumeroIdentificacion;
+        cliente.DigitoVerificacion = dto.DigitoVerificacion;
+        cliente.TipoPersona = dto.TipoPersona;
+        cliente.RegimenTributario = dto.RegimenTributario;
+        cliente.Departamento = dto.Departamento;
+        cliente.Ciudad = dto.Ciudad;
+        cliente.CodigoPostal = dto.CodigoPostal;
+        cliente.NombreComercial = dto.NombreComercial;
+
 
         await _context.SaveChangesAsync();
     }

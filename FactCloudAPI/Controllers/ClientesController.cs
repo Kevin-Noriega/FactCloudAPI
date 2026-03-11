@@ -36,14 +36,14 @@ public class ClientesController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Post(ClienteCreateDto dto)
+    public async Task<IActionResult> Post([FromBody] ClienteCreateDto dto)
     {
         await _clienteService.CrearAsync(dto, UsuarioId);
         return Ok(new { message = "Cliente creado correctamente" });
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Put(int id, ClienteCreateDto dto)
+    public async Task<IActionResult> Put(int id, [FromBody] ClienteCreateDto dto)
     {
         await _clienteService.ActualizarAsync(id, dto, UsuarioId);
         return NoContent();
@@ -55,4 +55,5 @@ public class ClientesController : ControllerBase
         await _clienteService.DesactivarAsync(id, UsuarioId);
         return Ok(new { message = "Cliente desactivado" });
     }
+
 }
