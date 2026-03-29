@@ -9,5 +9,8 @@ namespace FactCloudAPI.Services.Clientes
         Task CrearAsync(ClienteCreateDto dto, int usuarioId);
         Task ActualizarAsync(int id, ClienteCreateDto dto, int usuarioId);
         Task DesactivarAsync(int id, int usuarioId);
+        Task<bool> ActualizarParcialAsync(int id, ClienteUpdateDto dto, int usuarioId);
+        Task<bool> ActivarAsync(int id, int usuarioId);
+
     }
 }

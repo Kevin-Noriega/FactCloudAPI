@@ -21,17 +21,20 @@ namespace FactCloudAPI.Controllers
         private readonly IEmailService _emailService;
         private readonly IHubContext<NotificacionesHub> _hub;
         private readonly ILogger<FacturasController> _logger;
+        private readonly ISuscripcionService _suscripcionService; // ← NUEVO
 
         public FacturasController(
             ApplicationDbContext context,
             IEmailService emailService,
             IHubContext<NotificacionesHub> hub,
-            ILogger<FacturasController> logger)
+            ILogger<FacturasController> logger,
+            ISuscripcionService suscripcionService) // ← NUEVO
         {
             _context = context;
             _emailService = emailService;
             _hub = hub;
             _logger = logger;
+            _suscripcionService = suscripcionService; // ← NUEVO
         }
 
         // ==================== HELPERS PRIVADOS ====================
@@ -55,8 +58,10 @@ namespace FactCloudAPI.Controllers
             if (usuarioId == null)
                 return Unauthorized(new { message = "Token inválido o sin claim de usuario" });
 
+
             var facturas = await _context.Facturas
                 .Include(f => f.Cliente)
+                    .Include(f => f.Usuario)
                 .Where(f => f.UsuarioId == usuarioId)
                 .OrderByDescending(f => f.FechaEmision)
                 .Select(f => new
@@ -272,6 +277,8 @@ namespace FactCloudAPI.Controllers
                 ambiente = resolucion.TipoAmbiente == 2 ? "Pruebas" : "Producción"
             });
         }
+    
+
 
        
         // PUT: api/Facturas/5
@@ -718,6 +725,7 @@ namespace FactCloudAPI.Controllers
 
             // ✅ Filtro por usuario incluido
             var facturas = await _context.Facturas
+                .Where(f => !f.EnviadaDIAN && f.FechaLimiteEnvioDIAN <= DateTime.Now.AddHours(24))
                 .Include(f => f.Cliente)
                 .Where(f => f.UsuarioId == usuarioId
                          && !f.EnviadaDIAN
@@ -741,36 +749,12 @@ namespace FactCloudAPI.Controllers
 
         // GET: api/Facturas/vencidas
         [HttpGet("vencidas")]
-        public async Task<ActionResult> ObtenerFacturasVencidas()
+        public async Task<ActionResult<IEnumerable<Factura>>> ObtenerFacturasVencidas()
         {
-            var usuarioId = ObtenerUsuarioId();
-            if (usuarioId == null)
-                return Unauthorized();
-
-            // ✅ Filtro en BD: evita traer toda la tabla a memoria
-            var hoy = DateTime.Now;
-            var vencidas = await _context.Facturas
-                .Include(f => f.Cliente)
-                .Where(f => f.UsuarioId == usuarioId
-                         && f.FechaVencimiento.HasValue
-                         && f.FechaVencimiento < hoy
-                         && f.Estado != "Pagada")
-                .Select(f => new
-                {
-                    f.Id,
-                    f.NumeroFacturaCompleto,
-                    f.FechaEmision,
-                    f.FechaVencimiento,
-                    f.TotalFactura,
-                    f.Estado,
-                    diasVencida = (int)(hoy - f.FechaVencimiento!.Value).TotalDays,
-                    cliente = new { f.Cliente!.Nombre, f.Cliente.Apellido, f.Cliente.Correo }
-                })
-                .OrderBy(f => f.FechaVencimiento)
-                .ToListAsync();
-
+            var facturas = await _context.Facturas.Include(f => f.Cliente).ToListAsync();
+            var vencidas = facturas.Where(f => f.EstaVencida).ToList();
             return Ok(vencidas);
         }
+
     }
 }
-

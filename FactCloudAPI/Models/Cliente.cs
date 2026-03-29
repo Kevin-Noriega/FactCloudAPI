@@ -17,24 +17,6 @@ namespace FactCloudAPI.Models
 
         // ── Identificación ──────────────────────────────────────
         [Required]
-        [MaxLength(50)]
-        public string TipoPersona { get; set; }            // Natural / Juridica
-
-        [Required]
-        [MaxLength(50)]
-        public string TipoIdentificacion { get; set; }     // CC, NIT, CE...
-
-        [Required]
-        [MaxLength(50)]
-        public string NumeroIdentificacion { get; set; }
-
-        public int? DigitoVerificacion { get; set; }
-
-        [MaxLength(20)]
-        public string CodigoSucursal { get; set; } = "0";  // ← NUEVO
-
-        // ── Nombre ──────────────────────────────────────────────
-        [Required]
         [MaxLength(200)]
         public string Nombre { get; set; }
 
@@ -43,6 +25,25 @@ namespace FactCloudAPI.Models
 
         [MaxLength(200)]
         public string? NombreComercial { get; set; }
+
+        // Identificación tributaria y legal
+        [Required]
+        [MaxLength(50)]
+        public string TipoIdentificacion { get; set; } // CC, NIT, CE, Pasaporte
+
+        [Required]
+        [MaxLength(50)]
+        public string NumeroIdentificacion { get; set; }
+
+        public int? DigitoVerificacion { get; set; }
+
+        [Required]
+        [MaxLength(50)]
+        public string TipoPersona { get; set; } // Natural, Jurídica
+        [MaxLength(20)]
+        public string CodigoSucursal { get; set; } = "0";  // ← NUEVO
+
+
 
         // ── Ubicación ───────────────────────────────────────────
         [Required]
@@ -104,6 +105,8 @@ namespace FactCloudAPI.Models
         public bool NoAplica { get; set; } = false;    // ← NUEVO R-99-PN
         public bool RetenedorICA { get; set; } = false;
         public bool RetenedorRenta { get; set; } = false;
+        [Required]
+        public bool EsProveedor { get; set; } = false;
 
         // ── Estado y registro ────────────────────────────────────
         public bool Activo { get; set; } = true;

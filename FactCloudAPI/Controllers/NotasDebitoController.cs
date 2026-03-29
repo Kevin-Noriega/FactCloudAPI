@@ -1,6 +1,7 @@
 ﻿using FactCloudAPI.Data;
 using FactCloudAPI.DTOs.NotaDebito;
 using FactCloudAPI.Models;
+using FactCloudAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -14,10 +15,14 @@ namespace FactCloudAPI.Controllers
     public class NotasDebitoController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly ISuscripcionService _suscripcionService; // ← NUEVO
 
-        public NotasDebitoController(ApplicationDbContext context)
+        public NotasDebitoController(
+            ApplicationDbContext context,
+            ISuscripcionService suscripcionService) // ← NUEVO
         {
             _context = context;
+            _suscripcionService = suscripcionService; // ← NUEVO
         }
 
         // GET: api/NotasDebito
@@ -356,6 +361,7 @@ namespace FactCloudAPI.Controllers
 
                 // Eliminar detalles antiguos
                 _context.DetalleNotaDebito.RemoveRange(notaDebito.Detalles);
+                _context.FormasPagoNotaDebito.RemoveRange(notaDebito.FormasPago);
 
                 // Agregar nuevos detalles
                 foreach (var detalleDto in dto.DetalleNotaDebito)
@@ -433,5 +439,55 @@ namespace FactCloudAPI.Controllers
                 return StatusCode(500, new { message = "Error al eliminar nota débito", error = ex.Message });
             }
         }
+
+        // ── Helper de mapeo ───────────────────────────────────────────────
+        private static NotaDebitoResponseDto MapToDto(NotaDebito nd) => new()
+        {
+            Id = nd.Id,
+            NumeroNota = nd.NumeroNota,
+            FacturaId = nd.FacturaId,
+            NumeroFactura = nd.Factura?.NumeroFactura ?? nd.NumeroFactura,
+            Cliente = nd.Cliente != null ? new ClienteSimpleDto
+            {
+                Id = nd.Cliente.Id,
+                Nombre = nd.Cliente.Nombre,
+                Apellido = nd.Cliente.Apellido,
+                Documento = nd.Cliente.NumeroIdentificacion
+            } : null,
+            Tipo = nd.Tipo,
+            MotivoDIAN = nd.MotivoDIAN,
+            FechaElaboracion = nd.FechaElaboracion,
+            FechaRegistro = nd.FechaRegistro,
+            CUFE = nd.CUFE,
+            XMLBase64 = nd.XMLBase64,
+            TotalBruto = nd.TotalBruto,
+            TotalDescuentos = nd.TotalDescuentos,
+            Subtotal = nd.Subtotal,
+            TotalIVA = nd.TotalIVA,
+            TotalINC = nd.TotalINC,
+            ReteICA = nd.ReteICA,
+            TotalNeto = nd.TotalNeto,
+            Estado = nd.Estado,
+            Observaciones = nd.Observaciones,
+            DetalleNotaDebito = nd.Detalles.Select(d => new DetalleNotaDebitoResponseDto
+            {
+                Id = d.Id,
+                ProductoId = d.ProductoId,
+                Descripcion = d.Descripcion,
+                Cantidad = d.Cantidad,
+                UnidadMedida = d.UnidadMedida,
+                PrecioUnitario = d.PrecioUnitario,
+                PorcentajeDescuento = d.PorcentajeDescuento,
+                ValorDescuento = d.ValorDescuento,
+                SubtotalLinea = d.SubtotalLinea,
+                TarifaIVA = d.TarifaIVA,
+                ValorIVA = d.ValorIVA,
+                TarifaINC = d.TarifaINC,
+                ValorINC = d.ValorINC,
+                TotalLinea = d.TotalLinea
+            }).ToList(),
+            FormasPago = nd.FormasPago.Select(fp => new FormaPagoResponseDto
+            { Id = fp.Id, Metodo = fp.Metodo, Valor = fp.Valor }).ToList()
+        };
     }
 }

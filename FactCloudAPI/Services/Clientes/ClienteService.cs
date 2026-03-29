@@ -3,6 +3,8 @@ using FactCloudAPI.DTOs.Clientes;
 using FactCloudAPI.Models;
 using FactCloudAPI.Services.Clientes;
 using Microsoft.EntityFrameworkCore;
+using FactCloudAPI.Models; 
+
 
 public class ClienteService : IClienteService
 {
@@ -18,88 +20,107 @@ public class ClienteService : IClienteService
     {
         return await _context.Clientes
             .Where(c => c.UsuarioId == usuarioId && c.Activo)
-            .Include(c => c.Telefonos)
-            .Include(c => c.Contactos)
-            .Select(c => MapToDto(c))
+            .Select(c => new ClienteDetalleDto
+            {
+                Id = c.Id,
+                Nombre = c.Nombre,
+                Apellido = c.Apellido,
+                NumeroIdentificacion = c.NumeroIdentificacion,
+                TipoIdentificacion = c.TipoIdentificacion,
+                TelefonoFacturacion = c.TelefonoFacturacion,
+                Departamento = c.Departamento,
+                Ciudad = c.Ciudad,
+                Direccion = c.Direccion,
+                CodigoPostal = c.CodigoPostal,
+                Correo = c.Correo,
+                Activo = c.Activo
+            })
             .ToListAsync();
     }
 
     // ── Por ID ──────────────────────────────────────────────────────
     public async Task<ClienteDetalleDto?> ObtenerPorIdAsync(int id, int usuarioId)
     {
+        return await _context.Clientes
+            .Where(c => c.Id == id && c.UsuarioId == usuarioId)
+            .Select(c => new ClienteDetalleDto
+            {
+                Id = c.Id,
+                Nombre = c.Nombre,
+                Apellido = c.Apellido,
+                NumeroIdentificacion = c.NumeroIdentificacion,
+                TipoIdentificacion = c.TipoIdentificacion, TelefonoFacturacion = c.TelefonoFacturacion,
+                Departamento = c.Departamento,
+                Ciudad = c.Ciudad,
+                Direccion = c.Direccion,
+                CodigoPostal = c.CodigoPostal,
+                Correo = c.Correo,
+                Activo = c.Activo
+            })
+            .FirstOrDefaultAsync();
+    }
+    public async Task<bool> ActualizarParcialAsync(int id, ClienteUpdateDto dto, int usuarioId)
+    {
+        var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.Id == id && c.UsuarioId == usuarioId);
+        if (cliente == null) return false;
         var c = await _context.Clientes
             .Include(c => c.Telefonos)
             .Include(c => c.Contactos)
             .FirstOrDefaultAsync(c => c.Id == id && c.UsuarioId == usuarioId);
 
-        return c == null ? null : MapToDto(c);
+        if (dto.EsProveedor.HasValue) cliente.EsProveedor = dto.EsProveedor.Value;
+        if (dto.RetenedorIVA.HasValue) cliente.RetenedorIVA = dto.RetenedorIVA.Value;
+        if (dto.RetenedorICA.HasValue) cliente.RetenedorICA = dto.RetenedorICA.Value;
+        if (dto.RetenedorRenta.HasValue) cliente.RetenedorRenta = dto.RetenedorRenta.Value;
+        if (dto.AutoretenedorRenta.HasValue) cliente.AutoretenedorRenta = dto.AutoretenedorRenta.Value;
+
+        await _context.SaveChangesAsync();
+        return true;
     }
 
-    // ── Crear ────────────────────────────────────────────────────────
+    public async Task<bool> ActivarAsync(int id, int usuarioId)
+    {
+        var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.Id == id && c.UsuarioId == usuarioId);
+        if (cliente == null) return false;
+
+        cliente.Activo = true;
+        await _context.SaveChangesAsync();
+        return true;
+    }
     public async Task CrearAsync(ClienteCreateDto dto, int usuarioId)
     {
-        bool existe = await _context.Clientes.AnyAsync(c =>
-            c.NumeroIdentificacion == dto.NumeroIdentificacion &&
-            c.UsuarioId == usuarioId);
-
-        if (existe)
-            throw new InvalidOperationException("Ya existe un cliente con esa identificación.");
-
         var cliente = new Cliente
         {
             UsuarioId = usuarioId,
-            TipoPersona = dto.TipoPersona,
-            TipoIdentificacion = dto.TipoIdentificacion,
-            NumeroIdentificacion = dto.NumeroIdentificacion,
-            DigitoVerificacion = dto.DigitoVerificacion,
-            CodigoSucursal = dto.CodigoSucursal ?? "0",
             Nombre = dto.Nombre,
             Apellido = dto.Apellido,
             NombreComercial = dto.NombreComercial,
+            TipoIdentificacion = dto.TipoIdentificacion,
+            NumeroIdentificacion = dto.NumeroIdentificacion,
+            DigitoVerificacion = dto.DigitoVerificacion,
+            TipoPersona = dto.TipoPersona,
+            RegimenTributario = dto.RegimenTributario,
+            Correo = dto.Correo,
+            TelefonoFacturacion = dto.Telefono,
             Departamento = dto.Departamento,
-            DepartamentoCodigo = dto.DepartamentoCodigo,
             Ciudad = dto.Ciudad,
-            CiudadCodigo = dto.CiudadCodigo,
             Direccion = dto.Direccion,
             CodigoPostal = dto.CodigoPostal,
-            Correo = dto.Correo ?? "",
-            RegimenTributario = dto.RegimenTributario ?? "",
-            NombreContactoFacturacion = dto.NombreContactoFacturacion,
-            ApellidoContactoFacturacion = dto.ApellidoContactoFacturacion,
-            IndicativoFacturacion = dto.IndicativoFacturacion,
-            TelefonoFacturacion = dto.TelefonoFacturacion,
-            GranContribuyente = dto.GranContribuyente,
-            AutoretenedorRenta = dto.AutoretenedorRenta,
-            RetenedorIVA = dto.RetenedorIVA,
-            RegimenSimple = dto.RegimenSimple,
-            NoAplica = dto.NoAplica,
-            RetenedorICA = dto.RetenedorICA,
-            RetenedorRenta = dto.RetenedorRenta,
-            Activo = true,
-            Telefonos = dto.Telefonos
-                .Where(t => !string.IsNullOrWhiteSpace(t.Numero))
-                .Select(t => new TelefonoCliente
-                {
-                    Indicativo = t.Indicativo,
-                    Numero = t.Numero,
-                    Extension = t.Extension,
-                }).ToList(),
-            Contactos = dto.Contactos
-                .Where(c => !string.IsNullOrWhiteSpace(c.Nombre))
-                .Select(c => new ContactoCliente
-                {
-                    Nombre = c.Nombre,
-                    Apellido = c.Apellido,
-                    Correo = c.Correo,
-                    Cargo = c.Cargo,
-                    Indicativo = c.Indicativo,
-                    Telefono = c.Telefono,
-                }).ToList()
+            Contactos = dto.Contactos.Select(c => new ContactoCliente
+            {
+                Nombre = c.Nombre,
+                Apellido = c.Apellido,
+                Correo = c.Correo,
+                Cargo = c.Cargo,
+                Indicativo = c.Indicativo,
+                Telefono = c.Telefono,
+            }).ToList()
         };
 
         _context.Clientes.Add(cliente);
         await _context.SaveChangesAsync();
     }
+
 
     // ── Actualizar ───────────────────────────────────────────────────
     public async Task ActualizarAsync(int id, ClienteCreateDto dto, int usuarioId)
@@ -109,48 +130,28 @@ public class ClienteService : IClienteService
             .Include(c => c.Contactos)
             .FirstOrDefaultAsync(c => c.Id == id && c.UsuarioId == usuarioId);
 
-        if (cliente == null) throw new KeyNotFoundException();
+        if (cliente == null)
+            throw new KeyNotFoundException();
 
-        cliente.TipoPersona = dto.TipoPersona;
-        cliente.TipoIdentificacion = dto.TipoIdentificacion;
-        cliente.NumeroIdentificacion = dto.NumeroIdentificacion;
-        cliente.DigitoVerificacion = dto.DigitoVerificacion;
-        cliente.CodigoSucursal = dto.CodigoSucursal ?? "0";
         cliente.Nombre = dto.Nombre;
         cliente.Apellido = dto.Apellido;
         cliente.NombreComercial = dto.NombreComercial;
+        cliente.Correo = dto.Correo;
+        cliente.TelefonoFacturacion = dto.TelefonoFacturacion;
+        cliente.Direccion = dto.Direccion;
+        // Agrega los campos faltantes:
+        cliente.TipoIdentificacion = dto.TipoIdentificacion;
+        cliente.NumeroIdentificacion = dto.NumeroIdentificacion;
+        cliente.DigitoVerificacion = dto.DigitoVerificacion;
+        cliente.TipoPersona = dto.TipoPersona;
+        cliente.RegimenTributario = dto.RegimenTributario;
         cliente.Departamento = dto.Departamento;
         cliente.DepartamentoCodigo = dto.DepartamentoCodigo;
         cliente.Ciudad = dto.Ciudad;
         cliente.CiudadCodigo = dto.CiudadCodigo;
         cliente.Direccion = dto.Direccion;
         cliente.CodigoPostal = dto.CodigoPostal;
-        cliente.Correo = dto.Correo ?? "";
-        cliente.RegimenTributario = dto.RegimenTributario ?? "";
-        cliente.NombreContactoFacturacion = dto.NombreContactoFacturacion;
-        cliente.ApellidoContactoFacturacion = dto.ApellidoContactoFacturacion;
-        cliente.IndicativoFacturacion = dto.IndicativoFacturacion;
-        cliente.TelefonoFacturacion = dto.TelefonoFacturacion;
-        cliente.GranContribuyente = dto.GranContribuyente;
-        cliente.AutoretenedorRenta = dto.AutoretenedorRenta;
-        cliente.RetenedorIVA = dto.RetenedorIVA;
-        cliente.RegimenSimple = dto.RegimenSimple;
-        cliente.NoAplica = dto.NoAplica;
-        cliente.RetenedorICA = dto.RetenedorICA;
-        cliente.RetenedorRenta = dto.RetenedorRenta;
-
-        // Reemplazar teléfonos y contactos
-        _context.RemoveRange(cliente.Telefonos);
-        _context.RemoveRange(cliente.Contactos);
-
-        cliente.Telefonos = dto.Telefonos
-            .Where(t => !string.IsNullOrWhiteSpace(t.Numero))
-            .Select(t => new TelefonoCliente
-            {
-                Indicativo = t.Indicativo,
-                Numero = t.Numero,
-                Extension = t.Extension,
-            }).ToList();
+        cliente.NombreComercial = dto.NombreComercial;
 
         cliente.Contactos = dto.Contactos
             .Where(c => !string.IsNullOrWhiteSpace(c.Nombre))
@@ -173,7 +174,8 @@ public class ClienteService : IClienteService
         var cliente = await _context.Clientes
             .FirstOrDefaultAsync(c => c.Id == id && c.UsuarioId == usuarioId);
 
-        if (cliente == null) throw new KeyNotFoundException();
+        if (cliente == null)
+            throw new KeyNotFoundException();
 
         cliente.Activo = false;
         await _context.SaveChangesAsync();

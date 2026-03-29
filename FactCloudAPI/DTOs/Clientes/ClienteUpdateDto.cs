@@ -13,6 +13,11 @@
         public string Direccion { get; set; }
         public string? CodigoPostal { get; set; }
         public bool Activo { get; set; }
+        public bool? EsProveedor { get; set; }
+        public bool? RetenedorIVA { get; set; }
+        public bool? RetenedorICA { get; set; }
+        public bool? RetenedorRenta { get; set; }
+        public bool? AutoretenedorRenta { get; set; }
     }
 }
 

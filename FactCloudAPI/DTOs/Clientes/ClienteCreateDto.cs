@@ -2,19 +2,22 @@
 {
     public class ClienteCreateDto
     {
-        // ── Identificación ──────────────────────────────────
-        public string TipoPersona { get; set; }
+        public string Nombre { get; set; }
+        public string? Apellido { get; set; }
+        public string? NombreComercial { get; set; }
+        // ✅ Agrega esto
+
         public string TipoIdentificacion { get; set; }
         public string NumeroIdentificacion { get; set; }
         public int? DigitoVerificacion { get; set; }
         public string? CodigoSucursal { get; set; }
 
-        // ── Nombre ──────────────────────────────────────────
-        public string Nombre { get; set; }
-        public string? Apellido { get; set; }
-        public string? NombreComercial { get; set; }
+        public string TipoPersona { get; set; }
+        public string RegimenTributario { get; set; }
 
-        // ── Ubicación ───────────────────────────────────────
+        public string Correo { get; set; }
+        public string? Telefono { get; set; }
+
         public string Departamento { get; set; }
         public string? DepartamentoCodigo { get; set; }
         public string Ciudad { get; set; }
@@ -23,8 +26,6 @@
         public string? CodigoPostal { get; set; }
 
         // ── Facturación ─────────────────────────────────────
-        public string? Correo { get; set; }
-        public string? RegimenTributario { get; set; }
         public string? NombreContactoFacturacion { get; set; }
         public string? ApellidoContactoFacturacion { get; set; }
         public string? IndicativoFacturacion { get; set; }
@@ -52,6 +53,12 @@
         public string? Indicativo { get; set; }
         public string Numero { get; set; } = null!;
         public string? Extension { get; set; }
+        public string? CodigoPostal { get; set; }
+        public bool EsProveedor { get; set; } = false;
+        public bool RetenedorIVA { get; set; } = false;
+        public bool RetenedorICA { get; set; } = false;
+        public bool RetenedorRenta { get; set; } = false;
+        public bool AutoretenedorRenta { get; set; } = false;
     }
 
     public class ContactoDto
@@ -63,4 +70,5 @@
         public string? Indicativo { get; set; }
         public string? Telefono { get; set; }
     }
+
 }

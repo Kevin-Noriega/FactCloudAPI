@@ -54,8 +54,7 @@ namespace FactCloudAPI.Controllers
         public async Task<ActionResult<object>> GetPlanActual()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized();
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
             var suscripcion = await _context.SuscripcionesFacturacion
                 .Include(s => s.PlanFacturacion)
@@ -78,6 +77,7 @@ namespace FactCloudAPI.Controllers
                 descripcion = plan.Descripcion,
                 precioMensual = plan.PrecioMensualFinal,
                 precioAnual = plan.PrecioAnualFinal,
+                facturasMensuales = plan.LimiteDocumentosAnuales,
                 limiteDocumentosAnuales = plan.LimiteDocumentosAnuales,
                 limiteUsuarios = plan.LimiteUsuarios,
                 caracteristicas = plan.Features.Select(f => f.Texto).ToList()
@@ -90,8 +90,7 @@ namespace FactCloudAPI.Controllers
         public async Task<ActionResult<object>> GetEstadisticas()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized();
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
             var id = int.Parse(userId);
 
@@ -109,9 +108,39 @@ namespace FactCloudAPI.Controllers
                 return NotFound("El plan de la suscripción no existe");
 
             var plan = suscripcion.PlanFacturacion;
+            var fechaInicio = suscripcion.FechaInicio;
+
+            // ── Contar documentos reales desde las tablas ──────────────────
+            // Se suma cada tipo de documento creado desde el inicio
+            // de la suscripción activa para el usuario autenticado.
+            var facturas = await _context.Facturas
+                .Where(f => f.UsuarioId == id && f.FechaEmision >= fechaInicio)
+                .CountAsync();
+
+            var notasCredito = await _context.NotasCredito
+                .Where(n => n.UsuarioId == id && n.FechaElaboracion >= fechaInicio)
+                .CountAsync();
+
+            var notasDebito = await _context.NotasDebito
+                .Where(n => n.UsuarioId == id && n.FechaElaboracion >= fechaInicio)
+                .CountAsync();
+
+            var documentosSoporte = await _context.DocumentosSoporte
+                .Where(d => d.UsuarioId == id && d.Estado && d.FechaGeneracion >= fechaInicio)
+                .CountAsync();
+
+            var documentosUsados = facturas + notasCredito + notasDebito + documentosSoporte;
+
+            // Sincronizar el campo para mantener consistencia
+            if (suscripcion.DocumentosUsados != documentosUsados)
+            {
+                suscripcion.DocumentosUsados = documentosUsados;
+                await _context.SaveChangesAsync();
+            }
+
             var documentosLimite = plan.LimiteDocumentosAnuales ?? -1;
             var porcentajeUso = documentosLimite > 0
-                ? (double)suscripcion.DocumentosUsados / documentosLimite * 100
+                ? (double)documentosUsados / documentosLimite * 100
                 : 0;
 
             var diasRestantes = suscripcion.FechaFin.HasValue
@@ -120,13 +149,14 @@ namespace FactCloudAPI.Controllers
 
             return Ok(new
             {
-                documentosUsados = suscripcion.DocumentosUsados,
-                documentosLimite = documentosLimite,
+                documentosUsados,
+                documentosLimite,
                 porcentajeUso = Math.Round(porcentajeUso, 2),
                 diasRestantes = Math.Max(0, diasRestantes),
                 fechaInicio = suscripcion.FechaInicio,
                 fechaFin = suscripcion.FechaFin,
-                advertencia = porcentajeUso >= 80
+                advertencia = porcentajeUso >= 80,
+                desglose = new { facturas, notasCredito, notasDebito, documentosSoporte }
             });
         }
 
@@ -137,8 +167,7 @@ namespace FactCloudAPI.Controllers
         public async Task<ActionResult> ActualizarPlan([FromBody] ActualizarPlanRequest request)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
-                return Unauthorized();
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
 
             var id = int.Parse(userId);
 

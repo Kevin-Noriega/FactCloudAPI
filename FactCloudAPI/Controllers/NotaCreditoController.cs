@@ -12,11 +12,11 @@ namespace FactCloudAPI.Controllers
     [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    public class NotasCreditoController : ControllerBase
+    public class NotaCreditoController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
 
-        public NotasCreditoController(ApplicationDbContext context)
+        public NotaCreditoController(ApplicationDbContext context)
         {
             _context = context;
         }
@@ -433,13 +433,6 @@ namespace FactCloudAPI.Controllers
             {
                 return StatusCode(500, new { message = "Error al eliminar nota crédito", error = ex.Message });
             }
-        }
-    }
-
-namespace FactCloudAPI.Controllers
-    {
-        public class NotaCreditoController
-        {
         }
     }
 }

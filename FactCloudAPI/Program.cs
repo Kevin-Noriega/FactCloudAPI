@@ -1,4 +1,4 @@
-﻿using   FactCloudAPI.Data;
+﻿using FactCloudAPI.Data;
 using FactCloudAPI.Services;
 using FactCloudAPI.Services.AuthLogin;
 using FactCloudAPI.Services.Clientes;
@@ -75,12 +75,15 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     }));
 
 
+
 // ===== Servicios =====
 builder.Services.AddScoped<IEmailService, EmailService>();
 
+builder.Services.AddScoped<ISuscripcionService, SuscripcionService>();
 
-    // ===== JWT Config =====
-    var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key missing"));
+
+// ===== JWT Config =====
+var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key missing"));
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {

@@ -40,6 +40,7 @@ namespace FactCloudAPI.Data
         public DbSet<ContactoCliente> ContactosCliente { get; set; }
         // Data/ApplicationDbContext.cs
         public DbSet<ResolucionDIAN> ResolucionesDIAN { get; set; }
+        public DbSet<UsuarioAddon> UsuariosAddons { get; set; }
        
 
 
@@ -819,6 +820,86 @@ namespace FactCloudAPI.Data
                 entity.Property(e => e.FechaCreacion)
                     .HasDefaultValueSql("GETUTCDATE()");
             });
+
+
+            modelBuilder.Entity<UsuarioAddon>(entity =>
+            {
+                entity.HasKey(ua => ua.Id);
+
+                entity.HasOne(ua => ua.Usuario)
+                    .WithMany()
+                    .HasForeignKey(ua => ua.UsuarioId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(ua => ua.Addon)
+                    .WithMany()
+                    .HasForeignKey(ua => ua.AddonId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Índices para consultas frecuentes
+                entity.HasIndex(ua => new { ua.UsuarioId, ua.Activo });
+                entity.HasIndex(ua => new { ua.UsuarioId, ua.AddonId });
+            });
+
+            modelBuilder.Entity<Addon>().HasData(
+                new Addon
+                {
+                    Id = 1,
+                    Nombre = "Documentos extra (150)",
+                    Descripcion = "Agrega 150 documentos electrónicos adicionales a tu plan actual.",
+                    Precio = 45000,
+                    Unidad = "año",
+                    Tipo = "Capacidad",
+                    Color = "#1a73e8",
+                    Activo = true
+                },
+                new Addon
+                {
+                    Id = 2,
+                    Nombre = "Documentos extra (500)",
+                    Descripcion = "Agrega 500 documentos electrónicos adicionales a tu plan actual.",
+                    Precio = 120000,
+                    Unidad = "año",
+                    Tipo = "Capacidad",
+                    Color = "#1a73e8",
+                    Activo = true
+                },
+                new Addon
+                {
+                    Id = 3,
+                    Nombre = "Usuario adicional",
+                    Descripcion = "Permite que un usuario adicional acceda al sistema con tu cuenta.",
+                    Precio = 60000,
+                    Unidad = "año",
+                    Tipo = "Usuarios",
+                    Color = "#0f6e56",
+                    Activo = true
+                },
+                new Addon
+                {
+                    Id = 4,
+                    Nombre = "Reportes avanzados",
+                    Descripcion = "Accede a reportes detallados de ventas, clientes y tendencias de facturación.",
+                    Precio = 80000,
+                    Unidad = "año",
+                    Tipo = "Reportes",
+                    Color = "#7c3aed",
+                    Activo = true
+                },
+                new Addon
+                {
+                    Id = 5,
+                    Nombre = "Soporte prioritario",
+                    Descripcion = "Atención prioritaria por chat y teléfono con tiempo de respuesta garantizado.",
+                    Precio = 50000,
+                    Unidad = "año",
+                    Tipo = "Soporte",
+                    Color = "#b45309",
+                    Activo = true
+                }
+            );
+
+
         }
     }
 

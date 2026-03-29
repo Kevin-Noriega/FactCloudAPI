@@ -12,6 +12,7 @@ namespace FactCloudAPI.Models
         public int FacturaId { get; set; }
         public Factura? Factura { get; set; } 
 
+        [Required]
         public int ProductoId { get; set; }
         public Producto? Producto { get; set; }
 
@@ -33,12 +34,14 @@ namespace FactCloudAPI.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal ValorDescuento { get; set; } = 0;
 
+        [Required]
         [Column(TypeName = "decimal(18,2)")]
         public decimal SubtotalLinea { get; set; }
 
         [Column(TypeName = "decimal(6,4)")]
         public decimal TarifaIVA { get; set; } = 0;
 
+        [Required]
         [Column(TypeName = "decimal(18,2)")]
         public decimal ValorIVA { get; set; }
 
@@ -54,6 +57,7 @@ namespace FactCloudAPI.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal ValorICA { get; set; } = 0;   // ✅ Nuevo
 
+        [Required]
         [Column(TypeName = "decimal(18,2)")]
         public decimal TotalLinea { get; set; }
 

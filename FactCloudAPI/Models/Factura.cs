@@ -1,7 +1,9 @@
+using FactCloudAPI.Models;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+
 
 namespace FactCloudAPI.Models
 {
@@ -171,6 +173,7 @@ namespace FactCloudAPI.Models
         [MaxLength(10)]
         public string MedioPago { get; set; } = "10";
 
+        // Crédito y observaciones
         public int? DiasCredito { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]
@@ -193,6 +196,7 @@ namespace FactCloudAPI.Models
         // ==================== ENVÍO DIAN ====================
 
         public bool EnviadaDIAN { get; set; } = false;
+
         public DateTime? FechaLimiteEnvioDIAN { get; set; }
         public DateTime? FechaEnvioDIAN { get; set; }
 
@@ -201,6 +205,7 @@ namespace FactCloudAPI.Models
 
         // ==================== ENVÍO CLIENTE ====================
 
+        // Envío a cliente
         public bool EnviadaCliente { get; set; } = false;
         public DateTime? FechaEnvioCliente { get; set; }
 
@@ -211,6 +216,7 @@ namespace FactCloudAPI.Models
 
         // ==================== RELACIONES ====================
 
+        // Detalles de factura
         public ICollection<DetalleFactura>? DetalleFacturas { get; set; }
         public ICollection<NotaDebito> NotasDebito { get; set; } = new List<NotaDebito>();
 
@@ -265,5 +271,8 @@ namespace FactCloudAPI.Models
                 return horas > 0 ? (int)Math.Ceiling(horas) : 0;
             }
         }
+
+
+
     }
 }
