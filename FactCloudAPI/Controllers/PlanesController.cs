@@ -84,6 +84,7 @@ namespace FactCloudAPI.Controllers
             });
         }
 
+
         // GET: api/planes/estadisticas
         [HttpGet("estadisticas")]
         public async Task<ActionResult<object>> GetEstadisticas()
@@ -93,6 +94,7 @@ namespace FactCloudAPI.Controllers
 
             var id = int.Parse(userId);
 
+            // ✅ Buscar directamente la suscripción activa, sin pasar por SuscripcionActual
             var suscripcion = await _context.SuscripcionesFacturacion
                 .Include(s => s.PlanFacturacion)
                 .Where(s => s.UsuarioId == id && s.Activa)
@@ -158,6 +160,8 @@ namespace FactCloudAPI.Controllers
             });
         }
 
+
+
         // POST: api/planes/actualizar
         [HttpPost("actualizar")]
         public async Task<ActionResult> ActualizarPlan([FromBody] ActualizarPlanRequest request)
@@ -173,6 +177,7 @@ namespace FactCloudAPI.Controllers
             if (planNuevo == null)
                 return NotFound("Plan no encontrado");
 
+            // Desactivar suscripción activa actual
             var suscripcionActiva = await _context.SuscripcionesFacturacion
                 .Where(s => s.UsuarioId == id && s.Activa)
                 .FirstOrDefaultAsync();
@@ -183,6 +188,7 @@ namespace FactCloudAPI.Controllers
                 suscripcionActiva.FechaFin = DateTime.Now;
             }
 
+            // Crear nueva suscripción
             var nuevaSuscripcion = new SuscripcionFacturacion
             {
                 UsuarioId = id,
@@ -198,6 +204,7 @@ namespace FactCloudAPI.Controllers
 
             return Ok(new { mensaje = "Plan actualizado exitosamente" });
         }
+
     }
 
     public class ActualizarPlanRequest

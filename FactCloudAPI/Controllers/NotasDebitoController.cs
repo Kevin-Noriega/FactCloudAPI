@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace FactCloudAPI.Controllers
 {
+
     [Authorize]
     [ApiController]
     [Route("api/[controller]")]
@@ -31,12 +32,67 @@ namespace FactCloudAPI.Controllers
             try
             {
                 var notasDebito = await _context.NotasDebito
-                    .Include(nd => nd.Cliente).Include(nd => nd.Factura)
-                    .Include(nd => nd.Detalles).Include(nd => nd.FormasPago)
+                    .Include(nd => nd.Cliente)
+                    .Include(nd => nd.Factura)
+                    .Include(nd => nd.Detalles)
+                    .Include(nd => nd.FormasPago)
                     .OrderByDescending(nd => nd.FechaRegistro)
                     .ToListAsync();
 
-                return Ok(notasDebito.Select(nd => MapToDto(nd)).ToList());
+                var response = notasDebito.Select(nd => new NotaDebitoResponseDto
+                {
+                    Id = nd.Id,
+                    NumeroNota = nd.NumeroNota,
+                    FacturaId = nd.FacturaId,
+                    NumeroFactura = nd.Factura?.NumeroFactura ?? nd.NumeroFactura,
+                    Cliente = nd.Cliente != null ? new ClienteSimpleDto
+                    {
+                        Id = nd.Cliente.Id,
+                        Nombre = nd.Cliente.Nombre,
+                        Apellido = nd.Cliente.Apellido,
+                        Documento = nd.Cliente.NumeroIdentificacion
+                    } : null,
+                    Tipo = nd.Tipo,
+                    MotivoDIAN = nd.MotivoDIAN,
+                    FechaElaboracion = nd.FechaElaboracion,
+                    FechaRegistro = nd.FechaRegistro,
+                    CUFE = nd.CUFE,
+                    XMLBase64 = nd.XMLBase64,
+                    TotalBruto = nd.TotalBruto,
+                    TotalDescuentos = nd.TotalDescuentos,
+                    Subtotal = nd.Subtotal,
+                    TotalIVA = nd.TotalIVA,
+                    TotalINC = nd.TotalINC,
+                    ReteICA = nd.ReteICA,
+                    TotalNeto = nd.TotalNeto,
+                    Estado = nd.Estado,
+                    Observaciones = nd.Observaciones,
+                    DetalleNotaDebito = nd.Detalles.Select(d => new DetalleNotaDebitoResponseDto
+                    {
+                        Id = d.Id,
+                        ProductoId = d.ProductoId,
+                        Descripcion = d.Descripcion,
+                        Cantidad = d.Cantidad,
+                        UnidadMedida = d.UnidadMedida,
+                        PrecioUnitario = d.PrecioUnitario,
+                        PorcentajeDescuento = d.PorcentajeDescuento,
+                        ValorDescuento = d.ValorDescuento,
+                        SubtotalLinea = d.SubtotalLinea,
+                        TarifaIVA = d.TarifaIVA,
+                        ValorIVA = d.ValorIVA,
+                        TarifaINC = d.TarifaINC,
+                        ValorINC = d.ValorINC,
+                        TotalLinea = d.TotalLinea
+                    }).ToList(),
+                    FormasPago = nd.FormasPago.Select(fp => new FormaPagoResponseDto
+                    {
+                        Id = fp.Id,
+                        Metodo = fp.Metodo,
+                        Valor = fp.Valor
+                    }).ToList()
+                }).ToList();
+
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -51,14 +107,71 @@ namespace FactCloudAPI.Controllers
             try
             {
                 var notaDebito = await _context.NotasDebito
-                    .Include(nd => nd.Cliente).Include(nd => nd.Factura)
-                    .Include(nd => nd.Detalles).Include(nd => nd.FormasPago)
+                    .Include(nd => nd.Cliente)
+                    .Include(nd => nd.Factura)
+                    .Include(nd => nd.Detalles)
+                    .Include(nd => nd.FormasPago)
                     .FirstOrDefaultAsync(nd => nd.Id == id);
 
                 if (notaDebito == null)
+                {
                     return NotFound(new { message = "Nota débito no encontrada" });
+                }
 
-                return Ok(MapToDto(notaDebito));
+                var response = new NotaDebitoResponseDto
+                {
+                    Id = notaDebito.Id,
+                    NumeroNota = notaDebito.NumeroNota,
+                    FacturaId = notaDebito.FacturaId,
+                    NumeroFactura = notaDebito.Factura?.NumeroFactura ?? notaDebito.NumeroFactura,
+                    Cliente = notaDebito.Cliente != null ? new ClienteSimpleDto
+                    {
+                        Id = notaDebito.Cliente.Id,
+                        Nombre = notaDebito.Cliente.Nombre,
+                        Apellido = notaDebito.Cliente.Apellido,
+                        Documento = notaDebito.Cliente.NumeroIdentificacion
+                    } : null,
+                    Tipo = notaDebito.Tipo,
+                    MotivoDIAN = notaDebito.MotivoDIAN,
+                    FechaElaboracion = notaDebito.FechaElaboracion,
+                    FechaRegistro = notaDebito.FechaRegistro,
+                    CUFE = notaDebito.CUFE,
+                    XMLBase64 = notaDebito.XMLBase64,
+                    TotalBruto = notaDebito.TotalBruto,
+                    TotalDescuentos = notaDebito.TotalDescuentos,
+                    Subtotal = notaDebito.Subtotal,
+                    TotalIVA = notaDebito.TotalIVA,
+                    TotalINC = notaDebito.TotalINC,
+                    ReteICA = notaDebito.ReteICA,
+                    TotalNeto = notaDebito.TotalNeto,
+                    Estado = notaDebito.Estado,
+                    Observaciones = notaDebito.Observaciones,
+                    DetalleNotaDebito = notaDebito.Detalles.Select(d => new DetalleNotaDebitoResponseDto
+                    {
+                        Id = d.Id,
+                        ProductoId = d.ProductoId,
+                        Descripcion = d.Descripcion,
+                        Cantidad = d.Cantidad,
+                        UnidadMedida = d.UnidadMedida,
+                        PrecioUnitario = d.PrecioUnitario,
+                        PorcentajeDescuento = d.PorcentajeDescuento,
+                        ValorDescuento = d.ValorDescuento,
+                        SubtotalLinea = d.SubtotalLinea,
+                        TarifaIVA = d.TarifaIVA,
+                        ValorIVA = d.ValorIVA,
+                        TarifaINC = d.TarifaINC,
+                        ValorINC = d.ValorINC,
+                        TotalLinea = d.TotalLinea
+                    }).ToList(),
+                    FormasPago = notaDebito.FormasPago.Select(fp => new FormaPagoResponseDto
+                    {
+                        Id = fp.Id,
+                        Metodo = fp.Metodo,
+                        Valor = fp.Valor
+                    }).ToList()
+                };
+
+                return Ok(response);
             }
             catch (Exception ex)
             {
@@ -72,13 +185,17 @@ namespace FactCloudAPI.Controllers
         {
             try
             {
+                // Validar que la factura existe
                 var factura = await _context.Facturas
                     .Include(f => f.Cliente)
                     .FirstOrDefaultAsync(f => f.Id == dto.FacturaId);
 
                 if (factura == null)
+                {
                     return BadRequest(new { message = "Factura no encontrada" });
+                }
 
+                // Crear nota débito
                 var notaDebito = new NotaDebito
                 {
                     UsuarioId = dto.UsuarioId,
@@ -105,10 +222,82 @@ namespace FactCloudAPI.Controllers
                 _context.NotasDebito.Add(notaDebito);
                 await _context.SaveChangesAsync();
 
-                foreach (var d in dto.DetalleNotaDebito)
-                    _context.DetalleNotaDebito.Add(new DetalleNotaDebito
+                // Agregar detalles
+                foreach (var detalleDto in dto.DetalleNotaDebito)
+                {
+                    var detalle = new DetalleNotaDebito
                     {
                         NotaDebitoId = notaDebito.Id,
+                        ProductoId = detalleDto.ProductoId,
+                        Descripcion = detalleDto.Descripcion,
+                        Cantidad = detalleDto.Cantidad,
+                        UnidadMedida = detalleDto.UnidadMedida,
+                        PrecioUnitario = detalleDto.PrecioUnitario,
+                        PorcentajeDescuento = detalleDto.PorcentajeDescuento,
+                        ValorDescuento = detalleDto.ValorDescuento,
+                        SubtotalLinea = detalleDto.SubtotalLinea,
+                        TarifaIVA = detalleDto.TarifaIVA,
+                        ValorIVA = detalleDto.ValorIVA,
+                        TarifaINC = detalleDto.TarifaINC,
+                        ValorINC = detalleDto.ValorINC,
+                        TotalLinea = detalleDto.TotalLinea
+                    };
+                    _context.DetalleNotaDebito.Add(detalle);
+                }
+
+                // Agregar formas de pago
+                foreach (var formaPagoDto in dto.FormasPago)
+                {
+                    var formaPago = new FormaPagoNotaDebito
+                    {
+                        NotaDebitoId = notaDebito.Id,
+                        Metodo = formaPagoDto.Metodo,
+                        Valor = formaPagoDto.Valor
+                    };
+                    _context.FormasPagoNotaDebito.Add(formaPago);
+                }
+
+                await _context.SaveChangesAsync();
+
+                // Retornar nota creada
+                var notaCreada = await _context.NotasDebito
+                    .Include(nd => nd.Cliente)
+                    .Include(nd => nd.Factura)
+                    .Include(nd => nd.Detalles)
+                    .Include(nd => nd.FormasPago)
+                    .FirstOrDefaultAsync(nd => nd.Id == notaDebito.Id);
+
+                var response = new NotaDebitoResponseDto
+                {
+                    Id = notaCreada!.Id,
+                    NumeroNota = notaCreada.NumeroNota,
+                    FacturaId = notaCreada.FacturaId,
+                    NumeroFactura = notaCreada.NumeroFactura,
+                    Cliente = notaCreada.Cliente != null ? new ClienteSimpleDto
+                    {
+                        Id = notaCreada.Cliente.Id,
+                        Nombre = notaCreada.Cliente.Nombre,
+                        Apellido = notaCreada.Cliente.Apellido,
+                        Documento = notaCreada.Cliente.NumeroIdentificacion
+                    } : null,
+                    Tipo = notaCreada.Tipo,
+                    MotivoDIAN = notaCreada.MotivoDIAN,
+                    FechaElaboracion = notaCreada.FechaElaboracion,
+                    FechaRegistro = notaCreada.FechaRegistro,
+                    CUFE = notaCreada.CUFE,
+                    XMLBase64 = notaCreada.XMLBase64,
+                    TotalBruto = notaCreada.TotalBruto,
+                    TotalDescuentos = notaCreada.TotalDescuentos,
+                    Subtotal = notaCreada.Subtotal,
+                    TotalIVA = notaCreada.TotalIVA,
+                    TotalINC = notaCreada.TotalINC,
+                    ReteICA = notaCreada.ReteICA,
+                    TotalNeto = notaCreada.TotalNeto,
+                    Estado = notaCreada.Estado,
+                    Observaciones = notaCreada.Observaciones,
+                    DetalleNotaDebito = notaCreada.Detalles.Select(d => new DetalleNotaDebitoResponseDto
+                    {
+                        Id = d.Id,
                         ProductoId = d.ProductoId,
                         Descripcion = d.Descripcion,
                         Cantidad = d.Cantidad,
@@ -122,23 +311,16 @@ namespace FactCloudAPI.Controllers
                         TarifaINC = d.TarifaINC,
                         ValorINC = d.ValorINC,
                         TotalLinea = d.TotalLinea
-                    });
+                    }).ToList(),
+                    FormasPago = notaCreada.FormasPago.Select(fp => new FormaPagoResponseDto
+                    {
+                        Id = fp.Id,
+                        Metodo = fp.Metodo,
+                        Valor = fp.Valor
+                    }).ToList()
+                };
 
-                foreach (var fp in dto.FormasPago)
-                    _context.FormasPagoNotaDebito.Add(new FormaPagoNotaDebito
-                    { NotaDebitoId = notaDebito.Id, Metodo = fp.Metodo, Valor = fp.Valor });
-
-                await _context.SaveChangesAsync();
-
-                // ── Incrementar contador de documentos usados ──────────────
-                await _suscripcionService.IncrementarDocumentosUsados(dto.UsuarioId);
-
-                var notaCreada = await _context.NotasDebito
-                    .Include(nd => nd.Cliente).Include(nd => nd.Factura)
-                    .Include(nd => nd.Detalles).Include(nd => nd.FormasPago)
-                    .FirstOrDefaultAsync(nd => nd.Id == notaDebito.Id);
-
-                return CreatedAtAction(nameof(GetNotaDebito), new { id = notaCreada!.Id }, MapToDto(notaCreada));
+                return CreatedAtAction(nameof(GetNotaDebito), new { id = notaCreada.Id }, response);
             }
             catch (Exception ex)
             {
@@ -153,12 +335,16 @@ namespace FactCloudAPI.Controllers
             try
             {
                 var notaDebito = await _context.NotasDebito
-                    .Include(nd => nd.Detalles).Include(nd => nd.FormasPago)
+                    .Include(nd => nd.Detalles)
+                    .Include(nd => nd.FormasPago)
                     .FirstOrDefaultAsync(nd => nd.Id == id);
 
                 if (notaDebito == null)
+                {
                     return NotFound(new { message = "Nota débito no encontrada" });
+                }
 
+                // Actualizar campos principales
                 notaDebito.Tipo = dto.Tipo;
                 notaDebito.MotivoDIAN = dto.MotivoDIAN;
                 notaDebito.FechaElaboracion = dto.FechaElaboracion;
@@ -173,33 +359,50 @@ namespace FactCloudAPI.Controllers
                 notaDebito.Estado = dto.Estado;
                 notaDebito.Observaciones = dto.Observaciones;
 
+                // Eliminar detalles antiguos
                 _context.DetalleNotaDebito.RemoveRange(notaDebito.Detalles);
                 _context.FormasPagoNotaDebito.RemoveRange(notaDebito.FormasPago);
 
-                foreach (var d in dto.DetalleNotaDebito)
-                    _context.DetalleNotaDebito.Add(new DetalleNotaDebito
+                // Agregar nuevos detalles
+                foreach (var detalleDto in dto.DetalleNotaDebito)
+                {
+                    var detalle = new DetalleNotaDebito
                     {
                         NotaDebitoId = notaDebito.Id,
-                        ProductoId = d.ProductoId,
-                        Descripcion = d.Descripcion,
-                        Cantidad = d.Cantidad,
-                        UnidadMedida = d.UnidadMedida,
-                        PrecioUnitario = d.PrecioUnitario,
-                        PorcentajeDescuento = d.PorcentajeDescuento,
-                        ValorDescuento = d.ValorDescuento,
-                        SubtotalLinea = d.SubtotalLinea,
-                        TarifaIVA = d.TarifaIVA,
-                        ValorIVA = d.ValorIVA,
-                        TarifaINC = d.TarifaINC,
-                        ValorINC = d.ValorINC,
-                        TotalLinea = d.TotalLinea
-                    });
+                        ProductoId = detalleDto.ProductoId,
+                        Descripcion = detalleDto.Descripcion,
+                        Cantidad = detalleDto.Cantidad,
+                        UnidadMedida = detalleDto.UnidadMedida,
+                        PrecioUnitario = detalleDto.PrecioUnitario,
+                        PorcentajeDescuento = detalleDto.PorcentajeDescuento,
+                        ValorDescuento = detalleDto.ValorDescuento,
+                        SubtotalLinea = detalleDto.SubtotalLinea,
+                        TarifaIVA = detalleDto.TarifaIVA,
+                        ValorIVA = detalleDto.ValorIVA,
+                        TarifaINC = detalleDto.TarifaINC,
+                        ValorINC = detalleDto.ValorINC,
+                        TotalLinea = detalleDto.TotalLinea
+                    };
+                    _context.DetalleNotaDebito.Add(detalle);
+                }
 
-                foreach (var fp in dto.FormasPago)
-                    _context.FormasPagoNotaDebito.Add(new FormaPagoNotaDebito
-                    { NotaDebitoId = notaDebito.Id, Metodo = fp.Metodo, Valor = fp.Valor });
+                // Eliminar formas de pago antiguas
+                _context.FormasPagoNotaDebito.RemoveRange(notaDebito.FormasPago);
+
+                // Agregar nuevas formas de pago
+                foreach (var formaPagoDto in dto.FormasPago)
+                {
+                    var formaPago = new FormaPagoNotaDebito
+                    {
+                        NotaDebitoId = notaDebito.Id,
+                        Metodo = formaPagoDto.Metodo,
+                        Valor = formaPagoDto.Valor
+                    };
+                    _context.FormasPagoNotaDebito.Add(formaPago);
+                }
 
                 await _context.SaveChangesAsync();
+
                 return Ok(new { message = "Nota débito actualizada exitosamente" });
             }
             catch (Exception ex)
@@ -215,11 +418,14 @@ namespace FactCloudAPI.Controllers
             try
             {
                 var notaDebito = await _context.NotasDebito
-                    .Include(nd => nd.Detalles).Include(nd => nd.FormasPago)
+                    .Include(nd => nd.Detalles)
+                    .Include(nd => nd.FormasPago)
                     .FirstOrDefaultAsync(nd => nd.Id == id);
 
                 if (notaDebito == null)
+                {
                     return NotFound(new { message = "Nota débito no encontrada" });
+                }
 
                 _context.DetalleNotaDebito.RemoveRange(notaDebito.Detalles);
                 _context.FormasPagoNotaDebito.RemoveRange(notaDebito.FormasPago);

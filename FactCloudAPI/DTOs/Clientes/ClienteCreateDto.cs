@@ -6,11 +6,11 @@
         public string? Apellido { get; set; }
         public string? NombreComercial { get; set; }
         // ✅ Agrega esto
-        public List<ContactoDto> Contactos { get; set; } = new();
 
         public string TipoIdentificacion { get; set; }
         public string NumeroIdentificacion { get; set; }
         public int? DigitoVerificacion { get; set; }
+        public string? CodigoSucursal { get; set; }
 
         public string TipoPersona { get; set; }
         public string RegimenTributario { get; set; }
@@ -19,9 +19,40 @@
         public string? Telefono { get; set; }
 
         public string Departamento { get; set; }
+        public string? DepartamentoCodigo { get; set; }
         public string Ciudad { get; set; }
+        public string? CiudadCodigo { get; set; }
         public string Direccion { get; set; }
+        public string? CodigoPostal { get; set; }
 
+        // ── Facturación ─────────────────────────────────────
+        public string? NombreContactoFacturacion { get; set; }
+        public string? ApellidoContactoFacturacion { get; set; }
+        public string? IndicativoFacturacion { get; set; }
+        public string? TelefonoFacturacion { get; set; }
+
+        // ── Responsabilidades fiscales ───────────────────────
+        public bool GranContribuyente { get; set; }   // O-13
+        public bool AutoretenedorRenta { get; set; }   // O-15
+        public bool RetenedorIVA { get; set; }   // O-23
+        public bool RegimenSimple { get; set; }   // O-47
+        public bool NoAplica { get; set; }   // R-99-PN
+        public bool RetenedorICA { get; set; }
+        public bool RetenedorRenta { get; set; }
+
+        // ── Teléfonos y contactos ────────────────────────────
+        public List<TelefonoDto> Telefonos { get; set; } = new();
+        public List<ContactoDto> Contactos { get; set; } = new();
+
+        // Array de códigos (opcional, referencia para facturación)
+        public List<string>? Responsabilidades { get; set; }
+    }
+
+    public class TelefonoDto
+    {
+        public string? Indicativo { get; set; }
+        public string Numero { get; set; } = null!;
+        public string? Extension { get; set; }
         public string? CodigoPostal { get; set; }
         public bool EsProveedor { get; set; } = false;
         public bool RetenedorIVA { get; set; } = false;
@@ -29,6 +60,7 @@
         public bool RetenedorRenta { get; set; } = false;
         public bool AutoretenedorRenta { get; set; } = false;
     }
+
     public class ContactoDto
     {
         public string Nombre { get; set; } = null!;

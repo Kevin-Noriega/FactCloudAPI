@@ -15,6 +15,7 @@ public class ClienteService : IClienteService
         _context = context;
     }
 
+    // ── Listar ──────────────────────────────────────────────────────
     public async Task<List<ClienteDetalleDto>> ObtenerClientesAsync(int usuarioId)
     {
         return await _context.Clientes
@@ -26,7 +27,7 @@ public class ClienteService : IClienteService
                 Apellido = c.Apellido,
                 NumeroIdentificacion = c.NumeroIdentificacion,
                 TipoIdentificacion = c.TipoIdentificacion,
-                Telefono = c.Telefono,
+                TelefonoFacturacion = c.TelefonoFacturacion,
                 Departamento = c.Departamento,
                 Ciudad = c.Ciudad,
                 Direccion = c.Direccion,
@@ -37,6 +38,7 @@ public class ClienteService : IClienteService
             .ToListAsync();
     }
 
+    // ── Por ID ──────────────────────────────────────────────────────
     public async Task<ClienteDetalleDto?> ObtenerPorIdAsync(int id, int usuarioId)
     {
         return await _context.Clientes
@@ -47,8 +49,7 @@ public class ClienteService : IClienteService
                 Nombre = c.Nombre,
                 Apellido = c.Apellido,
                 NumeroIdentificacion = c.NumeroIdentificacion,
-                TipoIdentificacion = c.TipoIdentificacion,
-                Telefono = c.Telefono,
+                TipoIdentificacion = c.TipoIdentificacion, TelefonoFacturacion = c.TelefonoFacturacion,
                 Departamento = c.Departamento,
                 Ciudad = c.Ciudad,
                 Direccion = c.Direccion,
@@ -62,6 +63,10 @@ public class ClienteService : IClienteService
     {
         var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.Id == id && c.UsuarioId == usuarioId);
         if (cliente == null) return false;
+        var c = await _context.Clientes
+            .Include(c => c.Telefonos)
+            .Include(c => c.Contactos)
+            .FirstOrDefaultAsync(c => c.Id == id && c.UsuarioId == usuarioId);
 
         if (dto.EsProveedor.HasValue) cliente.EsProveedor = dto.EsProveedor.Value;
         if (dto.RetenedorIVA.HasValue) cliente.RetenedorIVA = dto.RetenedorIVA.Value;
@@ -82,7 +87,6 @@ public class ClienteService : IClienteService
         await _context.SaveChangesAsync();
         return true;
     }
-
     public async Task CrearAsync(ClienteCreateDto dto, int usuarioId)
     {
         var cliente = new Cliente
@@ -97,29 +101,33 @@ public class ClienteService : IClienteService
             TipoPersona = dto.TipoPersona,
             RegimenTributario = dto.RegimenTributario,
             Correo = dto.Correo,
-            Telefono = dto.Telefono,
+            TelefonoFacturacion = dto.Telefono,
             Departamento = dto.Departamento,
             Ciudad = dto.Ciudad,
             Direccion = dto.Direccion,
             CodigoPostal = dto.CodigoPostal,
-             Contactos = dto.Contactos.Select(c => new ContactoCliente
-             {
-                 Nombre = c.Nombre,
-                 Apellido = c.Apellido,
-                 Correo = c.Correo,
-                 Cargo = c.Cargo,
-                 Indicativo = c.Indicativo,
-                 Telefono = c.Telefono,
-             }).ToList()
+            Contactos = dto.Contactos.Select(c => new ContactoCliente
+            {
+                Nombre = c.Nombre,
+                Apellido = c.Apellido,
+                Correo = c.Correo,
+                Cargo = c.Cargo,
+                Indicativo = c.Indicativo,
+                Telefono = c.Telefono,
+            }).ToList()
         };
 
         _context.Clientes.Add(cliente);
         await _context.SaveChangesAsync();
     }
 
+
+    // ── Actualizar ───────────────────────────────────────────────────
     public async Task ActualizarAsync(int id, ClienteCreateDto dto, int usuarioId)
     {
         var cliente = await _context.Clientes
+            .Include(c => c.Telefonos)
+            .Include(c => c.Contactos)
             .FirstOrDefaultAsync(c => c.Id == id && c.UsuarioId == usuarioId);
 
         if (cliente == null)
@@ -129,7 +137,7 @@ public class ClienteService : IClienteService
         cliente.Apellido = dto.Apellido;
         cliente.NombreComercial = dto.NombreComercial;
         cliente.Correo = dto.Correo;
-        cliente.Telefono = dto.Telefono;
+        cliente.TelefonoFacturacion = dto.TelefonoFacturacion;
         cliente.Direccion = dto.Direccion;
         // Agrega los campos faltantes:
         cliente.TipoIdentificacion = dto.TipoIdentificacion;
@@ -138,14 +146,29 @@ public class ClienteService : IClienteService
         cliente.TipoPersona = dto.TipoPersona;
         cliente.RegimenTributario = dto.RegimenTributario;
         cliente.Departamento = dto.Departamento;
+        cliente.DepartamentoCodigo = dto.DepartamentoCodigo;
         cliente.Ciudad = dto.Ciudad;
+        cliente.CiudadCodigo = dto.CiudadCodigo;
+        cliente.Direccion = dto.Direccion;
         cliente.CodigoPostal = dto.CodigoPostal;
         cliente.NombreComercial = dto.NombreComercial;
 
+        cliente.Contactos = dto.Contactos
+            .Where(c => !string.IsNullOrWhiteSpace(c.Nombre))
+            .Select(c => new ContactoCliente
+            {
+                Nombre = c.Nombre,
+                Apellido = c.Apellido,
+                Correo = c.Correo,
+                Cargo = c.Cargo,
+                Indicativo = c.Indicativo,
+                Telefono = c.Telefono,
+            }).ToList();
 
         await _context.SaveChangesAsync();
     }
 
+    // ── Desactivar ───────────────────────────────────────────────────
     public async Task DesactivarAsync(int id, int usuarioId)
     {
         var cliente = await _context.Clientes
@@ -157,4 +180,54 @@ public class ClienteService : IClienteService
         cliente.Activo = false;
         await _context.SaveChangesAsync();
     }
+
+    // ── Mapper privado ───────────────────────────────────────────────
+    private static ClienteDetalleDto MapToDto(Cliente c) => new()
+    {
+        Id = c.Id,
+        TipoPersona = c.TipoPersona,
+        TipoIdentificacion = c.TipoIdentificacion,
+        NumeroIdentificacion = c.NumeroIdentificacion,
+        DigitoVerificacion = c.DigitoVerificacion,
+        CodigoSucursal = c.CodigoSucursal,
+        Nombre = c.Nombre,
+        Apellido = c.Apellido,
+        NombreComercial = c.NombreComercial,
+        Departamento = c.Departamento,
+        DepartamentoCodigo = c.DepartamentoCodigo,
+        Ciudad = c.Ciudad,
+        CiudadCodigo = c.CiudadCodigo,
+        Direccion = c.Direccion,
+        CodigoPostal = c.CodigoPostal,
+        Correo = c.Correo,
+        RegimenTributario = c.RegimenTributario,
+        NombreContactoFacturacion = c.NombreContactoFacturacion,
+        ApellidoContactoFacturacion = c.ApellidoContactoFacturacion,
+        IndicativoFacturacion = c.IndicativoFacturacion,
+        TelefonoFacturacion = c.TelefonoFacturacion,
+        GranContribuyente = c.GranContribuyente,
+        AutoretenedorRenta = c.AutoretenedorRenta,
+        RetenedorIVA = c.RetenedorIVA,
+        RegimenSimple = c.RegimenSimple,
+        NoAplica = c.NoAplica,
+        RetenedorICA = c.RetenedorICA,
+        RetenedorRenta = c.RetenedorRenta,
+        Activo = c.Activo,
+        FechaRegistro = c.FechaRegistro,
+        Telefonos = c.Telefonos.Select(t => new TelefonoDto
+        {
+            Indicativo = t.Indicativo,
+            Numero = t.Numero,
+            Extension = t.Extension,
+        }).ToList(),
+        Contactos = c.Contactos.Select(ct => new ContactoDto
+        {
+            Nombre = ct.Nombre,
+            Apellido = ct.Apellido,
+            Correo = ct.Correo,
+            Cargo = ct.Cargo,
+            Indicativo = ct.Indicativo,
+            Telefono = ct.Telefono,
+        }).ToList(),
+    };
 }

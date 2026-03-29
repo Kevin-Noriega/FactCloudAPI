@@ -180,9 +180,4 @@ namespace FactCloudAPI.Controllers
         }
     }
 
-    // ── Request DTO inline (alternativa si no tienes la carpeta DTOs) ──
-    public class AgregarAddonsRequest
-    {
-        public List<int> Addons { get; set; } = new();
-    }
 }

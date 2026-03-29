@@ -38,7 +38,10 @@ namespace FactCloudAPI.Data
         public DbSet<RegistroPendiente> RegistrosPendientes { get; set; }
         public DbSet<Transaccion> Transacciones { get; set; }
         public DbSet<ContactoCliente> ContactosCliente { get; set; }
+        // Data/ApplicationDbContext.cs
+        public DbSet<ResolucionDIAN> ResolucionesDIAN { get; set; }
         public DbSet<UsuarioAddon> UsuariosAddons { get; set; }
+       
 
 
 
@@ -135,41 +138,200 @@ namespace FactCloudAPI.Data
                 .HasForeignKey(p => p.UsuarioId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // ===============================
-            // FACTURA -> USUARIO (1:N)
-            // ===============================
-            modelBuilder.Entity<Factura>()
-                .HasOne(f => f.Usuario)
-                .WithMany(u => u.Facturas)
-                .HasForeignKey(f => f.UsuarioId)
-                .OnDelete(DeleteBehavior.Restrict);
+            // ==================== FACTURA ====================
+            modelBuilder.Entity<Factura>(entity =>
+            {
+                entity.HasKey(f => f.Id);
 
-            // ===============================
-            // FACTURA -> CLIENTE (1:N)
-            // ===============================
-            modelBuilder.Entity<Factura>()
-                .HasOne(f => f.Cliente)
-                .WithMany(c => c.Facturas)
-                .HasForeignKey(f => f.ClienteId)
-                .OnDelete(DeleteBehavior.Restrict);
+                // Relaciones existentes
+                entity.HasOne(f => f.Usuario)
+                    .WithMany(u => u.Facturas)
+                    .HasForeignKey(f => f.UsuarioId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-            // ===============================
-            // DETALLE FACTURA -> FACTURA (1:N, CASCADE)
-            // ===============================
-            modelBuilder.Entity<DetalleFactura>()
-                .HasOne(d => d.Factura)
-                .WithMany(f => f.DetalleFacturas)
-                .HasForeignKey(d => d.FacturaId)
-                .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(f => f.Cliente)
+                    .WithMany(c => c.Facturas)
+                    .HasForeignKey(f => f.ClienteId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-            // ===============================
-            // DETALLE FACTURA -> PRODUCTO (1:N)
-            // ===============================
-            modelBuilder.Entity<DetalleFactura>()
-                .HasOne(d => d.Producto)
-                .WithMany()
-                .HasForeignKey(d => d.ProductoId)
-                .OnDelete(DeleteBehavior.Restrict);
+                entity.HasMany(f => f.DetalleFacturas!)
+                    .WithOne(df => df.Factura)
+                    .HasForeignKey(df => df.FacturaId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasMany(f => f.NotasDebito)
+                    .WithOne(nd => nd.Factura)
+                    .HasForeignKey(nd => nd.FacturaId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // ✅ Campos nuevos con validaciones específicas DIAN
+                entity.Property(f => f.NumeroAutorizacion)
+                    .IsRequired()
+                    .HasMaxLength(14);  // Exactamente 14 dígitos [file:2]
+
+                entity.Property(f => f.TipoAmbiente)
+                    .IsRequired()
+                    .HasDefaultValue(2);  // 2=Pruebas por defecto
+
+                entity.Property(f => f.TipoFactura)
+                    .IsRequired()
+                    .HasMaxLength(2)
+                    .HasDefaultValue("01");
+
+                entity.Property(f => f.TipoOperacion)
+                    .IsRequired()
+                    .HasMaxLength(10)
+                    .HasDefaultValue("10");
+
+                entity.Property(f => f.ClaveTecnica)
+                    .HasMaxLength(200);
+
+                entity.Property(f => f.Prefijo)
+                    .HasMaxLength(4);  // Máx 4 caracteres DIAN [file:2]
+
+                entity.Property(f => f.NumeroFactura)
+                    .IsRequired()
+                    .HasMaxLength(20);
+
+                entity.Property(f => f.HoraEmision)
+                    .HasMaxLength(14);  // "HH:mm:ss-05:00"
+
+                entity.Property(f => f.Cufe)
+                    .HasMaxLength(96);  // SHA-384 = 96 chars [file:2]
+
+                entity.Property(f => f.QRCode)
+                    .HasMaxLength(150);
+
+                // ✅ Todos los decimales con precisión 18,2
+                entity.Property(f => f.Subtotal)
+                    .HasPrecision(18, 2);
+                entity.Property(f => f.TotalIVA)
+                    .HasPrecision(18, 2);
+                entity.Property(f => f.TotalINC)
+                    .HasPrecision(18, 2);
+                entity.Property(f => f.TotalICA)  // ✅ Nuevo campo
+                    .HasPrecision(18, 2)
+                    .HasDefaultValue(0);
+                entity.Property(f => f.TotalDescuentos)
+                    .HasPrecision(18, 2)
+                    .HasDefaultValue(0);
+                entity.Property(f => f.TotalRetenciones)
+                    .HasPrecision(18, 2)
+                    .HasDefaultValue(0);
+                entity.Property(f => f.TotalFactura)
+                    .HasPrecision(18, 2);
+                entity.Property(f => f.MontoPagado)
+                    .HasPrecision(18, 2);
+
+                entity.Property(f => f.FormaPago)
+                    .IsRequired()
+                    .HasMaxLength(10)
+                    .HasDefaultValue("1");  // "1"=Contado
+
+                entity.Property(f => f.MedioPago)
+                    .IsRequired()
+                    .HasMaxLength(10)
+                    .HasDefaultValue("10");  // "10"=Efectivo
+
+                entity.Property(f => f.Estado)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasDefaultValue("Emitida");
+
+                entity.Property(f => f.RespuestaDIAN)
+                    .HasMaxLength(1000);
+
+                // ✅ Índices para performance y consultas frecuentes
+                entity.HasIndex(f => f.UsuarioId);
+                entity.HasIndex(f => new { f.UsuarioId, f.FechaEmision });
+                entity.HasIndex(f => new { f.Prefijo, f.NumeroFactura });
+                entity.HasIndex(f => f.Cufe);
+                entity.HasIndex(f => f.Estado);
+                entity.HasIndex(f => f.EnviadaDIAN);
+                entity.HasIndex(f => f.FechaLimiteEnvioDIAN);
+                entity.HasIndex(f => f.FechaVencimiento);
+            });
+
+            // ==================== DETALLE FACTURA ====================
+            modelBuilder.Entity<DetalleFactura>(entity =>
+            {
+                entity.HasKey(d => d.Id);
+
+                entity.HasOne(d => d.Factura)
+                    .WithMany(f => f.DetalleFacturas!)
+                    .HasForeignKey(d => d.FacturaId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(d => d.Producto)
+                    .WithMany()
+                    .HasForeignKey(d => d.ProductoId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // ✅ Campos requeridos para DIAN en InvoiceLine
+                entity.Property(d => d.Descripcion)
+                    .IsRequired()
+                    .HasMaxLength(500);  // cbc:Name
+
+                entity.Property(d => d.UnidadMedida)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .HasDefaultValue("Unidad");  // cac:Item cac:StandardItemIdentification
+
+                entity.Property(d => d.Cantidad)
+                    .IsRequired()
+                    .HasPrecision(12, 6);  // cbc:InvoicedQuantity
+
+                entity.Property(d => d.PrecioUnitario)
+                    .IsRequired()
+                    .HasPrecision(18, 2);  // cbc:LineExtensionAmount / cbc:PriceAmount
+
+                entity.Property(d => d.PorcentajeDescuento)
+                    .HasPrecision(6, 4)   // cbc:AllowanceCharge cbc:MultiplierFactorNumeric
+                    .HasDefaultValue(0);
+
+                entity.Property(d => d.ValorDescuento)
+                    .HasPrecision(18, 2);
+
+                entity.Property(d => d.SubtotalLinea)
+                    .HasPrecision(18, 2);  // cbc:LineExtensionAmount
+
+                // ✅ Tarifas por línea (DIAN exige por línea, no solo totales)
+                entity.Property(d => d.TarifaIVA)
+                    .HasPrecision(6, 4)
+                    .HasDefaultValue(0);  // cbc:Percent
+
+                entity.Property(d => d.ValorIVA)
+                    .HasPrecision(18, 2);
+
+                entity.Property(d => d.TarifaINC)
+                    .HasPrecision(6, 4)
+                    .HasDefaultValue(0);
+
+                entity.Property(d => d.ValorINC)
+                    .HasPrecision(18, 2);
+
+                // ✅ ICA por línea — requerido para cálculo correcto
+                entity.Property(d => d.TarifaICA)
+                    .HasPrecision(6, 4)
+                    .HasDefaultValue(0);
+
+                entity.Property(d => d.ValorICA)
+                    .HasPrecision(18, 2);
+
+                entity.Property(d => d.TotalLinea)
+                    .HasPrecision(18, 2);
+
+                // ✅ Códigos para DIAN (opcionales pero recomendados)
+                entity.Property(d => d.CodigoUNSPSC)
+                    .HasMaxLength(10);
+
+                entity.Property(d => d.CodigoInterno)
+                    .HasMaxLength(50);
+
+                // Índices
+                entity.HasIndex(d => d.FacturaId);
+                entity.HasIndex(d => d.ProductoId);
+            });
             // ===============================
             // SUSCRIPCION FACTURACION -> USUARIO (1:N)
             modelBuilder.Entity<SuscripcionFacturacion>()

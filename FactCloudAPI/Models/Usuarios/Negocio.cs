@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FactCloudAPI.Models.Usuarios
 {
@@ -31,5 +32,9 @@ namespace FactCloudAPI.Models.Usuarios
 
         // 1 negocio → 1 configuración DIAN
         public ConfiguracionDian ConfiguracionDIAN { get; set; }
+        public ICollection<ResolucionDIAN> Resoluciones { get; set; } = new List<ResolucionDIAN>();
+        [NotMapped]
+        public ResolucionDIAN? ResolucionActiva =>
+           Resoluciones?.FirstOrDefault(r => r.EstaVigente);
     }
 }
