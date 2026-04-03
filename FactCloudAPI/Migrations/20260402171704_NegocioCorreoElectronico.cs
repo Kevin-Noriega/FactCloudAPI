@@ -5,7 +5,7 @@
 namespace FactCloudAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class AgregarCamposDIAN : Migration
+    public partial class NegocioCorreoElectronico : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

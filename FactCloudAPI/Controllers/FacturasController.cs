@@ -148,7 +148,8 @@ namespace FactCloudAPI.Controllers
                 });
 
             // ── 2. Obtener resolución DIAN vigente ────────────────────────────────
-            var resolucion = usuario.Negocio.ResolucionActiva;
+            var resolucion = usuario.Negocio.Resoluciones
+                 .FirstOrDefault(r => r.EstaVigente);
 
             if (resolucion == null)
                 return BadRequest(new

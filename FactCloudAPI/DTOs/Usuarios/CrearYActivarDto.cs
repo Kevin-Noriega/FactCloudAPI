@@ -22,18 +22,18 @@ namespace FactCloudAPI.DTOs.Usuarios
         public string? Pais { get; set; }
 
         // Negocio
-        [Required]
-        public string NombreNegocio { get; set; } = null!;
+        
+        public string? NombreComercial { get; set; } = null!;
 
-        [Required]
-        public string Nit { get; set; } = null!;
+       
+        public string? NumeroIdentificacionE { get; set; } = null!;
 
         public int? DvNit { get; set; }
         public string? Direccion { get; set; }
         public string? Ciudad { get; set; }
         public string? Departamento { get; set; }
         public string? TelefonoNegocio { get; set; }
-        public string? CorreoNegocio { get; set; }
+        public string? CorreoRecepcionDian { get; set; }
 
         // Suscripción
         [Required]

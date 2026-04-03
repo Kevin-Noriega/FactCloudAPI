@@ -129,7 +129,7 @@ namespace FactCloudAPI.Controllers
                 prefijo,
                 nuevoConsecutivo,
                 DateTime.Now,
-                negocio.Nit ?? usuario.NumeroIdentificacion ?? "",
+                negocio.NumeroIdentificacionE ?? usuario.NumeroIdentificacion ?? "",
                 documentoDto.ProveedorNit,
                 documentoDto.ValorTotal,
                 nitSoftware,

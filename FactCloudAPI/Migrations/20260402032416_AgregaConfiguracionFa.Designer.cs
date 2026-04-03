@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FactCloudAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260322030255_Agregarc")]
-    partial class Agregarc
+    [Migration("20260402032416_AgregaConfiguracionFa")]
+    partial class AgregaConfiguracionFa
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -44,6 +44,10 @@ namespace FactCloudAPI.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<string>("ApellidoContactoFacturacion")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<bool>("AutoretenedorRenta")
                         .HasColumnType("bit");
 
@@ -57,6 +61,11 @@ namespace FactCloudAPI.Migrations
                         .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("CodigoPostal")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("CodigoSucursal")
+                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
@@ -82,8 +91,21 @@ namespace FactCloudAPI.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<bool>("EsProveedor")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("FechaRegistro")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("GranContribuyente")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("IndicativoFacturacion")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<bool>("NoAplica")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -93,6 +115,10 @@ namespace FactCloudAPI.Migrations
                     b.Property<string>("NombreComercial")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("NombreContactoFacturacion")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("NumeroIdentificacion")
                         .IsRequired()
@@ -108,8 +134,10 @@ namespace FactCloudAPI.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<bool>("RegimenSimple")
+                        .HasColumnType("bit");
+
                     b.Property<string>("RegimenTributario")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -122,7 +150,7 @@ namespace FactCloudAPI.Migrations
                     b.Property<bool>("RetenedorRenta")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Telefono")
+                    b.Property<string>("TelefonoFacturacion")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
@@ -1196,6 +1224,63 @@ namespace FactCloudAPI.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Addons");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Activo = true,
+                            Color = "#1a73e8",
+                            Descripcion = "Agrega 150 documentos electrónicos adicionales a tu plan actual.",
+                            Nombre = "Documentos extra (150)",
+                            Precio = 45000m,
+                            Tipo = "Capacidad",
+                            Unidad = "año"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Activo = true,
+                            Color = "#1a73e8",
+                            Descripcion = "Agrega 500 documentos electrónicos adicionales a tu plan actual.",
+                            Nombre = "Documentos extra (500)",
+                            Precio = 120000m,
+                            Tipo = "Capacidad",
+                            Unidad = "año"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Activo = true,
+                            Color = "#0f6e56",
+                            Descripcion = "Permite que un usuario adicional acceda al sistema con tu cuenta.",
+                            Nombre = "Usuario adicional",
+                            Precio = 60000m,
+                            Tipo = "Usuarios",
+                            Unidad = "año"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Activo = true,
+                            Color = "#7c3aed",
+                            Descripcion = "Accede a reportes detallados de ventas, clientes y tendencias de facturación.",
+                            Nombre = "Reportes avanzados",
+                            Precio = 80000m,
+                            Tipo = "Reportes",
+                            Unidad = "año"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Activo = true,
+                            Color = "#b45309",
+                            Descripcion = "Atención prioritaria por chat y teléfono con tiempo de respuesta garantizado.",
+                            Nombre = "Soporte prioritario",
+                            Precio = 50000m,
+                            Tipo = "Soporte",
+                            Unidad = "año"
+                        });
                 });
 
             modelBuilder.Entity("FactCloudAPI.Models.Planes.PlanFacturacion", b =>
@@ -1471,6 +1556,40 @@ namespace FactCloudAPI.Migrations
                         });
                 });
 
+            modelBuilder.Entity("FactCloudAPI.Models.Planes.UsuarioAddon", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("AddonId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("FechaContratacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("FechaVencimiento")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AddonId");
+
+                    b.HasIndex("UsuarioId", "Activo");
+
+                    b.HasIndex("UsuarioId", "AddonId");
+
+                    b.ToTable("UsuariosAddons");
+                });
+
             modelBuilder.Entity("FactCloudAPI.Models.Producto", b =>
                 {
                     b.Property<int>("Id")
@@ -1728,6 +1847,8 @@ namespace FactCloudAPI.Migrations
 
                     b.HasIndex("NegocioId");
 
+                    b.HasIndex("NegocioId", "Activa");
+
                     b.ToTable("ResolucionesDIAN");
                 });
 
@@ -1831,6 +1952,37 @@ namespace FactCloudAPI.Migrations
                     b.ToTable("SuscripcionesFacturacion");
                 });
 
+            modelBuilder.Entity("FactCloudAPI.Models.TelefonoCliente", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ClienteId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Extension")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Indicativo")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Numero")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClienteId");
+
+                    b.ToTable("TelefonoCliente");
+                });
+
             modelBuilder.Entity("FactCloudAPI.Models.Usuario", b =>
                 {
                     b.Property<int>("Id")
@@ -1893,7 +2045,10 @@ namespace FactCloudAPI.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("AmbienteDIAN")
-                        .HasColumnType("nvarchar(max)");
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Habilitacion");
 
                     b.Property<DateTime?>("FechaVigenciaFinal")
                         .HasColumnType("datetime2");
@@ -1905,22 +2060,28 @@ namespace FactCloudAPI.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("NumeroResolucionDIAN")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<string>("PrefijoAutorizadoDIAN")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(4)
+                        .HasColumnType("nvarchar(4)");
 
                     b.Property<string>("RangoNumeracionDesde")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("RangoNumeracionHasta")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("SoftwarePIN")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("SoftwareProveedor")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.HasKey("Id");
 
@@ -1938,53 +2099,171 @@ namespace FactCloudAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ActividadEconomicaCIIU")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Ciudad")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("CorreoElectronico")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Correo")
+                    b.Property<string>("CorreoRecepcionDian")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("DatosFacturacionCompletos")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Departamento")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Direccion")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<int?>("DvNit")
                         .HasColumnType("int");
 
-                    b.Property<string>("Nit")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<string>("NombreComercial")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
-                    b.Property<string>("NombreNegocio")
+                    b.Property<string>("NumeroIdentificacionE")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("Pais")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(2)
+                        .HasColumnType("nvarchar(2)")
+                        .HasDefaultValue("CO");
+
+                    b.Property<string>("PrimerApellido")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("PrimerNombre")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("RazonSocial")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("SegundoApellido")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("SegundoNombre")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Telefono")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
-                    b.Property<string>("TipoPersona")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("TipoDocumento")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TipoSujeto")
+                        .HasColumnType("int");
 
                     b.Property<int>("UsuarioId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("NumeroIdentificacionE")
+                        .IsUnique();
+
                     b.HasIndex("UsuarioId")
                         .IsUnique();
 
                     b.ToTable("Negocios");
+                });
+
+            modelBuilder.Entity("FactCloudAPI.Models.Usuarios.PerfilTributario", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ActividadEconomicaCIIU")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<int>("NegocioId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RegimenIvaCodigo")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("ResponsabilidadesFiscalesJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TributosJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NegocioId")
+                        .IsUnique();
+
+                    b.ToTable("PerfilesTributarios");
+                });
+
+            modelBuilder.Entity("FactCloudAPI.Models.Usuarios.RepresentanteLegal", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Apellidos")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("CiudadExpedicion")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("CiudadResidencia")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("NegocioId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("NumeroIdentificacion")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("TipoDocumento")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NegocioId")
+                        .IsUnique();
+
+                    b.ToTable("RepresentantesLegales");
                 });
 
             modelBuilder.Entity("FactCloudAPI.Models.Wompi.Transaccion", b =>
@@ -2275,6 +2554,25 @@ namespace FactCloudAPI.Migrations
                     b.Navigation("PlanFacturacion");
                 });
 
+            modelBuilder.Entity("FactCloudAPI.Models.Planes.UsuarioAddon", b =>
+                {
+                    b.HasOne("FactCloudAPI.Models.Planes.Addon", "Addon")
+                        .WithMany()
+                        .HasForeignKey("AddonId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FactCloudAPI.Models.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Addon");
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("FactCloudAPI.Models.Producto", b =>
                 {
                     b.HasOne("FactCloudAPI.Models.Usuario", "Usuario")
@@ -2338,6 +2636,17 @@ namespace FactCloudAPI.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("FactCloudAPI.Models.TelefonoCliente", b =>
+                {
+                    b.HasOne("FactCloudAPI.Models.Cliente", "Cliente")
+                        .WithMany("Telefonos")
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Cliente");
+                });
+
             modelBuilder.Entity("FactCloudAPI.Models.Usuarios.ConfiguracionDian", b =>
                 {
                     b.HasOne("FactCloudAPI.Models.Usuarios.Negocio", "Negocio")
@@ -2360,6 +2669,28 @@ namespace FactCloudAPI.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("FactCloudAPI.Models.Usuarios.PerfilTributario", b =>
+                {
+                    b.HasOne("FactCloudAPI.Models.Usuarios.Negocio", "Negocio")
+                        .WithOne("PerfilTributario")
+                        .HasForeignKey("FactCloudAPI.Models.Usuarios.PerfilTributario", "NegocioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Negocio");
+                });
+
+            modelBuilder.Entity("FactCloudAPI.Models.Usuarios.RepresentanteLegal", b =>
+                {
+                    b.HasOne("FactCloudAPI.Models.Usuarios.Negocio", "Negocio")
+                        .WithOne("RepresentanteLegal")
+                        .HasForeignKey("FactCloudAPI.Models.Usuarios.RepresentanteLegal", "NegocioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Negocio");
+                });
+
             modelBuilder.Entity("FactCloudAPI.Models.Cliente", b =>
                 {
                     b.Navigation("Contactos");
@@ -2367,6 +2698,8 @@ namespace FactCloudAPI.Migrations
                     b.Navigation("Facturas");
 
                     b.Navigation("NotasDebito");
+
+                    b.Navigation("Telefonos");
                 });
 
             modelBuilder.Entity("FactCloudAPI.Models.Cupones.Cupon", b =>
@@ -2427,8 +2760,11 @@ namespace FactCloudAPI.Migrations
 
             modelBuilder.Entity("FactCloudAPI.Models.Usuarios.Negocio", b =>
                 {
-                    b.Navigation("ConfiguracionDIAN")
-                        .IsRequired();
+                    b.Navigation("ConfiguracionDIAN");
+
+                    b.Navigation("PerfilTributario");
+
+                    b.Navigation("RepresentanteLegal");
 
                     b.Navigation("Resoluciones");
                 });

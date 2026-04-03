@@ -133,14 +133,14 @@ namespace FactCloudAPI.Services.Usuarios
             var negocio = new Negocio
             {
                 UsuarioId = usuario.Id,
-                NombreNegocio = dto.NombreNegocio,
-                Nit = dto.Nit,
+                NombreComercial = dto.NombreComercial,
+                NumeroIdentificacionE = dto.NumeroIdentificacionE,
                 DvNit = dto.DvNit,
                 Direccion = dto.Direccion,
                 Ciudad = dto.Ciudad,
                 Departamento = dto.Departamento,
                 Telefono = dto.TelefonoNegocio,
-                Correo = dto.CorreoNegocio,
+                CorreoRecepcionDian = dto.CorreoRecepcionDian,
                 
             };
             _context.Negocios.Add(negocio);

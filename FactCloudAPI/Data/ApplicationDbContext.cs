@@ -41,7 +41,9 @@ namespace FactCloudAPI.Data
         // Data/ApplicationDbContext.cs
         public DbSet<ResolucionDIAN> ResolucionesDIAN { get; set; }
         public DbSet<UsuarioAddon> UsuariosAddons { get; set; }
-       
+        public DbSet<PerfilTributario> PerfilesTributarios { get; set; }
+        public DbSet<RepresentanteLegal> RepresentantesLegales { get; set; }
+
 
 
 
@@ -93,6 +95,134 @@ namespace FactCloudAPI.Data
                 entity.HasIndex(p => p.CodigoInterno);
                 entity.HasIndex(p => p.CodigoUNSPSC);
             });
+
+            //configuracion de habilitacion
+            // ── NEGOCIO ──────────────────────────────────────────────
+            modelBuilder.Entity<Negocio>(entity =>
+            {
+                entity.HasIndex(n => n.NumeroIdentificacionE)
+                      .IsUnique();
+
+                entity.HasIndex(n => n.UsuarioId)
+                      .IsUnique();   // 1-a-1 con Usuario
+
+                entity.Property(n => n.Pais)
+                      .HasDefaultValue("CO");
+
+                entity.Property(n => n.DatosFacturacionCompletos)
+                      .HasDefaultValue(false);
+            });
+
+            // ── PERFIL TRIBUTARIO ─────────────────────────────────────
+            modelBuilder.Entity<PerfilTributario>(entity =>
+            {
+                entity.HasKey(p => p.Id);
+
+                // Negocio → PerfilTributario  (1 a 1)
+                entity.HasOne(p => p.Negocio)
+                      .WithOne(n => n.PerfilTributario)
+                      .HasForeignKey<PerfilTributario>(p => p.NegocioId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(p => p.NegocioId)
+                      .IsUnique();
+
+                entity.Property(p => p.RegimenIvaCodigo)
+                      .HasMaxLength(20);
+
+                entity.Property(p => p.ActividadEconomicaCIIU)
+                      .HasMaxLength(10);
+
+                // JSON de tributos y responsabilidades
+                entity.Property(p => p.TributosJson)
+                      .HasColumnType("nvarchar(max)");
+
+                entity.Property(p => p.ResponsabilidadesFiscalesJson)
+                      .HasColumnType("nvarchar(max)");
+            });
+
+            // ── REPRESENTANTE LEGAL ───────────────────────────────────
+            modelBuilder.Entity<RepresentanteLegal>(entity =>
+            {
+                entity.HasKey(r => r.Id);
+
+                // Negocio → RepresentanteLegal  (1 a 1)
+                entity.HasOne(r => r.Negocio)
+                      .WithOne(n => n.RepresentanteLegal)
+                      .HasForeignKey<RepresentanteLegal>(r => r.NegocioId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(r => r.NegocioId)
+                      .IsUnique();
+
+                entity.Property(r => r.Nombre)
+                      .IsRequired()
+                      .HasMaxLength(100);
+
+                entity.Property(r => r.Apellidos)
+                      .IsRequired()
+                      .HasMaxLength(100);
+
+                entity.Property(r => r.NumeroIdentificacion)
+                      .IsRequired()
+                      .HasMaxLength(20);
+
+                entity.Property(r => r.CiudadExpedicion)
+                      .HasMaxLength(100);
+
+                entity.Property(r => r.CiudadResidencia)
+                      .HasMaxLength(100);
+            });
+
+            // ── CONFIGURACION DIAN ────────────────────────────────────
+            modelBuilder.Entity<ConfiguracionDian>(entity =>
+            {
+                entity.HasKey(c => c.Id);
+
+                // Ya configurado Negocio → ConfiguracionDian (1 a 1),
+                // aquí solo agregamos longitudes e índices:
+                entity.HasIndex(c => c.NegocioId)
+                      .IsUnique();
+
+                entity.Property(c => c.SoftwareProveedor)
+                      .HasMaxLength(100);
+
+                entity.Property(c => c.SoftwarePIN)
+                      .HasMaxLength(50);
+
+                entity.Property(c => c.PrefijoAutorizadoDIAN)
+                      .HasMaxLength(4);       // DIAN: máx 4 caracteres alfanuméricos
+
+                entity.Property(c => c.NumeroResolucionDIAN)
+                      .HasMaxLength(30);
+
+                entity.Property(c => c.RangoNumeracionDesde)
+                      .HasMaxLength(20);
+
+                entity.Property(c => c.RangoNumeracionHasta)
+                      .HasMaxLength(20);
+
+                entity.Property(c => c.AmbienteDIAN)
+                      .HasMaxLength(20)
+                      .HasDefaultValue("Habilitacion");  // Habilitacion | Produccion
+            });
+
+            // ── RESOLUCIÓN DIAN ───────────────────────────────────────
+            modelBuilder.Entity<ResolucionDIAN>(entity =>
+            {
+                entity.HasKey(r => r.Id);
+
+                // Negocio → ResolucionesDIAN  (1 a muchos)
+                entity.HasOne(r => r.Negocio)
+                      .WithMany(n => n.Resoluciones)
+                      .HasForeignKey(r => r.NegocioId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasIndex(r => r.NegocioId);
+                entity.HasIndex(r => new { r.NegocioId, r.Activa });
+            });
+
+            //------------------------------------------------------
 
 
             // Configurar relación Usuario → RefreshTokens (1 a muchos)
