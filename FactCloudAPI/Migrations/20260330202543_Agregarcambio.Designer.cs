@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FactCloudAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260304153628_Cambioenproducto")]
-    partial class Cambioenproducto
+    [Migration("20260330202543_Agregarcambio")]
+    partial class Agregarcambio
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -44,6 +44,10 @@ namespace FactCloudAPI.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<string>("ApellidoContactoFacturacion")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<bool>("AutoretenedorRenta")
                         .HasColumnType("bit");
 
@@ -57,6 +61,11 @@ namespace FactCloudAPI.Migrations
                         .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("CodigoPostal")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("CodigoSucursal")
+                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
@@ -82,8 +91,21 @@ namespace FactCloudAPI.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<bool>("EsProveedor")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("FechaRegistro")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("GranContribuyente")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("IndicativoFacturacion")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<bool>("NoAplica")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -93,6 +115,10 @@ namespace FactCloudAPI.Migrations
                     b.Property<string>("NombreComercial")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("NombreContactoFacturacion")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("NumeroIdentificacion")
                         .IsRequired()
@@ -108,8 +134,10 @@ namespace FactCloudAPI.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<bool>("RegimenSimple")
+                        .HasColumnType("bit");
+
                     b.Property<string>("RegimenTributario")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -122,7 +150,7 @@ namespace FactCloudAPI.Migrations
                     b.Property<bool>("RetenedorRenta")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Telefono")
+                    b.Property<string>("TelefonoFacturacion")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
@@ -144,6 +172,43 @@ namespace FactCloudAPI.Migrations
                     b.HasIndex("UsuarioId");
 
                     b.ToTable("Clientes");
+                });
+
+            modelBuilder.Entity("FactCloudAPI.Models.ContactoCliente", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Apellido")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Cargo")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ClienteId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Correo")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Indicativo")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Telefono")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClienteId");
+
+                    b.ToTable("ContactosCliente");
                 });
 
             modelBuilder.Entity("FactCloudAPI.Models.Cupones.Cupon", b =>
@@ -253,8 +318,17 @@ namespace FactCloudAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("Cantidad")
-                        .HasColumnType("int");
+                    b.Property<decimal>("Cantidad")
+                        .HasPrecision(12, 6)
+                        .HasColumnType("decimal(12,6)");
+
+                    b.Property<string>("CodigoInterno")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("CodigoUNSPSC")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<string>("Descripcion")
                         .IsRequired()
@@ -264,10 +338,14 @@ namespace FactCloudAPI.Migrations
                     b.Property<int>("FacturaId")
                         .HasColumnType("int");
 
-                    b.Property<decimal?>("PorcentajeDescuento")
-                        .HasColumnType("decimal(5,2)");
+                    b.Property<decimal>("PorcentajeDescuento")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(6, 4)
+                        .HasColumnType("decimal(6,4)")
+                        .HasDefaultValue(0m);
 
                     b.Property<decimal>("PrecioUnitario")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("ProductoId")
@@ -277,29 +355,52 @@ namespace FactCloudAPI.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("SubtotalLinea")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal?>("TarifaINC")
-                        .HasColumnType("decimal(5,2)");
+                    b.Property<decimal>("TarifaICA")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(6, 4)
+                        .HasColumnType("decimal(6,4)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<decimal>("TarifaINC")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(6, 4)
+                        .HasColumnType("decimal(6,4)")
+                        .HasDefaultValue(0m);
 
                     b.Property<decimal>("TarifaIVA")
-                        .HasColumnType("decimal(5,2)");
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(6, 4)
+                        .HasColumnType("decimal(6,4)")
+                        .HasDefaultValue(0m);
 
                     b.Property<decimal>("TotalLinea")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("UnidadMedida")
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("Unidad");
 
-                    b.Property<decimal?>("ValorDescuento")
+                    b.Property<decimal>("ValorDescuento")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal?>("ValorINC")
+                    b.Property<decimal>("ValorICA")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("ValorINC")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("ValorIVA")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
@@ -587,12 +688,16 @@ namespace FactCloudAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("ClaveTecnica")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
                     b.Property<int>("ClienteId")
                         .HasColumnType("int");
 
                     b.Property<string>("Cufe")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasMaxLength(96)
+                        .HasColumnType("nvarchar(96)");
 
                     b.Property<int?>("DiasCredito")
                         .HasColumnType("int");
@@ -605,8 +710,10 @@ namespace FactCloudAPI.Migrations
 
                     b.Property<string>("Estado")
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(50)")
+                        .HasDefaultValue("Emitida");
 
                     b.Property<DateTime>("FechaEmision")
                         .HasColumnType("datetime2");
@@ -615,6 +722,12 @@ namespace FactCloudAPI.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("FechaEnvioDIAN")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("FechaFinAutorizacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("FechaInicioAutorizacion")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("FechaLimiteEnvioDIAN")
@@ -631,60 +744,110 @@ namespace FactCloudAPI.Migrations
 
                     b.Property<string>("FormaPago")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
+                        .HasDefaultValue("1");
 
                     b.Property<string>("HoraEmision")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(14)
+                        .HasColumnType("nvarchar(14)");
 
                     b.Property<string>("MedioPago")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
+                        .HasDefaultValue("10");
 
                     b.Property<decimal?>("MontoPagado")
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<string>("NumeroAutorizacion")
+                        .IsRequired()
+                        .HasMaxLength(14)
+                        .HasColumnType("nvarchar(14)");
+
                     b.Property<string>("NumeroFactura")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("Observaciones")
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
                     b.Property<string>("Prefijo")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(4)
+                        .HasColumnType("nvarchar(4)");
 
                     b.Property<string>("QRCode")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<long>("RangoNumeracionDesde")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("RangoNumeracionHasta")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("RespuestaDIAN")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
                     b.Property<decimal>("Subtotal")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal?>("TotalDescuentos")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<int>("TipoAmbiente")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(2);
+
+                    b.Property<string>("TipoFactura")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(2)
+                        .HasColumnType("nvarchar(2)")
+                        .HasDefaultValue("01");
+
+                    b.Property<string>("TipoOperacion")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)")
+                        .HasDefaultValue("10");
+
+                    b.Property<decimal>("TotalDescuentos")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
 
                     b.Property<decimal>("TotalFactura")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal?>("TotalINC")
+                    b.Property<decimal>("TotalICA")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<decimal>("TotalINC")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("TotalIVA")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal?>("TotalRetenciones")
-                        .HasColumnType("decimal(18,2)");
+                    b.Property<decimal>("TotalRetenciones")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasDefaultValue(0m);
 
                     b.Property<int>("UsuarioId")
                         .HasColumnType("int");
@@ -696,7 +859,21 @@ namespace FactCloudAPI.Migrations
 
                     b.HasIndex("ClienteId");
 
+                    b.HasIndex("Cufe");
+
+                    b.HasIndex("EnviadaDIAN");
+
+                    b.HasIndex("Estado");
+
+                    b.HasIndex("FechaLimiteEnvioDIAN");
+
+                    b.HasIndex("FechaVencimiento");
+
                     b.HasIndex("UsuarioId");
+
+                    b.HasIndex("Prefijo", "NumeroFactura");
+
+                    b.HasIndex("UsuarioId", "FechaEmision");
 
                     b.ToTable("Facturas");
                 });
@@ -1047,6 +1224,63 @@ namespace FactCloudAPI.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Addons");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Activo = true,
+                            Color = "#1a73e8",
+                            Descripcion = "Agrega 150 documentos electrónicos adicionales a tu plan actual.",
+                            Nombre = "Documentos extra (150)",
+                            Precio = 45000m,
+                            Tipo = "Capacidad",
+                            Unidad = "año"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Activo = true,
+                            Color = "#1a73e8",
+                            Descripcion = "Agrega 500 documentos electrónicos adicionales a tu plan actual.",
+                            Nombre = "Documentos extra (500)",
+                            Precio = 120000m,
+                            Tipo = "Capacidad",
+                            Unidad = "año"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Activo = true,
+                            Color = "#0f6e56",
+                            Descripcion = "Permite que un usuario adicional acceda al sistema con tu cuenta.",
+                            Nombre = "Usuario adicional",
+                            Precio = 60000m,
+                            Tipo = "Usuarios",
+                            Unidad = "año"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Activo = true,
+                            Color = "#7c3aed",
+                            Descripcion = "Accede a reportes detallados de ventas, clientes y tendencias de facturación.",
+                            Nombre = "Reportes avanzados",
+                            Precio = 80000m,
+                            Tipo = "Reportes",
+                            Unidad = "año"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Activo = true,
+                            Color = "#b45309",
+                            Descripcion = "Atención prioritaria por chat y teléfono con tiempo de respuesta garantizado.",
+                            Nombre = "Soporte prioritario",
+                            Precio = 50000m,
+                            Tipo = "Soporte",
+                            Unidad = "año"
+                        });
                 });
 
             modelBuilder.Entity("FactCloudAPI.Models.Planes.PlanFacturacion", b =>
@@ -1322,6 +1556,40 @@ namespace FactCloudAPI.Migrations
                         });
                 });
 
+            modelBuilder.Entity("FactCloudAPI.Models.Planes.UsuarioAddon", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("AddonId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("FechaContratacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("FechaVencimiento")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AddonId");
+
+                    b.HasIndex("UsuarioId", "Activo");
+
+                    b.HasIndex("UsuarioId", "AddonId");
+
+                    b.ToTable("UsuariosAddons");
+                });
+
             modelBuilder.Entity("FactCloudAPI.Models.Producto", b =>
                 {
                     b.Property<int>("Id")
@@ -1530,6 +1798,58 @@ namespace FactCloudAPI.Migrations
                     b.ToTable("RegistrosPendientes");
                 });
 
+            modelBuilder.Entity("FactCloudAPI.Models.ResolucionDIAN", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activa")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ClaveTecnica")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("FechaFin")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("FechaInicio")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("FechaRegistro")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("NegocioId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("NumeroAutorizacion")
+                        .IsRequired()
+                        .HasMaxLength(14)
+                        .HasColumnType("nvarchar(14)");
+
+                    b.Property<string>("Prefijo")
+                        .HasMaxLength(4)
+                        .HasColumnType("nvarchar(4)");
+
+                    b.Property<long>("RangoDesde")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("RangoHasta")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("TipoAmbiente")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NegocioId");
+
+                    b.ToTable("ResolucionesDIAN");
+                });
+
             modelBuilder.Entity("FactCloudAPI.Models.Sesiones.HistorialSesion", b =>
                 {
                     b.Property<int>("Id")
@@ -1628,6 +1948,37 @@ namespace FactCloudAPI.Migrations
                     b.HasIndex("UsuarioId");
 
                     b.ToTable("SuscripcionesFacturacion");
+                });
+
+            modelBuilder.Entity("FactCloudAPI.Models.TelefonoCliente", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ClienteId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Extension")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Indicativo")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Numero")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClienteId");
+
+                    b.ToTable("TelefonoCliente");
                 });
 
             modelBuilder.Entity("FactCloudAPI.Models.Usuario", b =>
@@ -1786,6 +2137,45 @@ namespace FactCloudAPI.Migrations
                     b.ToTable("Negocios");
                 });
 
+            modelBuilder.Entity("FactCloudAPI.Models.Wompi.Transaccion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreadoEn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DatosNegocio")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DatosRegistro")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PlanId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reference")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WompiId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Transacciones");
+                });
+
             modelBuilder.Entity("FactCloudAPI.Models.Cliente", b =>
                 {
                     b.HasOne("FactCloudAPI.Models.Usuario", "Usuario")
@@ -1795,6 +2185,17 @@ namespace FactCloudAPI.Migrations
                         .IsRequired();
 
                     b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("FactCloudAPI.Models.ContactoCliente", b =>
+                {
+                    b.HasOne("FactCloudAPI.Models.Cliente", "Cliente")
+                        .WithMany("Contactos")
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Cliente");
                 });
 
             modelBuilder.Entity("FactCloudAPI.Models.Cupones.Cupon", b =>
@@ -2024,6 +2425,25 @@ namespace FactCloudAPI.Migrations
                     b.Navigation("PlanFacturacion");
                 });
 
+            modelBuilder.Entity("FactCloudAPI.Models.Planes.UsuarioAddon", b =>
+                {
+                    b.HasOne("FactCloudAPI.Models.Planes.Addon", "Addon")
+                        .WithMany()
+                        .HasForeignKey("AddonId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FactCloudAPI.Models.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Addon");
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("FactCloudAPI.Models.Producto", b =>
                 {
                     b.HasOne("FactCloudAPI.Models.Usuario", "Usuario")
@@ -2044,6 +2464,17 @@ namespace FactCloudAPI.Migrations
                         .IsRequired();
 
                     b.Navigation("Usuario");
+                });
+
+            modelBuilder.Entity("FactCloudAPI.Models.ResolucionDIAN", b =>
+                {
+                    b.HasOne("FactCloudAPI.Models.Usuarios.Negocio", "Negocio")
+                        .WithMany("Resoluciones")
+                        .HasForeignKey("NegocioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Negocio");
                 });
 
             modelBuilder.Entity("FactCloudAPI.Models.Sesiones.HistorialSesion", b =>
@@ -2076,6 +2507,17 @@ namespace FactCloudAPI.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("FactCloudAPI.Models.TelefonoCliente", b =>
+                {
+                    b.HasOne("FactCloudAPI.Models.Cliente", "Cliente")
+                        .WithMany("Telefonos")
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Cliente");
+                });
+
             modelBuilder.Entity("FactCloudAPI.Models.Usuarios.ConfiguracionDian", b =>
                 {
                     b.HasOne("FactCloudAPI.Models.Usuarios.Negocio", "Negocio")
@@ -2100,9 +2542,13 @@ namespace FactCloudAPI.Migrations
 
             modelBuilder.Entity("FactCloudAPI.Models.Cliente", b =>
                 {
+                    b.Navigation("Contactos");
+
                     b.Navigation("Facturas");
 
                     b.Navigation("NotasDebito");
+
+                    b.Navigation("Telefonos");
                 });
 
             modelBuilder.Entity("FactCloudAPI.Models.Cupones.Cupon", b =>
@@ -2165,6 +2611,8 @@ namespace FactCloudAPI.Migrations
                 {
                     b.Navigation("ConfiguracionDIAN")
                         .IsRequired();
+
+                    b.Navigation("Resoluciones");
                 });
 #pragma warning restore 612, 618
         }

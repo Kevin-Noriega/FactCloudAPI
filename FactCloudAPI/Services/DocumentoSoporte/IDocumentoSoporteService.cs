@@ -112,7 +112,7 @@ namespace FactCloudAPI.Services
                                     new XAttribute("schemeID", usuario.TipoIdentificacion),
                                     usuario.NumeroIdentificacion)),
                             new XElement(cac + "PartyName",
-                                new XElement(cbc + "Name", negocio.NombreNegocio)),
+                                new XElement(cbc + "Name", negocio.NombreComercial)),
                             new XElement(cac + "PhysicalLocation",
                                 new XElement(cac + "Address",
                                     new XElement(cbc + "ID", "11001"), // Código ciudad
@@ -124,7 +124,7 @@ namespace FactCloudAPI.Services
                                     new XElement(cac + "Country",
                                         new XElement(cbc + "IdentificationCode", "CO")))),
                             new XElement(cac + "PartyTaxScheme",
-                                new XElement(cbc + "RegistrationName", negocio.NombreNegocio),
+                                new XElement(cbc + "RegistrationName", negocio.NombreComercial),
                                 new XElement(cbc + "CompanyID",
                                     new XAttribute("schemeName", usuario.TipoIdentificacion),
                                     usuario.NumeroIdentificacion),

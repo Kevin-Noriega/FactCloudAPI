@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace FactCloudAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260322024417_AgregarCamposfaltantes")]
-    partial class AgregarCamposfaltantes
+    [Migration("20260401180005_AgregaConfiguracionFacturacion")]
+    partial class AgregaConfiguracionFacturacion
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -44,6 +44,10 @@ namespace FactCloudAPI.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<string>("ApellidoContactoFacturacion")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<bool>("AutoretenedorRenta")
                         .HasColumnType("bit");
 
@@ -57,6 +61,11 @@ namespace FactCloudAPI.Migrations
                         .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("CodigoPostal")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("CodigoSucursal")
+                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
@@ -82,8 +91,21 @@ namespace FactCloudAPI.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<bool>("EsProveedor")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("FechaRegistro")
                         .HasColumnType("datetime2");
+
+                    b.Property<bool>("GranContribuyente")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("IndicativoFacturacion")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<bool>("NoAplica")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Nombre")
                         .IsRequired()
@@ -93,6 +115,10 @@ namespace FactCloudAPI.Migrations
                     b.Property<string>("NombreComercial")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("NombreContactoFacturacion")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("NumeroIdentificacion")
                         .IsRequired()
@@ -108,8 +134,10 @@ namespace FactCloudAPI.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<bool>("RegimenSimple")
+                        .HasColumnType("bit");
+
                     b.Property<string>("RegimenTributario")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -122,7 +150,7 @@ namespace FactCloudAPI.Migrations
                     b.Property<bool>("RetenedorRenta")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Telefono")
+                    b.Property<string>("TelefonoFacturacion")
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
@@ -1196,6 +1224,63 @@ namespace FactCloudAPI.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Addons");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Activo = true,
+                            Color = "#1a73e8",
+                            Descripcion = "Agrega 150 documentos electrónicos adicionales a tu plan actual.",
+                            Nombre = "Documentos extra (150)",
+                            Precio = 45000m,
+                            Tipo = "Capacidad",
+                            Unidad = "año"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Activo = true,
+                            Color = "#1a73e8",
+                            Descripcion = "Agrega 500 documentos electrónicos adicionales a tu plan actual.",
+                            Nombre = "Documentos extra (500)",
+                            Precio = 120000m,
+                            Tipo = "Capacidad",
+                            Unidad = "año"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            Activo = true,
+                            Color = "#0f6e56",
+                            Descripcion = "Permite que un usuario adicional acceda al sistema con tu cuenta.",
+                            Nombre = "Usuario adicional",
+                            Precio = 60000m,
+                            Tipo = "Usuarios",
+                            Unidad = "año"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            Activo = true,
+                            Color = "#7c3aed",
+                            Descripcion = "Accede a reportes detallados de ventas, clientes y tendencias de facturación.",
+                            Nombre = "Reportes avanzados",
+                            Precio = 80000m,
+                            Tipo = "Reportes",
+                            Unidad = "año"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            Activo = true,
+                            Color = "#b45309",
+                            Descripcion = "Atención prioritaria por chat y teléfono con tiempo de respuesta garantizado.",
+                            Nombre = "Soporte prioritario",
+                            Precio = 50000m,
+                            Tipo = "Soporte",
+                            Unidad = "año"
+                        });
                 });
 
             modelBuilder.Entity("FactCloudAPI.Models.Planes.PlanFacturacion", b =>
@@ -1469,6 +1554,40 @@ namespace FactCloudAPI.Migrations
                             Texto = "Soporte prioritario",
                             Tooltip = "Atención prioritaria para resolución de dudas y soporte técnico."
                         });
+                });
+
+            modelBuilder.Entity("FactCloudAPI.Models.Planes.UsuarioAddon", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("AddonId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("FechaContratacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("FechaVencimiento")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("UsuarioId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AddonId");
+
+                    b.HasIndex("UsuarioId", "Activo");
+
+                    b.HasIndex("UsuarioId", "AddonId");
+
+                    b.ToTable("UsuariosAddons");
                 });
 
             modelBuilder.Entity("FactCloudAPI.Models.Producto", b =>
@@ -1829,6 +1948,37 @@ namespace FactCloudAPI.Migrations
                     b.HasIndex("UsuarioId");
 
                     b.ToTable("SuscripcionesFacturacion");
+                });
+
+            modelBuilder.Entity("FactCloudAPI.Models.TelefonoCliente", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ClienteId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Extension")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Indicativo")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("Numero")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClienteId");
+
+                    b.ToTable("TelefonoCliente");
                 });
 
             modelBuilder.Entity("FactCloudAPI.Models.Usuario", b =>
@@ -2275,6 +2425,25 @@ namespace FactCloudAPI.Migrations
                     b.Navigation("PlanFacturacion");
                 });
 
+            modelBuilder.Entity("FactCloudAPI.Models.Planes.UsuarioAddon", b =>
+                {
+                    b.HasOne("FactCloudAPI.Models.Planes.Addon", "Addon")
+                        .WithMany()
+                        .HasForeignKey("AddonId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("FactCloudAPI.Models.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Addon");
+
+                    b.Navigation("Usuario");
+                });
+
             modelBuilder.Entity("FactCloudAPI.Models.Producto", b =>
                 {
                     b.HasOne("FactCloudAPI.Models.Usuario", "Usuario")
@@ -2338,6 +2507,17 @@ namespace FactCloudAPI.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("FactCloudAPI.Models.TelefonoCliente", b =>
+                {
+                    b.HasOne("FactCloudAPI.Models.Cliente", "Cliente")
+                        .WithMany("Telefonos")
+                        .HasForeignKey("ClienteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Cliente");
+                });
+
             modelBuilder.Entity("FactCloudAPI.Models.Usuarios.ConfiguracionDian", b =>
                 {
                     b.HasOne("FactCloudAPI.Models.Usuarios.Negocio", "Negocio")
@@ -2367,6 +2547,8 @@ namespace FactCloudAPI.Migrations
                     b.Navigation("Facturas");
 
                     b.Navigation("NotasDebito");
+
+                    b.Navigation("Telefonos");
                 });
 
             modelBuilder.Entity("FactCloudAPI.Models.Cupones.Cupon", b =>

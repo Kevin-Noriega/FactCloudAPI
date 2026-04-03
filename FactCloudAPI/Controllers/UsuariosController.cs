@@ -106,8 +106,8 @@ namespace FactCloudAPI.Controllers
                     negocio = usuario.Negocio != null ? new
                     {
                         id = usuario.Negocio.Id,
-                        nombreNegocio = usuario.Negocio.NombreNegocio,
-                        nit = usuario.Negocio.Nit ?? "no hay",
+                        nombreNegocio = usuario.Negocio.NombreComercial,
+                        nit = usuario.Negocio.NumeroIdentificacionE ?? "no hay",
                         dvNit = usuario.Negocio.DvNit,
                         direccion = usuario.Negocio.Direccion,
                         ciudad = usuario.Negocio.Ciudad,
@@ -210,14 +210,15 @@ namespace FactCloudAPI.Controllers
                 var negocio = new Negocio
                 {
                     UsuarioId = usuario.Id,
-                    NombreNegocio = dto.NombreNegocio,
-                    Nit = dto.Nit,
+                    NombreComercial = dto.NombreComercial,
+                    NumeroIdentificacionE = dto.NumeroIdentificacionE,
                     DvNit = dto.DvNit,
                     Direccion = dto.Direccion,
                     Ciudad = dto.Ciudad,
                     Departamento = dto.Departamento,
                     Telefono = dto.TelefonoNegocio,
-                    Correo = dto.CorreoNegocio
+                    CorreoRecepcionDian = dto.CorreoRecepcionDian,
+                    CorreoElectronico = dto.CorreoRecepcionDian,
                 };
 
                 _context.Negocios.Add(negocio);
@@ -277,8 +278,8 @@ namespace FactCloudAPI.Controllers
                         negocio = new
                         {
                             id = negocio.Id,
-                            nombre = negocio.NombreNegocio,
-                            nit = negocio.Nit
+                            nombre = negocio.NombreComercial,
+                            nit = negocio.NumeroIdentificacionE
                         },
                         suscripcion = new
                         {
@@ -380,14 +381,14 @@ namespace FactCloudAPI.Controllers
                 {
                     var negocio = new Negocio
                     {
-                        NombreNegocio = dto.NombreNegocio ?? $"Negocio de {usuario.Nombre}",
-                        Nit = dto.Nit,
+                        NombreComercial = dto.NombreComercial ?? $"Negocio de {usuario.Nombre}",
+                        NumeroIdentificacionE = dto.NumeroIdentificacionE,
                         DvNit = dto.DvNit,
                         Direccion = dto.Direccion,
                         Ciudad = dto.Ciudad,
                         Departamento = dto.Departamento,
                         Telefono = dto.TelefonoNegocio ?? usuario.Telefono,
-                        Correo = dto.CorreoNegocio ?? usuario.Correo,
+                        CorreoRecepcionDian = dto.CorreoRecepcionDian ?? usuario.Correo,
                         Pais = "CO",
                         UsuarioId = usuario.Id
                     };
@@ -426,7 +427,7 @@ namespace FactCloudAPI.Controllers
                         id = usuario.Id,
                         nombre = $"{usuario.Nombre} {usuario.Apellido}",
                         correo = usuario.Correo,
-                        negocio = usuario.Negocio?.NombreNegocio
+                        negocio = usuario.Negocio?.NombreComercial
                     },
                     suscripcion = new
                     {
@@ -516,8 +517,8 @@ namespace FactCloudAPI.Controllers
                     negocio = usuario.Negocio != null ? new
                     {
                         id = usuario.Negocio.Id,
-                        nombre = usuario.Negocio.NombreNegocio,
-                        nit = usuario.Negocio.Nit,
+                        nombre = usuario.Negocio.NombreComercial,
+                        nit = usuario.Negocio.NumeroIdentificacionE,
                         ciudad = usuario.Negocio.Ciudad
                     } : null,
                     suscripcion = new
@@ -554,7 +555,7 @@ namespace FactCloudAPI.Controllers
             if (usuario.Negocio != null)
             {
                 claims.Add(new Claim("NegocioId", usuario.Negocio.Id.ToString()));
-                claims.Add(new Claim("NegocioNombre", usuario.Negocio.NombreNegocio));
+                claims.Add(new Claim("NegocioNombre", usuario.Negocio.NombreComercial));
             }
 
             var tokenDescriptor = new SecurityTokenDescriptor
