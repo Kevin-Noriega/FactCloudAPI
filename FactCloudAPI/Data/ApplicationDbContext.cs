@@ -936,7 +936,7 @@ namespace FactCloudAPI.Data
                     .HasDatabaseName("IX_RegistrosPendientes_TransaccionId");
 
                 // Índice en Email para búsquedas por correo
-                entity.HasIndex(e => e.Email)
+                entity.HasIndex(e => e.Correo)
                     .HasDatabaseName("IX_RegistrosPendientes_Email");
 
                 // Índice en Estado para filtrar por estado
