@@ -55,8 +55,8 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IProductoService, ProductoService>();
 builder.Services.AddScoped<IFacturaService, FacturaService>();
-builder.Services.AddHttpClient<WompiService>();
-builder.Services.AddScoped<WompiService>();
+builder.Services.AddHttpClient<IWompiService,WompiService>();
+
 builder.Services.AddScoped<IDocumentoSoporteService, DocumentoSoporteService>();
 builder.Services.AddHttpClient<WompiService>(client =>
 {
