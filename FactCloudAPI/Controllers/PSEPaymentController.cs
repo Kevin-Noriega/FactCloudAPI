@@ -1,4 +1,4 @@
-﻿
+
 using FactCloudAPI.Data;
 using FactCloudAPI.DTOs.Wompi;
 using FactCloudAPI.Models;
@@ -48,7 +48,8 @@ namespace FactCloudAPI.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error obteniendo bancos PSE");
-                return StatusCode(500, new { error = "Error obteniendo bancos" });
+                // Retornamos 400 en lugar de 500 para diagnosticar mejor si es un error de Wompi (CORS no se bloquea tanto en 400)
+                return BadRequest(new { error = ex.Message });
             }
         }
 
@@ -69,6 +70,15 @@ namespace FactCloudAPI.Controllers
                 var frontendUrl = _config["Wompi:FrontendUrl"]
                     ?? "http://localhost:5173";
 
+                // 1.5 Generar firma de integridad
+                var integrityKey = _config["Wompi:IntegrityKey"];
+                var signature = GenerateSignature(
+                    request.Reference,
+                    request.PrecioEnCentavos,
+                    request.Currency,
+                    integrityKey
+                );
+
                 var wompiPayload = new
                 {
                     amount_in_cents = request.PrecioEnCentavos,
@@ -76,6 +86,7 @@ namespace FactCloudAPI.Controllers
                     customer_email = request.Email,
                     reference = request.Reference,
                     acceptance_token = request.AcceptanceToken,
+                    signature = signature, // ✅ FIRMA AGREGADA
                     payment_method = new
                     {
                         type = "PSE",
@@ -189,6 +200,13 @@ namespace FactCloudAPI.Controllers
                 _logger.LogError(ex, "Error consultando estado PSE: {Id}", transaccionId);
                 return StatusCode(500, new { error = "Error consultando estado" });
             }
+        }
+        private string GenerateSignature(string reference, int amount, string currency, string key)
+        {
+            var concat = $"{reference}{amount}{currency}{key}";
+            using var sha256 = SHA256.Create();
+            var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(concat));
+            return BitConverter.ToString(hash).Replace("-", "").ToLower();
         }
     }
 }

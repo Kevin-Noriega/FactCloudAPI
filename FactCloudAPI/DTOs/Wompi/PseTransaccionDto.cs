@@ -2,7 +2,7 @@
 {
     public class PseTransaccionDto
     {
-        public long PrecioEnCentavos { get; set; }
+        public int PrecioEnCentavos { get; set; }
         public string Email { get; set; } = "";
         public string AcceptanceToken { get; set; } = "";
         public string Currency { get; set; } = "COP";
