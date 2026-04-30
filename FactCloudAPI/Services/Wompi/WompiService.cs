@@ -1,21 +1,28 @@
-﻿using FactCloudAPI.Models.Wompi;
-using System.Text.Json;
-using System.Text;
+﻿using EllipticCurve;
+using FactCloudAPI.Models.Wompi;
+using System.Net.Http.Headers;
 using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
 
 namespace FactCloudAPI.Services.Wompi
 {
-    public class WompiService
+    public class WompiService : IWompiService
     {
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _config;
 
+        // ✅ Campos privados que faltaban en la primera versión
+        private readonly string _publicKey;
+        private readonly string _privateKey;
+        private readonly string _baseUrl;
         public WompiService(HttpClient httpClient, IConfiguration config)
         {
             _httpClient = httpClient;
             _config = config;
-
-            
+            _publicKey = config["Wompi:PublicKey"] ?? throw new ArgumentNullException("Wompi:PublicKey");
+            _privateKey = config["Wompi:PrivateKey"] ?? throw new ArgumentNullException("Wompi:PrivateKey");
+            _baseUrl = config["Wompi:BaseUrl"] ?? "https://sandbox.wompi.co/v1";
         }
 
         // ✅ CORREGIDO: Obtener token de aceptación (ahora con tipado fuerte)
@@ -23,10 +30,7 @@ namespace FactCloudAPI.Services.Wompi
         {
             try
             {
-                var publicKey = _config["Wompi:PublicKey"];
-
-                // ✅ URL absoluta completa
-                var url = $"https://sandbox.wompi.co/v1/merchants/{publicKey}";
+                var url = $"{_baseUrl}/merchants/{_publicKey}";
                 Console.WriteLine($"🔍 URL: {url}");
 
                 var response = await _httpClient.GetAsync(url);
@@ -35,9 +39,7 @@ namespace FactCloudAPI.Services.Wompi
                 Console.WriteLine($"🔍 StatusCode: {response.StatusCode}");
 
                 if (!response.IsSuccessStatusCode)
-                {
-                    throw new Exception($"Error: {content}");
-                }
+                    throw new Exception($"Error obteniendo acceptance token: {content}");
 
                 var wompiResponse = JsonSerializer.Deserialize<WompiMerchantResponse>(
                     content,
@@ -48,19 +50,19 @@ namespace FactCloudAPI.Services.Wompi
                     }
                 );
 
-                Console.WriteLine($"✅ Token obtenido correctamente");
+                Console.WriteLine("✅ Token obtenido correctamente");
 
                 return new WompiAcceptanceTokenResponse
                 {
                     Data = new AcceptanceData
                     {
-                        PresignedAcceptance = wompiResponse.Data.PresignedAcceptance
+                        PresignedAcceptance = wompiResponse!.Data.PresignedAcceptance
                     }
                 };
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error: {ex.Message}");
+                Console.WriteLine($"❌ Error en GetAcceptanceTokenAsync: {ex.Message}");
                 throw;
             }
         }
@@ -209,6 +211,74 @@ namespace FactCloudAPI.Services.Wompi
                 throw;
             }
         }
+        // ─────────────────────────────────────────────
+        public async Task<JsonElement> GetFinancialInstitutionsAsync()
+        {
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", _publicKey);
+
+            var response = await _httpClient.GetAsync($"{_baseUrl}/pse/financial_institutions");
+            response.EnsureSuccessStatusCode();
+
+            var content = await response.Content.ReadAsStringAsync();
+            var doc = JsonDocument.Parse(content);
+            return doc.RootElement.GetProperty("data");
+        }
+
+        // ─────────────────────────────────────────────
+        // PSE – Crear transacción
+        // ─────────────────────────────────────────────
+        public async Task<JsonElement> CreatePSETransactionAsync(object payload)
+        {
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", _privateKey);
+
+            var json = JsonSerializer.Serialize(payload,
+                new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower });
+            var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync($"{_baseUrl}/transactions", httpContent);
+            var responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+                throw new Exception($"Wompi PSE error: {response.StatusCode} - {responseBody}");
+
+            var doc = JsonDocument.Parse(responseBody);
+            return doc.RootElement.GetProperty("data");
+        }
+        public async Task<WompiTransactionResponse> GetTransactionAsync(string transactionId)
+        {
+            try
+            {
+                Console.WriteLine($"🔍 Consultando transacción: {transactionId}");
+
+                _httpClient.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue("Bearer", _privateKey);
+
+                var response = await _httpClient.GetAsync($"{_baseUrl}/transactions/{transactionId}");
+                var content = await response.Content.ReadAsStringAsync();
+
+                if (!response.IsSuccessStatusCode)
+                    throw new Exception($"Error consultando transacción: {content}");
+
+                var transactionResponse = JsonSerializer.Deserialize<WompiTransactionResponse>(
+                    content,
+                    new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true,
+                        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+                    }
+                );
+
+                Console.WriteLine($"✅ Estado: {transactionResponse?.Data?.Status}");
+                return transactionResponse!;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error en GetTransactionAsync: {ex.Message}");
+                throw;
+            }
+        }
 
 
         // ✅ Generar firma de integridad (sin cambios, está bien)
@@ -228,42 +298,20 @@ namespace FactCloudAPI.Services.Wompi
             }
         }
 
-        // ✅ MEJORADO: Consultar transacción
-        public async Task<WompiTransactionResponse> GetTransactionAsync(string transactionId)
+        public async Task<JsonElement> GetTransactionStatusAsync(string transactionId)
         {
-            try
-            {
-                Console.WriteLine($"🔍 Consultando transacción: {transactionId}");
-
-                var response = await _httpClient.GetAsync($"/transactions/{transactionId}");
-                var content = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    Console.WriteLine($"❌ Error consultando transacción: {content}");
-                    throw new Exception($"Error consultando transacción: {content}");
-                }
-
-                var transactionResponse = JsonSerializer.Deserialize<WompiTransactionResponse>(
-                    content,
-                    new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true,
-                        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
-                    }
-                );
-
-                Console.WriteLine($"✅ Estado transacción: {transactionResponse?.Data?.Status}");
-
-                return transactionResponse;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error en GetTransactionAsync: {ex.Message}");
-                throw;
-            }
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", _privateKey);
+            var response = await _httpClient.GetAsync(
+                $"{_baseUrl}/transactions/{transactionId}"
+            );
+            response.EnsureSuccessStatusCode();
+            var content = await response.Content.ReadAsStringAsync();
+            var doc = JsonDocument.Parse(content);
+            return doc.RootElement.GetProperty("data");
         }
     }
+}
 
     // ✅ CardData (sin cambios)
     public class CardData
@@ -302,4 +350,4 @@ namespace FactCloudAPI.Services.Wompi
     {
         public PresignedAcceptance PresignedAcceptance { get; set; }
     }
-}
+
