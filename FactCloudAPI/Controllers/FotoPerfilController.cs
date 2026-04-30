@@ -1,13 +1,13 @@
-﻿using FactCloudAPI.Data;
-using FactCloudAPI.DTOs.FotoPerfil;
-using FactCloudAPI.Models;
+using NubeeAPI.Data;
+using NubeeAPI.DTOs.FotoPerfil;
+using NubeeAPI.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-namespace FactCloudAPI.Controllers
+namespace NubeeAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
@@ -29,7 +29,7 @@ namespace FactCloudAPI.Controllers
             // Validar URL
             if (!Uri.TryCreate(dto.Url, UriKind.Absolute, out var uriResult) ||
                 (uriResult.Scheme != Uri.UriSchemeHttps && uriResult.Scheme != Uri.UriSchemeHttp))
-                return BadRequest("URL de imagen inválida");
+                return BadRequest("URL de imagen inv�lida");
 
             // Desactivar anterior
             var FotoPerfilsAnteriores = await _context.FotoPerfils

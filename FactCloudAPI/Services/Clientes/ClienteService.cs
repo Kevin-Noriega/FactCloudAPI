@@ -1,9 +1,9 @@
-﻿using FactCloudAPI.Data;
-using FactCloudAPI.DTOs.Clientes;
-using FactCloudAPI.Models;
-using FactCloudAPI.Services.Clientes;
+using NubeeAPI.Data;
+using NubeeAPI.DTOs.Clientes;
+using NubeeAPI.Models;
+using NubeeAPI.Services.Clientes;
 using Microsoft.EntityFrameworkCore;
-using FactCloudAPI.Models; 
+using NubeeAPI.Models; 
 
 
 public class ClienteService : IClienteService
@@ -15,7 +15,7 @@ public class ClienteService : IClienteService
         _context = context;
     }
 
-    // ── Listar ──────────────────────────────────────────────────────
+    // -- Listar ------------------------------------------------------
     public async Task<List<ClienteDetalleDto>> ObtenerClientesAsync(int usuarioId)
     {
         return await _context.Clientes
@@ -38,7 +38,7 @@ public class ClienteService : IClienteService
             .ToListAsync();
     }
 
-    // ── Por ID ──────────────────────────────────────────────────────
+    // -- Por ID ------------------------------------------------------
     public async Task<ClienteDetalleDto?> ObtenerPorIdAsync(int id, int usuarioId)
     {
         return await _context.Clientes
@@ -122,7 +122,7 @@ public class ClienteService : IClienteService
     }
 
 
-    // ── Actualizar ───────────────────────────────────────────────────
+    // -- Actualizar ---------------------------------------------------
     public async Task ActualizarAsync(int id, ClienteCreateDto dto, int usuarioId)
     {
         var cliente = await _context.Clientes
@@ -168,7 +168,7 @@ public class ClienteService : IClienteService
         await _context.SaveChangesAsync();
     }
 
-    // ── Desactivar ───────────────────────────────────────────────────
+    // -- Desactivar ---------------------------------------------------
     public async Task DesactivarAsync(int id, int usuarioId)
     {
         var cliente = await _context.Clientes
@@ -181,7 +181,7 @@ public class ClienteService : IClienteService
         await _context.SaveChangesAsync();
     }
 
-    // ── Mapper privado ───────────────────────────────────────────────
+    // -- Mapper privado -----------------------------------------------
     private static ClienteDetalleDto MapToDto(Cliente c) => new()
     {
         Id = c.Id,

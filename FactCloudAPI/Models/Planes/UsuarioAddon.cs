@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace FactCloudAPI.Models.Planes
+namespace NubeeAPI.Models.Planes
 {
     public class UsuarioAddon
     {
@@ -19,7 +19,7 @@ namespace FactCloudAPI.Models.Planes
 
         public bool Activo { get; set; } = true;
 
-        // Navegación
+        // Navegaci�n
         public Usuario Usuario { get; set; } = null!;
         public Addon Addon { get; set; } = null!;
     }

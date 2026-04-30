@@ -1,243 +1,201 @@
-﻿using EllipticCurve;
-using FactCloudAPI.Models.Wompi;
+using EllipticCurve;
+using NubeeAPI.Models.Wompi;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-namespace FactCloudAPI.Services.Wompi
+namespace NubeeAPI.Services.Wompi
 {
     public class WompiService : IWompiService
     {
-        private readonly HttpClient _httpClient;
-        private readonly IConfiguration _config;
+            private readonly HttpClient _httpClient;
+            private readonly IConfiguration _config;
 
-        // ✅ Campos privados que faltaban en la primera versión
-        private readonly string _publicKey;
-        private readonly string _privateKey;
-        private readonly string _baseUrl;
-        public WompiService(HttpClient httpClient, IConfiguration config)
+            // ✅ Campos privados que faltaban en la primera versión
+            private readonly string _publicKey;
+            private readonly string _privateKey;
+            private readonly string _baseUrl;
+
+            public WompiService(HttpClient httpClient, IConfiguration config)
         {
             _httpClient = httpClient;
             _config = config;
-            _publicKey = config["Wompi:PublicKey"] ?? throw new ArgumentNullException("Wompi:PublicKey");
-            _privateKey = config["Wompi:PrivateKey"] ?? throw new ArgumentNullException("Wompi:PrivateKey");
-            _baseUrl = config["Wompi:BaseUrl"] ?? "https://sandbox.wompi.co/v1";
+            _publicKey  = config["Wompi:PublicKey"]?.Trim()  ?? throw new ArgumentNullException("Wompi:PublicKey");
+            _privateKey = config["Wompi:PrivateKey"]?.Trim() ?? throw new ArgumentNullException("Wompi:PrivateKey");
+            _baseUrl    = config["Wompi:BaseUrl"]?.Trim()    ?? "https://sandbox.wompi.co/v1";
         }
 
-        // ✅ CORREGIDO: Obtener token de aceptación (ahora con tipado fuerte)
+        // ─── ACCEPTANCE TOKEN ───────────────────────
         public async Task<WompiAcceptanceTokenResponse> GetAcceptanceTokenAsync()
         {
-            try
-            {
-                var url = $"{_baseUrl}/merchants/{_publicKey}";
-                Console.WriteLine($"🔍 URL: {url}");
+            var url = $"{_baseUrl}/merchants/{_publicKey}";
+            Console.WriteLine($"🔍 URL: {url}");
 
-                var response = await _httpClient.GetAsync(url);
-                var content = await response.Content.ReadAsStringAsync();
+            // Sin Authorization — este endpoint es público
+            _httpClient.DefaultRequestHeaders.Clear();
 
-                Console.WriteLine($"🔍 StatusCode: {response.StatusCode}");
+            var response = await _httpClient.GetAsync(url);
+            var content  = await response.Content.ReadAsStringAsync();
 
-                if (!response.IsSuccessStatusCode)
-                    throw new Exception($"Error obteniendo acceptance token: {content}");
+            Console.WriteLine($"🔍 StatusCode: {response.StatusCode}");
 
-                var wompiResponse = JsonSerializer.Deserialize<WompiMerchantResponse>(
-                    content,
-                    new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true,
-                        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
-                    }
-                );
+            if (!response.IsSuccessStatusCode)
+                throw new Exception($"Error obteniendo acceptance token: {content}");
 
-                Console.WriteLine("✅ Token obtenido correctamente");
-
-                return new WompiAcceptanceTokenResponse
+            var wompiResponse = JsonSerializer.Deserialize<WompiMerchantResponse>(
+                content,
+                new JsonSerializerOptions
                 {
-                    Data = new AcceptanceData
-                    {
-                        PresignedAcceptance = wompiResponse!.Data.PresignedAcceptance
-                    }
-                };
-            }
-            catch (Exception ex)
+                    PropertyNameCaseInsensitive = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+                }
+            ) ?? throw new Exception("Respuesta vacía de Wompi");
+
+            Console.WriteLine("✅ Token obtenido correctamente");
+
+            return new WompiAcceptanceTokenResponse
             {
-                Console.WriteLine($"❌ Error en GetAcceptanceTokenAsync: {ex.Message}");
-                throw;
-            }
+                Data = new AcceptanceData
+                {
+                    PresignedAcceptance = wompiResponse.Data.PresignedAcceptance
+                }
+            };
         }
 
-
-
-        // ✅ Tokenizar tarjeta (NO necesitas esto en backend, se hace desde frontend)
-        public async Task<string> TokenizeCard(CardData cardData)
+        // ─── TOKENIZAR TARJETA ──────────────────────
+        public async Task<string> TokenizeCardAsync(CardData cardData)
         {
-            try
+            _httpClient.DefaultRequestHeaders.Clear();
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", _publicKey);
+
+            var payload = new
             {
-                var publicKey = _config["Wompi:PublicKey"];
+                number      = cardData.Number,
+                cvc         = cardData.Cvc,
+                exp_month   = cardData.ExpMonth,
+                exp_year    = cardData.ExpYear,
+                card_holder = cardData.CardHolder
+            };
 
-                var payload = new
-                {
-                    number = cardData.Number,
-                    cvc = cardData.Cvc,
-                    exp_month = cardData.ExpMonth,
-                    exp_year = cardData.ExpYear,
-                    card_holder = cardData.CardHolder
-                };
+            var content = new StringContent(
+                JsonSerializer.Serialize(payload),
+                Encoding.UTF8,
+                "application/json"
+            );
 
-                var content = new StringContent(
-                    JsonSerializer.Serialize(payload),
-                    Encoding.UTF8,
-                    "application/json"
-                );
+            var response = await _httpClient.PostAsync($"{_baseUrl}/tokens/cards", content);
+            var result   = await response.Content.ReadAsStringAsync();
 
-                // ✅ Limpiar headers antes de agregar Authorization
-                _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {publicKey}");
+            if (!response.IsSuccessStatusCode)
+                throw new Exception($"Error tokenizando tarjeta: {result}");
 
-                var response = await _httpClient.PostAsync("/tokens/cards", content);
-                var result = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    Console.WriteLine($"❌ Error tokenizando: {result}");
-                    throw new Exception($"Error tokenizando tarjeta: {result}");
-                }
-
-                var tokenResponse = JsonSerializer.Deserialize<JsonElement>(result);
-                return tokenResponse.GetProperty("data").GetProperty("id").GetString();
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error en TokenizeCard: {ex.Message}");
-                throw;
-            }
+            var tokenResponse = JsonSerializer.Deserialize<JsonElement>(result);
+            return tokenResponse.GetProperty("data").GetProperty("id").GetString()
+                ?? throw new Exception("Token de tarjeta vacío");
         }
 
-        // ✅ MEJORADO: Crear transacción
-        public async Task<WompiTransactionResponse> CreateTransactionAsync(
-    WompiTransactionRequest request)
+        // ─── TRANSACCIÓN TARJETA ────────────────────
+        public async Task<WompiTransactionResponse> CreateCardTransactionAsync(
+            WompiTransactionRequest request)
         {
-            try
+            var integrityKey = _config["Wompi:IntegrityKey"]
+                ?? throw new Exception("Wompi:IntegrityKey no configurada");
+
+            var signature = GenerateIntegritySignature(
+                request.Reference,
+                request.AmountInCents,
+                request.Currency,
+                integrityKey
+            );
+
+            var payload = new
             {
-                var privateKey = _config["Wompi:PrivateKey"];
-                var integrityKey = _config["Wompi:IntegrityKey"];
-
-                Console.WriteLine($"🔵 Creando transacción - Reference: {request.Reference}");
-                Console.WriteLine($"📋 Request completo: {JsonSerializer.Serialize(request)}");
-
-                if (string.IsNullOrEmpty(privateKey))
+                acceptance_token = request.AcceptanceToken,
+                amount_in_cents  = request.AmountInCents,
+                currency         = request.Currency,
+                customer_email   = request.CustomerEmail,
+                payment_method   = new
                 {
-                    throw new Exception("Wompi:PrivateKey no configurada");
+                    type         = request.PaymentMethod.Type,
+                    token        = request.PaymentMethod.Token,
+                    installments = request.PaymentMethod.Installments
+                },
+                reference     = request.Reference,
+                customer_data = new
+                {
+                    full_name     = request.CustomerData.FullName,
+                    phone_number  = request.CustomerData.PhoneNumber,
+                    legal_id      = request.CustomerData.LegalId.Number,
+                    legal_id_type = request.CustomerData.LegalId.Type
+                },
+                signature
+            };
+
+            var jsonPayload = JsonSerializer.Serialize(payload);
+            Console.WriteLine($"📤 Payload tarjeta: {jsonPayload}");
+
+            var content = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+            _httpClient.DefaultRequestHeaders.Clear();
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", _privateKey);
+
+            var response = await _httpClient.PostAsync($"{_baseUrl}/transactions", content);
+            var responseContent = await response.Content.ReadAsStringAsync();
+
+            Console.WriteLine($"🔍 StatusCode: {response.StatusCode}");
+            Console.WriteLine($"📄 Response: {responseContent}");
+
+            if (!response.IsSuccessStatusCode)
+                throw new Exception($"Error Wompi tarjeta: {responseContent}");
+
+            var result = JsonSerializer.Deserialize<WompiTransactionResponse>(
+                responseContent,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
                 }
+            ) ?? throw new Exception("Respuesta vacía de Wompi");
 
-                // ✅ Generar signature
-                var signature = GenerateIntegritySignature(
-                    request.Reference,
-                    request.AmountInCents,
-                    request.Currency,
-                    integrityKey
-                );
-
-                // ✅ Construir payload con estructura correcta
-                var payload = new
-                {
-                    acceptance_token = request.AcceptanceToken,
-                    amount_in_cents = request.AmountInCents,
-                    currency = request.Currency,
-                    customer_email = request.CustomerEmail,
-                    payment_method = new
-                    {
-                        type = request.PaymentMethod.Type,
-                        token = request.PaymentMethod.Token,
-                        installments = request.PaymentMethod.Installments
-                    },
-                    reference = request.Reference,
-                    customer_data = new
-                    {
-                        full_name = request.CustomerData.FullName,
-                        phone_number = request.CustomerData.PhoneNumber,
-                        legal_id = request.CustomerData.LegalId.Number,
-                        legal_id_type = request.CustomerData.LegalId.Type
-                    },
-                    signature = signature
-                };
-
-                var jsonPayload = JsonSerializer.Serialize(payload);
-                Console.WriteLine($"📤 Payload a Wompi: {jsonPayload}");
-
-                var content = new StringContent(
-                    jsonPayload,
-                    Encoding.UTF8,
-                    "application/json"
-                );
-
-                // ✅ Limpiar headers y agregar Authorization
-                _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {privateKey}");
-
-                // ✅ URL completa con /v1
-                var url = "https://sandbox.wompi.co/v1/transactions";
-                Console.WriteLine($"🔍 URL: {url}");
-
-                var response = await _httpClient.PostAsync(url, content);
-                var responseContent = await response.Content.ReadAsStringAsync();
-
-                Console.WriteLine($"🔍 StatusCode: {response.StatusCode}");
-                Console.WriteLine($"📄 Response: {responseContent}");
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    Console.WriteLine($"❌ Error de Wompi: {responseContent}");
-                    throw new Exception($"Error Wompi: {responseContent}");
-                }
-
-                var transactionResponse = JsonSerializer.Deserialize<WompiTransactionResponse>(
-                    responseContent,
-                    new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true,
-                        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
-                    }
-                );
-
-                Console.WriteLine($"✅ Transacción creada - ID: {transactionResponse?.Data?.Id}");
-
-                return transactionResponse;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error en CreateTransactionAsync: {ex.Message}");
-                throw;
-            }
+            Console.WriteLine($"✅ Transacción creada - ID: {result.Data?.Id}");
+            return result;
         }
-        // ─────────────────────────────────────────────
+
+        // ─── PSE: BANCOS ────────────────────────────
         public async Task<JsonElement> GetFinancialInstitutionsAsync()
         {
+            _httpClient.DefaultRequestHeaders.Clear();
             _httpClient.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", _publicKey);
 
             var response = await _httpClient.GetAsync($"{_baseUrl}/pse/financial_institutions");
-            response.EnsureSuccessStatusCode();
+            var content  = await response.Content.ReadAsStringAsync();
 
-            var content = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+                throw new Exception($"Error obteniendo bancos PSE: {content}");
+
             var doc = JsonDocument.Parse(content);
             return doc.RootElement.GetProperty("data");
         }
 
-        // ─────────────────────────────────────────────
-        // PSE – Crear transacción
-        // ─────────────────────────────────────────────
+        // ─── PSE: CREAR TRANSACCIÓN ─────────────────
         public async Task<JsonElement> CreatePSETransactionAsync(object payload)
         {
+            _httpClient.DefaultRequestHeaders.Clear();
             _httpClient.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", _privateKey);
 
             var json = JsonSerializer.Serialize(payload,
-                new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower });
+                new JsonSerializerOptions
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+                });
             var httpContent = new StringContent(json, Encoding.UTF8, "application/json");
 
-            var response = await _httpClient.PostAsync($"{_baseUrl}/transactions", httpContent);
+            var response     = await _httpClient.PostAsync($"{_baseUrl}/transactions", httpContent);
             var responseBody = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
@@ -246,74 +204,58 @@ namespace FactCloudAPI.Services.Wompi
             var doc = JsonDocument.Parse(responseBody);
             return doc.RootElement.GetProperty("data");
         }
+
+        // ─── CONSULTAR TRANSACCIÓN (tipado) ─────────
         public async Task<WompiTransactionResponse> GetTransactionAsync(string transactionId)
         {
-            try
-            {
-                Console.WriteLine($"🔍 Consultando transacción: {transactionId}");
-
-                _httpClient.DefaultRequestHeaders.Authorization =
-                    new AuthenticationHeaderValue("Bearer", _privateKey);
-
-                var response = await _httpClient.GetAsync($"{_baseUrl}/transactions/{transactionId}");
-                var content = await response.Content.ReadAsStringAsync();
-
-                if (!response.IsSuccessStatusCode)
-                    throw new Exception($"Error consultando transacción: {content}");
-
-                var transactionResponse = JsonSerializer.Deserialize<WompiTransactionResponse>(
-                    content,
-                    new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true,
-                        PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
-                    }
-                );
-
-                Console.WriteLine($"✅ Estado: {transactionResponse?.Data?.Status}");
-                return transactionResponse!;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"❌ Error en GetTransactionAsync: {ex.Message}");
-                throw;
-            }
-        }
-
-
-        // ✅ Generar firma de integridad (sin cambios, está bien)
-        private string GenerateIntegritySignature(
-            string reference,
-            int amountInCents,
-            string currency,
-            string integrityKey)
-        {
-            var concatenatedString = $"{reference}{amountInCents}{currency}{integrityKey}";
-
-            using (var sha256 = SHA256.Create())
-            {
-                var bytes = Encoding.UTF8.GetBytes(concatenatedString);
-                var hash = sha256.ComputeHash(bytes);
-                return BitConverter.ToString(hash).Replace("-", "").ToLower();
-            }
-        }
-
-        public async Task<JsonElement> GetTransactionStatusAsync(string transactionId)
-        {
+            _httpClient.DefaultRequestHeaders.Clear();
             _httpClient.DefaultRequestHeaders.Authorization =
                 new AuthenticationHeaderValue("Bearer", _privateKey);
-            var response = await _httpClient.GetAsync(
-                $"{_baseUrl}/transactions/{transactionId}"
-            );
+
+            var response = await _httpClient.GetAsync($"{_baseUrl}/transactions/{transactionId}");
+            var content  = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+                throw new Exception($"Error consultando transacción: {content}");
+
+            var result = JsonSerializer.Deserialize<WompiTransactionResponse>(
+                content,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
+                }
+            ) ?? throw new Exception("Respuesta vacía");
+
+            Console.WriteLine($"✅ Estado: {result.Data?.Status}");
+            return result;
+        }
+
+        // ─── CONSULTAR TRANSACCIÓN (JsonElement, para PSEController) ─
+        public async Task<JsonElement> GetTransactionStatusAsync(string transactionId)
+        {
+            _httpClient.DefaultRequestHeaders.Clear();
+            _httpClient.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", _privateKey);
+
+            var response = await _httpClient.GetAsync($"{_baseUrl}/transactions/{transactionId}");
             response.EnsureSuccessStatusCode();
+
             var content = await response.Content.ReadAsStringAsync();
-            var doc = JsonDocument.Parse(content);
+            var doc     = JsonDocument.Parse(content);
             return doc.RootElement.GetProperty("data");
         }
-    }
-}
 
-    // ✅ CardData (sin cambios)
+        // ─── FIRMA DE INTEGRIDAD ────────────────────
+        private static string GenerateIntegritySignature(
+            string reference, int amountInCents, string currency, string integrityKey)
+        {
+            var raw = $"{reference}{amountInCents}{currency}{integrityKey}";
+            using var sha256 = SHA256.Create();
+            var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(raw));
+            return BitConverter.ToString(hash).Replace("-", "").ToLower();
+        }
+    }
     public class CardData
     {
         public string Number { get; set; }
@@ -350,4 +292,4 @@ namespace FactCloudAPI.Services.Wompi
     {
         public PresignedAcceptance PresignedAcceptance { get; set; }
     }
-
+}

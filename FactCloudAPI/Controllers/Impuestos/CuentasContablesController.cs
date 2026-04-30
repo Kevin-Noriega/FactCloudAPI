@@ -1,14 +1,14 @@
-﻿using FactCloudAPI.Data;
-using FactCloudAPI.DTOs;
-using FactCloudAPI.DTOs.Impuestos;
-using FactCloudAPI.Models;
-using FactCloudAPI.Models.Impuestos;
+using NubeeAPI.Data;
+using NubeeAPI.DTOs;
+using NubeeAPI.DTOs.Impuestos;
+using NubeeAPI.Models;
+using NubeeAPI.Models.Impuestos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-namespace FactCloudAPI.Controllers.Impuestos
+namespace NubeeAPI.Controllers.Impuestos
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -25,7 +25,7 @@ namespace FactCloudAPI.Controllers.Impuestos
         private int GetUsuarioId() =>
             int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-        // ── GET /api/cuentascontables ─────────────────────────────────────
+        // -- GET /api/cuentascontables -------------------------------------
         [HttpGet]
         public async Task<IActionResult> GetAll(
             [FromQuery] int? clase,
@@ -36,7 +36,7 @@ namespace FactCloudAPI.Controllers.Impuestos
         {
             var usuarioId = GetUsuarioId();
 
-            // ✅ CAMBIO 1: incluye cuentas globales (NULL) + las del usuario
+            // ? CAMBIO 1: incluye cuentas globales (NULL) + las del usuario
             var query = _db.CuentasContables
                 .Where(c => c.UsuarioId == null || c.UsuarioId == usuarioId)
                 .AsQueryable();
@@ -84,13 +84,13 @@ namespace FactCloudAPI.Controllers.Impuestos
             return Ok(cuentas);
         }
 
-        // ── GET /api/cuentascontables/{id} ────────────────────────────────
+        // -- GET /api/cuentascontables/{id} --------------------------------
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
             var usuarioId = GetUsuarioId();
 
-            // ✅ CAMBIO 2: permite leer cuentas globales (NULL) o propias
+            // ? CAMBIO 2: permite leer cuentas globales (NULL) o propias
             var cuenta = await _db.CuentasContables
                 .FirstOrDefaultAsync(c => c.Id == id &&
                     (c.UsuarioId == null || c.UsuarioId == usuarioId));
@@ -100,16 +100,16 @@ namespace FactCloudAPI.Controllers.Impuestos
             return Ok(MapToDto(cuenta));
         }
 
-        // ── GET /api/cuentascontables/buscar?q=caja ───────────────────────
+        // -- GET /api/cuentascontables/buscar?q=caja -----------------------
         [HttpGet("buscar")]
         public async Task<IActionResult> Buscar([FromQuery] string q)
         {
             if (string.IsNullOrWhiteSpace(q))
-                return BadRequest("El parámetro 'q' es obligatorio.");
+                return BadRequest("El par�metro 'q' es obligatorio.");
 
             var usuarioId = GetUsuarioId();
 
-            // ✅ CAMBIO 3: incluye cuentas globales (NULL) + las del usuario
+            // ? CAMBIO 3: incluye cuentas globales (NULL) + las del usuario
             var resultados = await _db.CuentasContables
                 .Where(c => (c.UsuarioId == null || c.UsuarioId == usuarioId) &&
                             c.Activa &&
@@ -129,7 +129,7 @@ namespace FactCloudAPI.Controllers.Impuestos
             return Ok(resultados);
         }
 
-        // ── POST /api/cuentascontables ────────────────────────────────────
+        // -- POST /api/cuentascontables ------------------------------------
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CrearCuentaContableDto dto)
         {
@@ -142,7 +142,7 @@ namespace FactCloudAPI.Controllers.Impuestos
                 .AnyAsync(c => (c.UsuarioId == null || c.UsuarioId == usuarioId)
                                && c.Codigo == dto.Codigo);
             if (existe)
-                return Conflict(new { message = $"Ya existe una cuenta con el código {dto.Codigo}." });
+                return Conflict(new { message = $"Ya existe una cuenta con el c�digo {dto.Codigo}." });
 
             var nivel = dto.Nivel ?? CalcularNivel(dto.Codigo);
             var clase = dto.ClasePUC ?? int.Parse(dto.Codigo[..1]);
@@ -170,7 +170,7 @@ namespace FactCloudAPI.Controllers.Impuestos
             return CreatedAtAction(nameof(GetById), new { id = cuenta.Id }, MapToDto(cuenta));
         }
 
-        // ── PUT /api/cuentascontables/{id} ────────────────────────────────
+        // -- PUT /api/cuentascontables/{id} --------------------------------
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] ActualizarCuentaContableDto dto)
         {
@@ -198,7 +198,7 @@ namespace FactCloudAPI.Controllers.Impuestos
             return Ok(MapToDto(cuenta));
         }
 
-        // ── DELETE /api/cuentascontables/{id} ─────────────────────────────
+        // -- DELETE /api/cuentascontables/{id} -----------------------------
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -218,14 +218,14 @@ namespace FactCloudAPI.Controllers.Impuestos
                     i.CuentaCreditoComprasId == id));
 
             if (enUso)
-                return BadRequest(new { message = "Esta cuenta está en uso por uno o más impuestos. Desactívala en lugar de eliminarla." });
+                return BadRequest(new { message = "Esta cuenta est� en uso por uno o m�s impuestos. Desact�vala en lugar de eliminarla." });
 
             _db.CuentasContables.Remove(cuenta);
             await _db.SaveChangesAsync();
             return NoContent();
         }
 
-        // ── Helpers ───────────────────────────────────────────────────────
+        // -- Helpers -------------------------------------------------------
         private static int CalcularNivel(string codigo) => codigo.Length switch
         {
             1 => 1,

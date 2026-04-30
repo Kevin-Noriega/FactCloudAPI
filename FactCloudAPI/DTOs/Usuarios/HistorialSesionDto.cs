@@ -1,4 +1,4 @@
-﻿namespace FactCloudAPI.DTOs.Usuarios
+namespace NubeeAPI.DTOs.Usuarios
 {
     public class HistorialSesionDto
     {

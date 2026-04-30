@@ -1,9 +1,9 @@
-﻿using FactCloudAPI.Models.Impuestos;
+using NubeeAPI.Models.Impuestos;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace FactCloudAPI.Models
+namespace NubeeAPI.Models
 {
     public class DetalleFactura
     {
@@ -53,10 +53,10 @@ namespace FactCloudAPI.Models
         public decimal ValorINC { get; set; }
 
         [Column(TypeName = "decimal(6,4)")]
-        public decimal TarifaICA { get; set; } = 0;  // ✅ Nuevo
+        public decimal TarifaICA { get; set; } = 0;  // ? Nuevo
 
         [Column(TypeName = "decimal(18,2)")]
-        public decimal ValorICA { get; set; } = 0;   // ✅ Nuevo
+        public decimal ValorICA { get; set; } = 0;   // ? Nuevo
 
         [Required]
         [Column(TypeName = "decimal(18,2)")]

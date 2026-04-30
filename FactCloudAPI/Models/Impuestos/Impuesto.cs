@@ -1,11 +1,11 @@
-﻿using FactCloudAPI.Models.Impuestos;
+using NubeeAPI.Models.Impuestos;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace FactCloudAPI.Models.Impuestos
+namespace NubeeAPI.Models.Impuestos
 {
     /// <summary>
-    /// Impuestos configurables por empresa (como en Siigo: pestaña "Impuestos").
+    /// Impuestos configurables por empresa (como en Siigo: pesta�a "Impuestos").
     /// Cubre IVA, INC (Impoconsumo), ICA, Retefuente y ReteICA.
     /// Cada impuesto queda vinculado a las cuentas PUC de ventas, compras y devoluciones.
     /// </summary>
@@ -14,13 +14,13 @@ namespace FactCloudAPI.Models.Impuestos
         [Key]
         public int Id { get; set; }
 
-        // ── Multi-tenant ────────────────────────────────────────
+        // -- Multi-tenant ----------------------------------------
       
         public int? UsuarioId { get; set; }
         public Usuario? Usuario { get; set; }
 
-        // ── Identificación ──────────────────────────────────────
-        /// <summary>Código interno de la empresa. Ej: 1, 2, 3...</summary>
+        // -- Identificaci�n --------------------------------------
+        /// <summary>C�digo interno de la empresa. Ej: 1, 2, 3...</summary>
         [Required]
         public int Codigo { get; set; }
 
@@ -30,18 +30,18 @@ namespace FactCloudAPI.Models.Impuestos
 
         /// <summary>
         /// Tipo de impuesto:
-        /// "IVA"         → Impuesto al Valor Agregado (código DIAN: 01)
-        /// "INC"         → Impuesto Nacional al Consumo (código DIAN: 04)
-        /// "ICA"         → Industria y Comercio (código DIAN: 03)
-        /// "Retefuente"  → Retención en la fuente
-        /// "ReteICA"     → Retención de ICA
-        /// "ReteIVA"     → Retención de IVA
+        /// "IVA"         ? Impuesto al Valor Agregado (c�digo DIAN: 01)
+        /// "INC"         ? Impuesto Nacional al Consumo (c�digo DIAN: 04)
+        /// "ICA"         ? Industria y Comercio (c�digo DIAN: 03)
+        /// "Retefuente"  ? Retenci�n en la fuente
+        /// "ReteICA"     ? Retenci�n de ICA
+        /// "ReteIVA"     ? Retenci�n de IVA
         /// </summary>
         [Required]
         [MaxLength(200)]
         public string TipoImpuesto { get; set; } = string.Empty;
 
-        // ── Tarifa ──────────────────────────────────────────────
+        // -- Tarifa ----------------------------------------------
         /// <summary>
         /// Porcentaje de la tarifa. Ej: 19.00, 5.00, 2.50, 11.04
         /// Para "Por valor fijo" usar PorValor = true y Tarifa = 0.
@@ -56,69 +56,69 @@ namespace FactCloudAPI.Models.Impuestos
         /// </summary>
         public bool PorValor { get; set; } = false;
 
-        // ── Código DIAN (para XML UBL 2.1) ─────────────────────
+        // -- C�digo DIAN (para XML UBL 2.1) ---------------------
         /// <summary>
-        /// Código del tributo según tablas DIAN para factura electrónica:
+        /// C�digo del tributo seg�n tablas DIAN para factura electr�nica:
         /// "01" = IVA | "02" = IC Porcentual | "03" = ICA
         /// "04" = INC | "05" = ReteRenta | "06" = ReteICA | "07" = ReteIVA
         /// </summary>
         [MaxLength(2)]
         public string? CodigoTributoDIAN { get; set; }
 
-        // ── Cuentas PUC — Ventas ────────────────────────────────
+        // -- Cuentas PUC � Ventas --------------------------------
         /// <summary>
-        /// Cuenta débito al vender con este impuesto.
+        /// Cuenta d�bito al vender con este impuesto.
         /// IVA: 13551501 (Anticipo de impuestos IVA)
-        /// Retefuente: 13551501 (Anticipo retención en la fuente)
+        /// Retefuente: 13551501 (Anticipo retenci�n en la fuente)
         /// </summary>
         public int? CuentaDebitoVentasId { get; set; }
         [ForeignKey("CuentaDebitoVentasId")]
         public CuentaContable? CuentaDebitoVentas { get; set; }
 
         /// <summary>
-        /// Cuenta crédito al vender con este impuesto.
+        /// Cuenta cr�dito al vender con este impuesto.
         /// IVA: 24080601 (IVA generado 19%)
-        /// Retefuente: 23651501 (Honorarios - retención a cargo)
+        /// Retefuente: 23651501 (Honorarios - retenci�n a cargo)
         /// </summary>
         public int? CuentaCreditoVentasId { get; set; }
         [ForeignKey("CuentaCreditoVentasId")]
         public CuentaContable? CuentaCreditoVentas { get; set; }
 
-        // ── Cuentas PUC — Compras ───────────────────────────────
+        // -- Cuentas PUC � Compras -------------------------------
         /// <summary>
-        /// Cuenta débito al comprar con este impuesto.
+        /// Cuenta d�bito al comprar con este impuesto.
         /// IVA: 24081001 (IVA descontable por compras 19%)
-        /// Retefuente: 23651501 (Honorarios - retención por pagar)
+        /// Retefuente: 23651501 (Honorarios - retenci�n por pagar)
         /// </summary>
         public int? CuentaDebitoComprasId { get; set; }
         [ForeignKey("CuentaDebitoComprasId")]
         public CuentaContable? CuentaDebitoCompras { get; set; }
 
         /// <summary>
-        /// Cuenta crédito al comprar con este impuesto.
-        /// Retefuente: 23651501 (Retención en la fuente por pagar)
+        /// Cuenta cr�dito al comprar con este impuesto.
+        /// Retefuente: 23651501 (Retenci�n en la fuente por pagar)
         /// ReteICA: 23680501 (Reteica por pagar)
         /// </summary>
         public int? CuentaCreditoComprasId { get; set; }
         [ForeignKey("CuentaCreditoComprasId")]
         public CuentaContable? CuentaCreditoCompras { get; set; }
 
-        // ── Cuentas PUC — Devoluciones ──────────────────────────
-        /// <summary>Cuenta para devoluciones en ventas (nota crédito)</summary>
+        // -- Cuentas PUC � Devoluciones --------------------------
+        /// <summary>Cuenta para devoluciones en ventas (nota cr�dito)</summary>
         public int? CuentaDevolucionVentasId { get; set; }
         [ForeignKey("CuentaDevolucionVentasId")]
         public CuentaContable? CuentaDevolucionVentas { get; set; }
 
-        /// <summary>Cuenta para devoluciones en compras (nota débito)</summary>
+        /// <summary>Cuenta para devoluciones en compras (nota d�bito)</summary>
         public int? CuentaDevolucionComprasId { get; set; }
         [ForeignKey("CuentaDevolucionComprasId")]
         public CuentaContable? CuentaDevolucionCompras { get; set; }
 
-        // ── Estado ──────────────────────────────────────────────
+        // -- Estado ----------------------------------------------
         public bool EnUso { get; set; } = true;
         public DateTime FechaCreacion { get; set; } = DateTime.Now;
 
-        // ── Propiedades calculadas ──────────────────────────────
+        // -- Propiedades calculadas ------------------------------
         [NotMapped]
         public string TarifaDisplay => PorValor
             ? $"${Tarifa:N2} (valor fijo)"

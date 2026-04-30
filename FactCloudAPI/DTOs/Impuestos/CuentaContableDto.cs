@@ -1,8 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace FactCloudAPI.DTOs
+namespace NubeeAPI.DTOs
 {
-    // ─── READ ────────────────────────────────────────────────────────────────
+    // --- READ ----------------------------------------------------------------
     public class CuentaContableDto
     {
         public int Id { get; set; }
@@ -23,12 +23,12 @@ namespace FactCloudAPI.DTOs
         public bool Activa { get; set; }
     }
 
-    // ─── CREATE ──────────────────────────────────────────────────────────────
+    // --- CREATE --------------------------------------------------------------
     public class CrearCuentaContableDto
     {
-        [Required(ErrorMessage = "El código PUC es obligatorio")]
+        [Required(ErrorMessage = "El c�digo PUC es obligatorio")]
         [MaxLength(12)]
-        [RegularExpression(@"^\d+$", ErrorMessage = "El código PUC solo debe contener dígitos")]
+        [RegularExpression(@"^\d+$", ErrorMessage = "El c�digo PUC solo debe contener d�gitos")]
         public string Codigo { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "El nombre de la cuenta es obligatorio")]
@@ -38,18 +38,18 @@ namespace FactCloudAPI.DTOs
         [MaxLength(1000)]
         public string? Descripcion { get; set; }
 
-        /// <summary>Si omite, se calcula automáticamente según longitud del Código.</summary>
+        /// <summary>Si omite, se calcula autom�ticamente seg�n longitud del C�digo.</summary>
         public int? Nivel { get; set; }
 
         [MaxLength(12)]
         public string? CodigoPadre { get; set; }
 
-        /// <summary>Si omite, se infiere del primer dígito del Código.</summary>
+        /// <summary>Si omite, se infiere del primer d�gito del C�digo.</summary>
         public int? ClasePUC { get; set; }
 
         [Required]
         [MaxLength(1)]
-        [RegularExpression("^[DC]$", ErrorMessage = "Naturaleza debe ser 'D' (Débito) o 'C' (Crédito)")]
+        [RegularExpression("^[DC]$", ErrorMessage = "Naturaleza debe ser 'D' (D�bito) o 'C' (Cr�dito)")]
         public string Naturaleza { get; set; } = "D";
 
         [MaxLength(2)]
@@ -61,7 +61,7 @@ namespace FactCloudAPI.DTOs
         public bool RequiereDocumento { get; set; } = false;
     }
 
-    // ─── UPDATE ──────────────────────────────────────────────────────────────
+    // --- UPDATE --------------------------------------------------------------
     public class ActualizarCuentaContableDto
     {
         [Required]

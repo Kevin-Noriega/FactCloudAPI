@@ -1,4 +1,4 @@
-﻿namespace FactCloudAPI.DTOs.Busqueda
+namespace NubeeAPI.DTOs.Busqueda
 {
     public class BusquedaGlobalDTO
     {

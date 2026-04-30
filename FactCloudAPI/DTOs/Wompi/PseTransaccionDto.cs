@@ -1,8 +1,8 @@
-ï»¿namespace FactCloudAPI.DTOs.Wompi
+namespace NubeeAPI.DTOs.Wompi
 {
     public class PseTransaccionDto
     {
-        public long PrecioEnCentavos { get; set; }
+        public int PrecioEnCentavos { get; set; }
         public string Email { get; set; } = "";
         public string AcceptanceToken { get; set; } = "";
         public string Currency { get; set; } = "COP";
@@ -24,10 +24,10 @@
     public class PSEPaymentMethodDto
     {
         public string Type { get; set; } = "PSE";
-        public int User_type { get; set; }                    // 0 = Natural, 1 = JurÃ­dica
+        public int User_type { get; set; }                    // 0 = Natural, 1 = Jurídica
         public string User_legal_id_type { get; set; } = "";  // CC, NIT, CE
-        public string User_legal_id { get; set; } = "";       // NÃºmero documento
-        public string Financial_institution_code { get; set; } = ""; // CÃ³digo banco
+        public string User_legal_id { get; set; } = "";       // Número documento
+        public string Financial_institution_code { get; set; } = ""; // Código banco
         public string Payment_description { get; set; } = "";
     }
     public class PSECustomerDataDto

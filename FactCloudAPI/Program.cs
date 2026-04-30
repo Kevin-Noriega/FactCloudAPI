@@ -1,13 +1,13 @@
-﻿using FactCloudAPI.Data;
-using FactCloudAPI.Services;
-using FactCloudAPI.Services.AuthLogin;
-using FactCloudAPI.Services.Clientes;
-using FactCloudAPI.Services.Facturas;
-using FactCloudAPI.Services.Productos;
-using FactCloudAPI.Services.Seguridad;
-using FactCloudAPI.Services.Usuarios;
-using FactCloudAPI.Services.Wompi;
-using FactCloudAPI.Utils.Exceptions;
+using NubeeAPI.Data;
+using NubeeAPI.Services;
+using NubeeAPI.Services.AuthLogin;
+using NubeeAPI.Services.Clientes;
+using NubeeAPI.Services.Facturas;
+using NubeeAPI.Services.Productos;
+using NubeeAPI.Services.Seguridad;
+using NubeeAPI.Services.Usuarios;
+using NubeeAPI.Services.Wompi;
+using NubeeAPI.Utils.Exceptions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
@@ -45,7 +45,32 @@ builder.Services.AddControllers()
 
 // ===== Swagger =====
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Ingresa 'Bearer' [espacio] y tu token.\n\nEjemplo: 'Bearer eyJhbGciOiJIUzI1Ni...'"
+    });
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
 builder.Services.AddHttpClient();
 builder.Services.AddSignalR();
 builder.Services.AddScoped<SeguridadService>();
@@ -55,14 +80,13 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IProductoService, ProductoService>();
 builder.Services.AddScoped<IFacturaService, FacturaService>();
-builder.Services.AddHttpClient<IWompiService,WompiService>();
-
-builder.Services.AddScoped<IDocumentoSoporteService, DocumentoSoporteService>();
-builder.Services.AddHttpClient<WompiService>(client =>
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddHttpClient<IWompiService, WompiService>(client =>
 {
     client.DefaultRequestHeaders.Add("Accept", "application/json");
     client.Timeout = TimeSpan.FromSeconds(30);
 });
+builder.Services.AddScoped<IDocumentoSoporteService, DocumentoSoporteService>();
 
 
 // ===== Base de datos =====
@@ -121,7 +145,9 @@ app.UseExceptionHandler(errorApp =>
             context.Response.StatusCode = StatusCodes.Status500InternalServerError;
             await context.Response.WriteAsJsonAsync(new
             {
-                mensaje = "Error interno del servidor"
+                mensaje = "Error interno del servidor",
+                errorReal = exception?.Message,
+                detalle = exception?.InnerException?.Message
             });
         }
     });
@@ -149,11 +175,27 @@ app.MapGet("/api/db-test", async (ApplicationDbContext db) =>
 
 
 
-app.UseHttpsRedirection();  // 1. Primero redirección HTTPS
-app.UseCors("AllowReact");  // 2. Luego CORS
+app.UseCors("AllowReact");
+app.UseHttpsRedirection();
 app.UseAuthentication();    // 3. Autenticación (lee el token)
 app.UseAuthorization();     // 4. Autorización (verifica permisos)
 app.MapHub<NotificacionesHub>("/api/notificacionesHub").AllowAnonymous();
+
+// ===== Auto-creación de tablas (Garantiza que ResolucionesDIAN exista) =====
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        context.Database.EnsureCreated(); // Esto creará las tablas si no existen
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Ocurrió un error al crear la base de datos.");
+    }
+}
 
 app.MapControllers();       // 5. Finalmente los controllers
 

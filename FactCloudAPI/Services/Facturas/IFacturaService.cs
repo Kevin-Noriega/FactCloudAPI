@@ -1,6 +1,6 @@
-﻿using FactCloudAPI.DTOs.Facturas;
+using NubeeAPI.DTOs.Facturas;
 
-namespace FactCloudAPI.Services.Facturas
+namespace NubeeAPI.Services.Facturas
 {
     public interface IFacturaService
     {

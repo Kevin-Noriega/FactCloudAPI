@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace FactCloudAPI.Models.Planes
+namespace NubeeAPI.Models.Planes
 {
     public class Addon
     {
@@ -19,7 +19,7 @@ namespace FactCloudAPI.Models.Planes
 
         [Required]
         [MaxLength(50)]
-        public string Unidad { get; set; } = "mes"; // "mes", "año", "unidad"
+        public string Unidad { get; set; } = "mes"; // "mes", "a�o", "unidad"
 
         [Required]
         [MaxLength(50)]

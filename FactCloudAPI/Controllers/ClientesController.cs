@@ -1,13 +1,13 @@
-using FactCloudAPI.Data;
-using FactCloudAPI.DTOs.Clientes;
-using FactCloudAPI.Models;
-using FactCloudAPI.Services.Clientes;
+using NubeeAPI.Data;
+using NubeeAPI.DTOs.Clientes;
+using NubeeAPI.Models;
+using NubeeAPI.Services.Clientes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-namespace FactCloudAPI.Controllers
+namespace NubeeAPI.Controllers
 {
 
     [Authorize]

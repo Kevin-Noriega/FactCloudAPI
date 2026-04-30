@@ -1,15 +1,15 @@
-﻿using FactCloudAPI.Data;
-using FactCloudAPI.DTOs;
-using FactCloudAPI.DTOs.Impuestos;
-using FactCloudAPI.Models;
-using FactCloudAPI.Models.Impuestos;
+using NubeeAPI.Data;
+using NubeeAPI.DTOs;
+using NubeeAPI.DTOs.Impuestos;
+using NubeeAPI.Models;
+using NubeeAPI.Models.Impuestos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Security.Claims;
 
-namespace FactCloudAPI.Controllers
+namespace NubeeAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -38,7 +38,7 @@ namespace FactCloudAPI.Controllers
                 .Include(i => i.CuentaCreditoCompras)
                 .Include(i => i.CuentaDevolucionVentas)
                 .Include(i => i.CuentaDevolucionCompras)
-                .Where(i => i.UsuarioId == null || i.UsuarioId == usuarioId) // ← fix
+                .Where(i => i.UsuarioId == null || i.UsuarioId == usuarioId) // ? fix
                 .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(tipo))
@@ -52,7 +52,7 @@ namespace FactCloudAPI.Controllers
 
             return Ok(impuestos);
         }
-        // ── GET /api/impuestos/{id} ───────────────────────────────────────
+        // -- GET /api/impuestos/{id} ---------------------------------------
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -70,7 +70,7 @@ namespace FactCloudAPI.Controllers
             return Ok(MapToDto(impuesto));
         }
 
-        // ── POST /api/impuestos ───────────────────────────────────────────
+        // -- POST /api/impuestos -------------------------------------------
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CrearImpuestoDto dto)
         {
@@ -78,16 +78,16 @@ namespace FactCloudAPI.Controllers
 
             var usuarioId = GetUsuarioId();
 
-            // Verificar código único
+            // Verificar c�digo �nico
             if (await _db.Impuestos.AnyAsync(i => i.UsuarioId == usuarioId && i.Codigo == dto.Codigo))
-                return Conflict(new { message = $"Ya existe un impuesto con el código {dto.Codigo}." });
+                return Conflict(new { message = $"Ya existe un impuesto con el c�digo {dto.Codigo}." });
 
             // Validar que las cuentas PUC existan y pertenezcan al usuario
             if (!await ValidarCuentasPUC(usuarioId,
                 dto.CuentaDebitoVentasId, dto.CuentaCreditoVentasId,
                 dto.CuentaDebitoComprasId, dto.CuentaCreditoComprasId,
                 dto.CuentaDevolucionVentasId, dto.CuentaDevolucionComprasId))
-                return BadRequest(new { message = "Una o más cuentas PUC no existen o no pertenecen a tu empresa." });
+                return BadRequest(new { message = "Una o m�s cuentas PUC no existen o no pertenecen a tu empresa." });
 
             var impuesto = new Impuesto
             {
@@ -109,7 +109,7 @@ namespace FactCloudAPI.Controllers
             _db.Impuestos.Add(impuesto);
             await _db.SaveChangesAsync();
 
-            // Recargar con navegación
+            // Recargar con navegaci�n
             await _db.Entry(impuesto).Reference(i => i.CuentaDebitoVentas).LoadAsync();
             await _db.Entry(impuesto).Reference(i => i.CuentaCreditoVentas).LoadAsync();
             await _db.Entry(impuesto).Reference(i => i.CuentaDebitoCompras).LoadAsync();
@@ -118,7 +118,7 @@ namespace FactCloudAPI.Controllers
             return CreatedAtAction(nameof(GetById), new { id = impuesto.Id }, MapToDto(impuesto));
         }
 
-        // ── PUT /api/impuestos/{id} ───────────────────────────────────────
+        // -- PUT /api/impuestos/{id} ---------------------------------------
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] ActualizarImpuestoDto dto)
         {
@@ -152,7 +152,7 @@ namespace FactCloudAPI.Controllers
             return Ok(MapToDto(impuesto));
         }
 
-        // ── DELETE /api/impuestos/{id} ────────────────────────────────────
+        // -- DELETE /api/impuestos/{id} ------------------------------------
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -162,19 +162,19 @@ namespace FactCloudAPI.Controllers
 
             if (impuesto == null) return NotFound();
 
-            // Verificar si está siendo usado en detalles de facturas
+            // Verificar si est� siendo usado en detalles de facturas
             var enUso = await _db.DetalleFacturaImpuestos
                 .AnyAsync(d => d.ImpuestoId == id);
 
             if (enUso)
-                return BadRequest(new { message = "Este impuesto está en uso en facturas existentes. Márcalo como inactivo en lugar de eliminarlo." });
+                return BadRequest(new { message = "Este impuesto est� en uso en facturas existentes. M�rcalo como inactivo en lugar de eliminarlo." });
 
             _db.Impuestos.Remove(impuesto);
             await _db.SaveChangesAsync();
             return NoContent();
         }
 
-        // ── Helpers ───────────────────────────────────────────────────────
+        // -- Helpers -------------------------------------------------------
         private async Task<bool> ValidarCuentasPUC(int usuarioId, params int?[] ids)
         {
             var idsValidos = ids.Where(i => i.HasValue).Select(i => i!.Value).Distinct().ToList();

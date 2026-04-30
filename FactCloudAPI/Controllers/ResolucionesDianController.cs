@@ -1,12 +1,12 @@
-﻿using FactCloudAPI.Data;
-using FactCloudAPI.Models;
-using FactCloudAPI.Models.Usuarios;
+using NubeeAPI.Data;
+using NubeeAPI.Models;
+using NubeeAPI.Models.Usuarios;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-namespace FactCloudAPI.Controllers
+namespace NubeeAPI.Controllers
 {
     [ApiController]
     [Route("api/negocios/{negocioId:int}/resoluciones-dian")]
@@ -45,13 +45,13 @@ namespace FactCloudAPI.Controllers
                 .FirstOrDefaultAsync(r => r.Id == id && r.NegocioId == negocioId);
 
             if (resolucion == null)
-                return NotFound(new { mensaje = "Resolución no encontrada." });
+                return NotFound(new { mensaje = "Resoluci�n no encontrada." });
 
             return Ok(resolucion);
         }
 
         // GET api/negocios/5/resoluciones-dian/activa
-        // Devuelve la resolución actualmente activa (para generar documentos)
+        // Devuelve la resoluci�n actualmente activa (para generar documentos)
         [HttpGet("activa")]
         public async Task<IActionResult> GetActiva(int negocioId)
         {
@@ -62,7 +62,7 @@ namespace FactCloudAPI.Controllers
                 .FirstOrDefaultAsync();
 
             if (activa == null)
-                return NotFound(new { mensaje = "No hay una resolución activa configurada." });
+                return NotFound(new { mensaje = "No hay una resoluci�n activa configurada." });
 
             return Ok(activa);
         }
@@ -99,9 +99,9 @@ namespace FactCloudAPI.Controllers
                 .FirstOrDefaultAsync(r => r.Id == id && r.NegocioId == negocioId);
 
             if (resolucion == null)
-                return NotFound(new { mensaje = "Resolución no encontrada." });
+                return NotFound(new { mensaje = "Resoluci�n no encontrada." });
 
-            // Si se activa esta, desactivar las demás
+            // Si se activa esta, desactivar las dem�s
             if (dto.Activa && !resolucion.Activa)
             {
                 var otras = await _context.ResolucionesDIAN
@@ -133,10 +133,10 @@ namespace FactCloudAPI.Controllers
                 .FirstOrDefaultAsync(r => r.Id == id && r.NegocioId == negocioId);
 
             if (resolucion == null)
-                return NotFound(new { mensaje = "Resolución no encontrada." });
+                return NotFound(new { mensaje = "Resoluci�n no encontrada." });
 
             if (resolucion.Activa)
-                return BadRequest(new { mensaje = "No puedes eliminar la resolución activa." });
+                return BadRequest(new { mensaje = "No puedes eliminar la resoluci�n activa." });
 
             _context.ResolucionesDIAN.Remove(resolucion);
             await _context.SaveChangesAsync();
@@ -144,7 +144,7 @@ namespace FactCloudAPI.Controllers
             return NoContent();
         }
 
-        // ─── helpers ─────────────────────────────────────────────────
+        // --- helpers -------------------------------------------------
 
         private async Task<bool> OwnsNegocio(int negocioId)
         {

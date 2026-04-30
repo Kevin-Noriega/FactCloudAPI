@@ -1,9 +1,9 @@
-using FactCloudAPI.Models.Suscripciones;
-using FactCloudAPI.Models.Usuarios;
+using NubeeAPI.Models.Suscripciones;
+using NubeeAPI.Models.Usuarios;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace FactCloudAPI.Models
+namespace NubeeAPI.Models
 {
     public class Usuario
     {

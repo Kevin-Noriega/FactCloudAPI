@@ -1,6 +1,6 @@
-ï»¿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace FactCloudAPI.DTOs.DocumentoSoporte
+namespace NubeeAPI.DTOs.DocumentoSoporte
 {
 
     public class DocumentoSoporteCreateDto
@@ -13,7 +13,7 @@ namespace FactCloudAPI.DTOs.DocumentoSoporte
         [StringLength(20)]
         public string ProveedorNit { get; set; }
 
-        [Required(ErrorMessage = "El tipo de identificaciÃ³n es requerido")]
+        [Required(ErrorMessage = "El tipo de identificación es requerido")]
         [StringLength(5)]
         public string ProveedorTipoIdentificacion { get; set; }
 
@@ -33,7 +33,7 @@ namespace FactCloudAPI.DTOs.DocumentoSoporte
         [StringLength(20)]
         public string ProveedorTelefono { get; set; }
 
-        [Required(ErrorMessage = "La descripciÃ³n es requerida")]
+        [Required(ErrorMessage = "La descripción es requerida")]
         [StringLength(500)]
         public string Descripcion { get; set; }
 

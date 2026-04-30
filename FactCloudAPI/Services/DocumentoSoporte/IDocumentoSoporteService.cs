@@ -1,10 +1,10 @@
-ï»¿using FactCloudAPI.Models;
-using FactCloudAPI.Models.Usuarios;
+using NubeeAPI.Models;
+using NubeeAPI.Models.Usuarios;
 using System.Security.Cryptography;
 using System.Text;
 using System.Xml.Linq;
 
-namespace FactCloudAPI.Services
+namespace NubeeAPI.Services
 {
     public interface IDocumentoSoporteService
     {
@@ -25,7 +25,7 @@ namespace FactCloudAPI.Services
         }
 
         /// <summary>
-        /// Genera el CUDS segÃºn especificaciones DIAN
+        /// Genera el CUDS según especificaciones DIAN
         /// Algoritmo: SHA-384 del string concatenado
         /// </summary>
         public string GenerarCUDS(string prefijo, int consecutivo, DateTime fecha,
@@ -42,7 +42,7 @@ namespace FactCloudAPI.Services
             string horaFormato = fecha.ToString("HHmmss");
             string valorFormato = valorTotal.ToString("0.00").Replace(",", "");
 
-            // ConstrucciÃ³n del string base para CUDS
+            // Construcción del string base para CUDS
             string cadenaBase = $"{prefijo}{consecutivo:D10}{fechaFormato}{horaFormato}" +
                                $"{valorFormato}01{valorFormato}04{valorFormato}" +
                                $"{valorFormato}{nitAdquiriente}{nitProveedor}" +
@@ -57,7 +57,7 @@ namespace FactCloudAPI.Services
         }
 
         /// <summary>
-        /// Genera el XML del documento soporte segÃºn anexo tÃ©cnico DIAN
+        /// Genera el XML del documento soporte según anexo técnico DIAN
         /// </summary>
         public string GenerarXML(DocumentoSoporte documento, Usuario usuario, Negocio negocio )
         {
@@ -78,11 +78,11 @@ namespace FactCloudAPI.Services
                     new XAttribute(XNamespace.Xmlns + "xsi", xsi),
                     new XAttribute(XNamespace.Xmlns + "ds", ds),
 
-                    // UBL VersiÃ³n
+                    // UBL Versión
                     new XElement(cbc + "UBLVersionID", "UBL 2.1"),
                     new XElement(cbc + "CustomizationID", "10"),
                     new XElement(cbc + "ProfileID", "DIAN 2.1: Documento Soporte en Adquisiciones efectuadas a Sujetos No Obligados a Facturar"),
-                    new XElement(cbc + "ProfileExecutionID", "1"), // 1=ProducciÃ³n, 2=Pruebas
+                    new XElement(cbc + "ProfileExecutionID", "1"), // 1=Producción, 2=Pruebas
 
                     // ID del documento (CUDS)
                     new XElement(cbc + "ID", documento.CUDS),
@@ -90,20 +90,20 @@ namespace FactCloudAPI.Services
                         new XAttribute("schemeName", "CUDS-SHA384"),
                         documento.CUDS),
 
-                    // Fecha y hora de emisiÃ³n
+                    // Fecha y hora de emisión
                     new XElement(cbc + "IssueDate", documento.FechaGeneracion.ToString("yyyy-MM-dd")),
                     new XElement(cbc + "IssueTime", documento.FechaGeneracion.ToString("HH:mm:ss") + "-05:00"),
 
                     // Tipo de documento (05 = Documento Soporte)
                     new XElement(cbc + "InvoiceTypeCode", "05"),
 
-                    // NumeraciÃ³n
+                    // Numeración
                     new XElement(cbc + "Note", $"{documento.Prefijo}{documento.Consecutivo}"),
 
                     // Moneda
                     new XElement(cbc + "DocumentCurrencyCode", "COP"),
 
-                    // InformaciÃ³n del Adquiriente (quien emite el documento soporte)
+                    // Información del Adquiriente (quien emite el documento soporte)
                     new XElement(cac + "AccountingSupplierParty",
                         new XElement(cac + "Party",
                             new XElement(cac + "PartyIdentification",
@@ -112,10 +112,10 @@ namespace FactCloudAPI.Services
                                     new XAttribute("schemeID", usuario.TipoIdentificacion),
                                     usuario.NumeroIdentificacion)),
                             new XElement(cac + "PartyName",
-                                new XElement(cbc + "Name", negocio.NombreComercial)),
+                                new XElement(cbc + "Name", negocio.NombreNegocio)),
                             new XElement(cac + "PhysicalLocation",
                                 new XElement(cac + "Address",
-                                    new XElement(cbc + "ID", "11001"), // CÃ³digo ciudad
+                                    new XElement(cbc + "ID", "11001"), // Código ciudad
                                     new XElement(cbc + "CityName", negocio.Ciudad),
                                     new XElement(cbc + "CountrySubentity", negocio.Departamento),
                                     new XElement(cbc + "CountrySubentityCode", "11"),
@@ -124,7 +124,7 @@ namespace FactCloudAPI.Services
                                     new XElement(cac + "Country",
                                         new XElement(cbc + "IdentificationCode", "CO")))),
                             new XElement(cac + "PartyTaxScheme",
-                                new XElement(cbc + "RegistrationName", negocio.NombreComercial),
+                                new XElement(cbc + "RegistrationName", negocio.NombreNegocio),
                                 new XElement(cbc + "CompanyID",
                                     new XAttribute("schemeName", usuario.TipoIdentificacion),
                                     usuario.NumeroIdentificacion),
@@ -132,7 +132,7 @@ namespace FactCloudAPI.Services
                                     new XElement(cbc + "ID", "01"),
                                     new XElement(cbc + "Name", "IVA"))))),
 
-                    // InformaciÃ³n del Proveedor (No obligado a facturar)
+                    // Información del Proveedor (No obligado a facturar)
                     new XElement(cac + "AccountingCustomerParty",
                         new XElement(cac + "Party",
                             new XElement(cac + "PartyIdentification",
@@ -161,7 +161,7 @@ namespace FactCloudAPI.Services
                             new XAttribute("currencyID", "COP"),
                             documento.ValorTotal.ToString("0.00"))),
 
-                    // LÃ­neas del documento
+                    // Líneas del documento
                     new XElement(cac + "InvoiceLine",
                         new XElement(cbc + "ID", "1"),
                         new XElement(cbc + "InvoicedQuantity", "1"),
@@ -185,22 +185,22 @@ namespace FactCloudAPI.Services
         /// </summary>
         public byte[] GenerarPDF(DocumentoSoporte documento, Usuario usuario)
         {
-            // AquÃ­ puedes usar librerÃ­as como iTextSharp, QuestPDF o similar
+            // Aquí puedes usar librerías como iTextSharp, QuestPDF o similar
             // Por ahora retorno un placeholder
-            // TODO: Implementar generaciÃ³n de PDF con representaciÃ³n grÃ¡fica DIAN
+            // TODO: Implementar generación de PDF con representación gráfica DIAN
 
             return Encoding.UTF8.GetBytes("PDF Placeholder - Implementar con iTextSharp/QuestPDF");
         }
 
         /// <summary>
-        /// EnvÃ­a el documento a DIAN para validaciÃ³n
+        /// Envía el documento a DIAN para validación
         /// </summary>
         public async Task<bool> EnviarADIAN(DocumentoSoporte documento, string xmlContent)
         {
-            // TODO: Implementar integraciÃ³n con Web Services DIAN
+            // TODO: Implementar integración con Web Services DIAN
             // - Firmar XML con certificado digital
             // - Enviar a DIAN mediante SOAP/REST
-            // - Procesar respuesta (CUDS vÃ¡lido, aceptado/rechazado)
+            // - Procesar respuesta (CUDS válido, aceptado/rechazado)
 
             // Por ahora simulo respuesta exitosa
             await Task.Delay(100);

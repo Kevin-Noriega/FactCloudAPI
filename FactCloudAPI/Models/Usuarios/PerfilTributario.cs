@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace FactCloudAPI.Models.Usuarios
+namespace NubeeAPI.Models.Usuarios
 {
     public class PerfilTributario
     {

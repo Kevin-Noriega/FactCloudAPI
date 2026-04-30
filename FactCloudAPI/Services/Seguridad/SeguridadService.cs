@@ -1,9 +1,9 @@
-﻿using FactCloudAPI.Data;
-using FactCloudAPI.Models;
-using FactCloudAPI.Models.Sesiones;
+using NubeeAPI.Data;
+using NubeeAPI.Models;
+using NubeeAPI.Models.Sesiones;
 using Microsoft.AspNetCore.Http;
 
-namespace FactCloudAPI.Services.Seguridad
+namespace NubeeAPI.Services.Seguridad
 {
     public class SeguridadService
     {

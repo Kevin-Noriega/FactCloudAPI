@@ -1,8 +1,8 @@
-ï»¿using FactCloudAPI.Data;
-using FactCloudAPI.DTOs.Facturas;
-using FactCloudAPI.Models;
+using NubeeAPI.Data;
+using NubeeAPI.DTOs.Facturas;
+using NubeeAPI.Models;
 using Microsoft.EntityFrameworkCore;
-namespace FactCloudAPI.Services.Facturas
+namespace NubeeAPI.Services.Facturas
 {
     public class FacturaService : IFacturaService
     {
@@ -71,7 +71,7 @@ namespace FactCloudAPI.Services.Facturas
 
         public async Task<int> CrearAsync(FacturaCreateDto dto, int usuarioId)
         {
-            // aquÃ­ va lÃ³gica de stock, totales, impuestos, etc.
+            // aquí va lógica de stock, totales, impuestos, etc.
             // (la dejamos lista para siguiente paso)
             var factura = new Factura
             {

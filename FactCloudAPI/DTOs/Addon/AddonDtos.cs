@@ -1,6 +1,6 @@
-﻿namespace FactCloudAPI.DTOs.Addons
+namespace NubeeAPI.DTOs.Addons
 {
-    // ── Response: addon disponible en la tienda ──
+    // -- Response: addon disponible en la tienda --
     public class AddonResponseDto
     {
         public int Id { get; set; }
@@ -13,7 +13,7 @@
         public bool Contratado { get; set; } // true si el usuario ya lo tiene
     }
 
-    // ── Response: addon contratado por el usuario ──
+    // -- Response: addon contratado por el usuario --
     public class UsuarioAddonResponseDto
     {
         public int Id { get; set; }
@@ -29,13 +29,13 @@
         public bool Activo { get; set; }
     }
 
-    // ── Request: agregar addons ──
+    // -- Request: agregar addons --
     public class AgregarAddonsRequest
     {
         public List<int> Addons { get; set; } = new();
     }
 
-    // ── Request: cancelar addon ──
+    // -- Request: cancelar addon --
     public class CancelarAddonRequest
     {
         public int AddonId { get; set; }

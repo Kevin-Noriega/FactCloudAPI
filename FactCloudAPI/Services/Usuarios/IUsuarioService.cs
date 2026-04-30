@@ -1,6 +1,6 @@
-﻿using FactCloudAPI.DTOs.Usuarios;
-using FactCloudAPI.Models;
-namespace FactCloudAPI.Services.Usuarios
+using NubeeAPI.DTOs.Usuarios;
+using NubeeAPI.Models;
+namespace NubeeAPI.Services.Usuarios
 {
     public interface IUsuarioService
     {

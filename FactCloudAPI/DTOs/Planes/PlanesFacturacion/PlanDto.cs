@@ -1,4 +1,4 @@
-﻿namespace FactCloudAPI.DTOs.Planes.PlanesFacturacion
+namespace NubeeAPI.DTOs.Planes.PlanesFacturacion
 {
     public class PlanDto
     {

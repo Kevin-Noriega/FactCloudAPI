@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace FactCloudAPI.DTOs.Usuarios
+namespace NubeeAPI.DTOs.Usuarios
 {
     public class PreRegistroDto
     {

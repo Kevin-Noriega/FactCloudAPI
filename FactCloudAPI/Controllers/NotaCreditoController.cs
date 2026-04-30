@@ -1,13 +1,13 @@
 
-using FactCloudAPI.Data;
-using FactCloudAPI.DTOs.NotaCredito;
-using FactCloudAPI.DTOs.NotaDebito;
-using FactCloudAPI.Models;
+using NubeeAPI.Data;
+using NubeeAPI.DTOs.NotaCredito;
+using NubeeAPI.DTOs.NotaDebito;
+using NubeeAPI.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace FactCloudAPI.Controllers
+namespace NubeeAPI.Controllers
 {
     [Authorize]
     [ApiController]

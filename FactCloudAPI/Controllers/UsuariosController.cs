@@ -1,10 +1,10 @@
-﻿using FactCloudAPI.Data;
-using FactCloudAPI.DTOs.Login;
-using FactCloudAPI.DTOs.Usuarios;
-using FactCloudAPI.Models;
-using FactCloudAPI.Models.Planes;
-using FactCloudAPI.Models.Suscripciones;
-using FactCloudAPI.Models.Usuarios;
+using NubeeAPI.Data;
+using NubeeAPI.DTOs.Login;
+using NubeeAPI.DTOs.Usuarios;
+using NubeeAPI.Models;
+using NubeeAPI.Models.Planes;
+using NubeeAPI.Models.Suscripciones;
+using NubeeAPI.Models.Usuarios;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,9 +12,9 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using static FactCloudAPI.DTOs.Login.UsuarioLoginDto;
+using static NubeeAPI.DTOs.Login.UsuarioLoginDto;
 
-namespace FactCloudAPI.Controllers
+namespace NubeeAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -95,7 +95,7 @@ namespace FactCloudAPI.Controllers
                         telefono = usuario.Telefono,
                         estado = usuario.Estado,
                         SuscripcionId = suscripcionActiva?.PlanFacturacionId ?? 0,
-                        PlanNombre = suscripcionActiva?.PlanFacturacion.Nombre ?? "Prueba",
+                        PlanNombre = suscripcionActiva?.PlanFacturacion?.Nombre ?? "Prueba",
                         DocumentosRestantes = suscripcionActiva?.DocumentosUsados ?? 0,
                         FechaExpiracion = suscripcionActiva?.FechaFin,
                         tipoIdentificacion = usuario.TipoIdentificacion,
@@ -106,8 +106,8 @@ namespace FactCloudAPI.Controllers
                     negocio = usuario.Negocio != null ? new
                     {
                         id = usuario.Negocio.Id,
-                        nombreNegocio = usuario.Negocio.NombreComercial,
-                        nit = usuario.Negocio.NumeroIdentificacionE ?? "no hay",
+                        nombreNegocio = usuario.Negocio.NombreNegocio,
+                        nit = usuario.Negocio.Nit ?? "no hay",
                         dvNit = usuario.Negocio.DvNit,
                         direccion = usuario.Negocio.Direccion,
                         ciudad = usuario.Negocio.Ciudad,
@@ -115,10 +115,10 @@ namespace FactCloudAPI.Controllers
                     } : null,
                     suscripcion = suscripcionActiva != null ? new
                     {
-                        plan = suscripcionActiva.PlanFacturacion.Nombre,
-                        documentosIncluidos = suscripcionActiva.PlanFacturacion.LimiteDocumentosAnuales,
+                        plan = suscripcionActiva.PlanFacturacion?.Nombre ?? "Sin plan",
+                        documentosIncluidos = suscripcionActiva.PlanFacturacion?.LimiteDocumentosAnuales ?? 0,
                         documentosUsados = suscripcionActiva.DocumentosUsados,
-                        documentosRestantes = (suscripcionActiva.PlanFacturacion.LimiteDocumentosAnuales ?? 0) - suscripcionActiva.DocumentosUsados,
+                        documentosRestantes = (suscripcionActiva.PlanFacturacion?.LimiteDocumentosAnuales ?? 0) - suscripcionActiva.DocumentosUsados,
                         fechaExpiracion = suscripcionActiva.FechaFin,
                         activa = suscripcionActiva.Activa
                     } : null
@@ -139,7 +139,7 @@ namespace FactCloudAPI.Controllers
             {
                 Console.WriteLine($"[DEBUG] UsuarioId: {id}, Estado: {dto.Estado}");
 
-                var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
                 if (id != usuarioId)
                 {
                     Console.WriteLine("[DEBUG] Forbid - IDs no coinciden");
@@ -210,15 +210,14 @@ namespace FactCloudAPI.Controllers
                 var negocio = new Negocio
                 {
                     UsuarioId = usuario.Id,
-                    NombreComercial = dto.NombreComercial,
-                    NumeroIdentificacionE = dto.NumeroIdentificacionE,
+                    NombreNegocio = dto.NombreNegocio,
+                    Nit = dto.Nit,
                     DvNit = dto.DvNit,
                     Direccion = dto.Direccion,
                     Ciudad = dto.Ciudad,
                     Departamento = dto.Departamento,
                     Telefono = dto.TelefonoNegocio,
-                    CorreoRecepcionDian = dto.CorreoRecepcionDian,
-                    CorreoElectronico = dto.CorreoRecepcionDian,
+                    Correo = dto.CorreoNegocio
                 };
 
                 _context.Negocios.Add(negocio);
@@ -278,8 +277,8 @@ namespace FactCloudAPI.Controllers
                         negocio = new
                         {
                             id = negocio.Id,
-                            nombre = negocio.NombreComercial,
-                            nit = negocio.NumeroIdentificacionE
+                            nombre = negocio.NombreNegocio,
+                            nit = negocio.Nit
                         },
                         suscripcion = new
                         {
@@ -381,14 +380,14 @@ namespace FactCloudAPI.Controllers
                 {
                     var negocio = new Negocio
                     {
-                        NombreComercial = dto.NombreComercial ?? $"Negocio de {usuario.Nombre}",
-                        NumeroIdentificacionE = dto.NumeroIdentificacionE,
+                        NombreNegocio = dto.NombreNegocio ?? $"Negocio de {usuario.Nombre}",
+                        Nit = dto.Nit,
                         DvNit = dto.DvNit,
                         Direccion = dto.Direccion,
                         Ciudad = dto.Ciudad,
                         Departamento = dto.Departamento,
                         Telefono = dto.TelefonoNegocio ?? usuario.Telefono,
-                        CorreoRecepcionDian = dto.CorreoRecepcionDian ?? usuario.Correo,
+                        Correo = dto.CorreoNegocio ?? usuario.Correo,
                         Pais = "CO",
                         UsuarioId = usuario.Id
                     };
@@ -427,7 +426,7 @@ namespace FactCloudAPI.Controllers
                         id = usuario.Id,
                         nombre = $"{usuario.Nombre} {usuario.Apellido}",
                         correo = usuario.Correo,
-                        negocio = usuario.Negocio?.NombreComercial
+                        negocio = usuario.Negocio?.NombreNegocio
                     },
                     suscripcion = new
                     {
@@ -517,8 +516,8 @@ namespace FactCloudAPI.Controllers
                     negocio = usuario.Negocio != null ? new
                     {
                         id = usuario.Negocio.Id,
-                        nombre = usuario.Negocio.NombreComercial,
-                        nit = usuario.Negocio.NumeroIdentificacionE,
+                        nombre = usuario.Negocio.NombreNegocio,
+                        nit = usuario.Negocio.Nit,
                         ciudad = usuario.Negocio.Ciudad
                     } : null,
                     suscripcion = new
@@ -555,7 +554,7 @@ namespace FactCloudAPI.Controllers
             if (usuario.Negocio != null)
             {
                 claims.Add(new Claim("NegocioId", usuario.Negocio.Id.ToString()));
-                claims.Add(new Claim("NegocioNombre", usuario.Negocio.NombreComercial));
+                claims.Add(new Claim("NegocioNombre", usuario.Negocio.NombreNegocio));
             }
 
             var tokenDescriptor = new SecurityTokenDescriptor

@@ -1,7 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace FactCloudAPI.Models
+namespace NubeeAPI.Models
 {
     [Table("RegistrosPendientes")]
     public class RegistroPendiente
@@ -16,7 +16,7 @@ namespace FactCloudAPI.Models
         [Required]
         [MaxLength(20)]
         public string Estado { get; set; } = "PENDING";
-        // ── Datos del usuario ──
+        // -- Datos del usuario --
         [MaxLength(200)]
         public string Nombre { get; set; } = "";
         [MaxLength(200)]
@@ -29,7 +29,7 @@ namespace FactCloudAPI.Models
         public string TipoIdentificacion { get; set; } = "";
         [MaxLength(50)]
         public string NumeroIdentificacion { get; set; } = "";
-        // ── Datos del negocio ──
+        // -- Datos del negocio --
         [MaxLength(200)]
         public string NombreNegocio { get; set; } = "";
         [MaxLength(50)]
@@ -46,7 +46,7 @@ namespace FactCloudAPI.Models
         public string? TelefonoNegocio { get; set; }
         [MaxLength(200)]
         public string? CorreoNegocio { get; set; }
-        // ── Datos del plan ──
+        // -- Datos del plan --
         public int PlanFacturacionId { get; set; }
         [MaxLength(20)]
         public DateTime? FechaAprobacion { get; set; }
@@ -62,7 +62,7 @@ namespace FactCloudAPI.Models
         public string DatosPlan { get; set; } // JSON serializado
 
         [MaxLength(50)]
-        public string Email { get; set; } // Para búsquedas rápidas
+        public string Email { get; set; } // Para b�squedas r�pidas
 
         
 

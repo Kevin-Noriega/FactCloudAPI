@@ -1,14 +1,14 @@
-﻿using FactCloudAPI.Models;
-using FactCloudAPI.Models.Cupones;
-using FactCloudAPI.Models.Impuestos;
-using FactCloudAPI.Models.Planes;
-using FactCloudAPI.Models.Sesiones;
-using FactCloudAPI.Models.Suscripciones;
-using FactCloudAPI.Models.Usuarios;
-using FactCloudAPI.Models.Wompi;
+using NubeeAPI.Models;
+using NubeeAPI.Models.Cupones;
+using NubeeAPI.Models.Impuestos;
+using NubeeAPI.Models.Planes;
+using NubeeAPI.Models.Sesiones;
+using NubeeAPI.Models.Suscripciones;
+using NubeeAPI.Models.Usuarios;
+using NubeeAPI.Models.Wompi;
 using Microsoft.EntityFrameworkCore;
 
-namespace FactCloudAPI.Data
+namespace NubeeAPI.Data
 {
     public class ApplicationDbContext : DbContext
     {
@@ -42,7 +42,6 @@ namespace FactCloudAPI.Data
         public DbSet<ContactoCliente> ContactosCliente { get; set; }
         public DbSet<ResolucionDIAN> ResolucionesDIAN { get; set; }
         public DbSet<UsuarioAddon> UsuariosAddons { get; set; }
-        public DbSet<PerfilTributario> PerfilesTributarios { get; set; }
         public DbSet<RepresentanteLegal> RepresentantesLegales { get; set; }
 
         // ── DbSets nuevos: PUC / Impuestos / Autoretenciones ──────────────
@@ -50,6 +49,8 @@ namespace FactCloudAPI.Data
         public DbSet<Impuesto> Impuestos { get; set; }
         public DbSet<Autoretencion> Autorretenciones { get; set; }
         public DbSet<DetalleFacturaImpuesto> DetalleFacturaImpuestos { get; set; }
+        public DbSet<PerfilTributario> PerfilesTributarios { get; set; }
+       
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -102,7 +103,7 @@ namespace FactCloudAPI.Data
             // ══════════════════════════════════════════════════════════════
             modelBuilder.Entity<Negocio>(entity =>
             {
-                entity.HasIndex(n => n.NumeroIdentificacionE)
+                entity.HasIndex(n => n.Nit)
                       .IsUnique();
 
                 entity.HasIndex(n => n.UsuarioId)
@@ -973,7 +974,7 @@ namespace FactCloudAPI.Data
             // ── Cupones ───────────────────────────────────────────────────
             modelBuilder.Entity<Cupon>().HasData(
                 new Cupon { Id = 1, Codigo = "WELCOMEFC", DescuentoPorcentaje = 20, MaxUsos = 30, IsActive = true },
-                new Cupon { Id = 2, Codigo = "FACTCLOUDPRO", DescuentoPorcentaje = 30, MaxUsos = 30, PlanId = 3, IsActive = true },
+                new Cupon { Id = 2, Codigo = "NUBEE S.A.SPRO", DescuentoPorcentaje = 30, MaxUsos = 30, PlanId = 3, IsActive = true },
                 new Cupon { Id = 3, Codigo = "STARTEFC25", DescuentoPorcentaje = 12, MaxUsos = 20, PlanId = 1, IsActive = true }
             );
 

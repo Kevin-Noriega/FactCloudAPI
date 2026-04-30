@@ -1,4 +1,4 @@
-﻿namespace FactCloudAPI.Models.Wompi
+namespace NubeeAPI.Models.Wompi
 {
     public class WompiTransactionRequest
     {

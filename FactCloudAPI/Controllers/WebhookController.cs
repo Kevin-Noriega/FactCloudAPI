@@ -1,7 +1,7 @@
-﻿using FactCloudAPI.Data;
-using FactCloudAPI.Models;
-using FactCloudAPI.Models.Suscripciones;
-using FactCloudAPI.Models.Usuarios;
+using NubeeAPI.Data;
+using NubeeAPI.Models;
+using NubeeAPI.Models.Suscripciones;
+using NubeeAPI.Models.Usuarios;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +10,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-namespace FactCloudAPI.Controllers
+namespace NubeeAPI.Controllers
 {
     [ApiController]
     [Route("api/payment")]
@@ -31,7 +31,7 @@ namespace FactCloudAPI.Controllers
         }
 
         [HttpPost("webhook")]
-        [AllowAnonymous] // Wompi envía sin autenticación JWT
+        [AllowAnonymous] // Wompi env�a sin autenticaci�n JWT
         public async Task<IActionResult> HandleWebhook([FromBody] JsonElement payload)
         {
             try
@@ -39,7 +39,7 @@ namespace FactCloudAPI.Controllers
                 _logger.LogInformation("Webhook recibido: {Event}",
                     payload.GetProperty("event").GetString());
 
-                // ── 1. Extraer datos ──
+                // -- 1. Extraer datos --
                 var eventType = payload.GetProperty("event").GetString();
 
                 // Solo nos interesa transaction.updated
@@ -57,17 +57,17 @@ namespace FactCloudAPI.Controllers
                 var reference = transaction.GetProperty("reference").GetString()!;
 
                 _logger.LogInformation(
-                    "Transacción actualizada: {Id} → {Status}",
+                    "Transacci�n actualizada: {Id} ? {Status}",
                     transaccionId, status);
 
-                // ── 2. Verificar firma SHA256 ──
+                // -- 2. Verificar firma SHA256 --
                 if (!VerificarFirmaWebhook(payload, transaction))
                 {
-                    _logger.LogWarning("Firma de webhook inválida para {Id}", transaccionId);
-                    return BadRequest(new { error = "Firma inválida" });
+                    _logger.LogWarning("Firma de webhook inv�lida para {Id}", transaccionId);
+                    return BadRequest(new { error = "Firma inv�lida" });
                 }
 
-                // ── 3. Buscar registro pendiente ──
+                // -- 3. Buscar registro pendiente --
                 var registro = await _context.RegistrosPendientes
                     .FirstOrDefaultAsync(r => r.TransaccionId == transaccionId);
 
@@ -78,7 +78,7 @@ namespace FactCloudAPI.Controllers
                     return Ok(); // Retornar 200 para que Wompi no reintente
                 }
 
-                // ── 4. Procesar según estado ──
+                // -- 4. Procesar seg�n estado --
                 switch (status)
                 {
                     case "APPROVED":
@@ -88,20 +88,20 @@ namespace FactCloudAPI.Controllers
                             registro.Estado = "APPROVED";
                             registro.FechaAprobacion = DateTime.UtcNow;
                             _logger.LogInformation(
-                                "✅ Usuario creado para transacción {Id}", transaccionId);
+                                "? Usuario creado para transacci�n {Id}", transaccionId);
                         }
                         break;
 
                     case "DECLINED":
                         registro.Estado = "DECLINED";
                         _logger.LogInformation(
-                            "❌ Pago rechazado para {Id}", transaccionId);
+                            "? Pago rechazado para {Id}", transaccionId);
                         break;
 
                     case "ERROR":
                         registro.Estado = "ERROR";
                         _logger.LogError(
-                            "⚠️ Error en pago {Id}", transaccionId);
+                            "?? Error en pago {Id}", transaccionId);
                         break;
 
                     case "VOIDED":
@@ -124,9 +124,9 @@ namespace FactCloudAPI.Controllers
             }
         }
 
-        // ─────────────────────────────────────────
+        // -----------------------------------------
         // Verificar firma SHA256 del webhook
-        // ─────────────────────────────────────────
+        // -----------------------------------------
         private bool VerificarFirmaWebhook(JsonElement payload, JsonElement transaction)
         {
             try
@@ -134,8 +134,8 @@ namespace FactCloudAPI.Controllers
                 var eventSecret = _config["Wompi:EventSecret"];
                 if (string.IsNullOrEmpty(eventSecret))
                 {
-                    _logger.LogWarning("EventSecret no configurado, omitiendo verificación");
-                    return true; // En desarrollo, permite sin verificación
+                    _logger.LogWarning("EventSecret no configurado, omitiendo verificaci�n");
+                    return true; // En desarrollo, permite sin verificaci�n
                 }
 
                 var signature = payload.GetProperty("signature");
@@ -202,15 +202,15 @@ namespace FactCloudAPI.Controllers
             return Convert.ToHexString(bytes).ToLower();
         }
 
-        // ─────────────────────────────────────────
+        // -----------------------------------------
         // Crear usuario desde registro pendiente
-        // ─────────────────────────────────────────
+        // -----------------------------------------
         private async Task CrearUsuarioDesdeRegistro(RegistroPendiente registro)
         {
-            // ══════════════════════════════════════════════════════
-            // ADAPTA ESTO A TU LÓGICA EXISTENTE DE CREAR USUARIO
+            // ------------------------------------------------------
+            // ADAPTA ESTO A TU L�GICA EXISTENTE DE CREAR USUARIO
             // Esto es equivalente a tu endpoint /Usuarios/crear-y-activar
-            // ══════════════════════════════════════════════════════
+            // ------------------------------------------------------
 
             // Verificar si ya existe
             var existente = await _context.Usuarios
@@ -229,7 +229,7 @@ namespace FactCloudAPI.Controllers
                 Nombre = registro.Nombre,
                 Correo = registro.Correo,
                 Telefono = registro.Telefono,
-                ContrasenaHash = registro.PasswordHash, // Ya está hasheado
+                ContrasenaHash = registro.PasswordHash, // Ya est� hasheado
                 TipoIdentificacion = registro.TipoIdentificacion,
                 NumeroIdentificacion = registro.NumeroIdentificacion,
                 Estado = true,
@@ -257,7 +257,7 @@ namespace FactCloudAPI.Controllers
 
             _context.Negocios.Add(negocio);
 
-            // Crear suscripción
+            // Crear suscripci�n
             var suscripcion = new SuscripcionFacturacion
             {
                 UsuarioId = usuario.Id,
@@ -273,7 +273,7 @@ namespace FactCloudAPI.Controllers
             await _context.SaveChangesAsync();
 
             _logger.LogInformation(
-                "✅ Usuario {Id} creado y activado via PSE webhook", usuario.Id);
+                "? Usuario {Id} creado y activado via PSE webhook", usuario.Id);
         }
     }
 }

@@ -1,7 +1,7 @@
-﻿using FactCloudAPI.Data;
-using FactCloudAPI.DTOs.Login;
-using FactCloudAPI.Models;
-using FactCloudAPI.Services.AuthLogin;
+using NubeeAPI.Data;
+using NubeeAPI.DTOs.Login;
+using NubeeAPI.Models;
+using NubeeAPI.Services.AuthLogin;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,12 +13,12 @@ using System.Security.Claims;
 public class AuthController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
-    private readonly IAuthService _authService; // ← Inyectar el service
+    private readonly IAuthService _authService; // ? Inyectar el service
 
     public AuthController(ApplicationDbContext context, IAuthService authService)
     {
         _context = context;
-        _authService = authService; // ← Inyectar
+        _authService = authService; // ? Inyectar
     }
 
     [HttpPost("login")]
@@ -34,22 +34,22 @@ public class AuthController : ControllerBase
 
         if (usuario == null)
         {
-            Console.WriteLine("❌ Usuario no encontrado");
+            Console.WriteLine("? Usuario no encontrado");
             return Unauthorized(new { message = "Credenciales incorrectas" });
         }
 
         if (!BCrypt.Net.BCrypt.Verify(model.Contrasena, usuario.ContrasenaHash))
         {
-            Console.WriteLine("❌ Contraseña incorrecta");
+            Console.WriteLine("? Contrase�a incorrecta");
             return Unauthorized(new { message = "Credenciales incorrectas" });
         }
 
-        Console.WriteLine($"✅ Usuario autenticado: {usuario.Correo}");
+        Console.WriteLine($"? Usuario autenticado: {usuario.Correo}");
 
         // 2. Verificar estado
         if (!usuario.Estado)
         {
-            Console.WriteLine("❌ Usuario desactivado");
+            Console.WriteLine("? Usuario desactivado");
             var diasRestantes = (int)(usuario.FechaDesactivacion.Value.AddDays(30) - DateTime.Now).TotalDays;
             return StatusCode(423, new { diasRestantes, mensaje = "Reactivar cuenta" });
         }
@@ -71,7 +71,7 @@ public class AuthController : ControllerBase
             .ReadJwtToken(accessToken)
             .Claims.First(c => c.Type == JwtRegisteredClaimNames.Jti).Value;
 
-        Console.WriteLine($"✅ Access token generado - JTI: {jwtId}");
+        Console.WriteLine($"? Access token generado - JTI: {jwtId}");
 
         // 5. Generar refresh token
         var refreshToken = _authService.GenerarRefreshToken();
@@ -87,7 +87,7 @@ public class AuthController : ControllerBase
         _context.RefreshTokens.Add(refreshTokenEntity);
         await _context.SaveChangesAsync();
 
-        Console.WriteLine($"✅ Refresh token guardado en BD: {refreshToken.Substring(0, 30)}...");
+        Console.WriteLine($"? Refresh token guardado en BD: {refreshToken.Substring(0, 30)}...");
         Console.WriteLine($"   Expira: {refreshTokenEntity.FechaExpiracion}");
 
         // 6. Enviar refresh token como cookie HttpOnly
@@ -100,7 +100,7 @@ public class AuthController : ControllerBase
             Path = "/"
         });
 
-        Console.WriteLine("✅ Cookie enviada al cliente");
+        Console.WriteLine("? Cookie enviada al cliente");
         Console.WriteLine("=== LOGIN EXITOSO ===\n");
 
         return Ok(new { token = accessToken, usuario = usuarioDto });
@@ -124,11 +124,11 @@ public class AuthController : ControllerBase
 
         if (!Request.Cookies.TryGetValue("refreshToken", out var refreshToken))
         {
-            Console.WriteLine("❌ Cookie 'refreshToken' NO encontrada");
+            Console.WriteLine("? Cookie 'refreshToken' NO encontrada");
             return Unauthorized(new { message = "Refresh token no encontrado" });
         }
 
-        Console.WriteLine($"✅ refreshToken encontrado: {refreshToken.Substring(0, 30)}...");
+        Console.WriteLine($"? refreshToken encontrado: {refreshToken.Substring(0, 30)}...");
 
         var storedToken = await _context.RefreshTokens
             .Include(rt => rt.Usuario)
@@ -136,54 +136,54 @@ public class AuthController : ControllerBase
 
         if (storedToken == null)
         {
-            Console.WriteLine("❌ Token NO existe en base de datos");
+            Console.WriteLine("? Token NO existe en base de datos");
 
-            // Debug: Mostrar últimos tokens en BD
+            // Debug: Mostrar �ltimos tokens en BD
             var recentTokens = await _context.RefreshTokens
                 .OrderByDescending(t => t.FechaCreacion)
                 .Take(3)
                 .Select(t => new { t.Token, t.UsuarioId, t.Usado, t.FechaCreacion })
                 .ToListAsync();
 
-            Console.WriteLine("Últimos 3 tokens en BD:");
+            Console.WriteLine("�ltimos 3 tokens en BD:");
             foreach (var t in recentTokens)
             {
                 var preview = t.Token.Substring(0, 30) + "...";
                 Console.WriteLine($"  - {preview} Usuario:{t.UsuarioId} Usado:{t.Usado} Creado:{t.FechaCreacion}");
             }
 
-            return Unauthorized(new { message = "Refresh token inválido" });
+            return Unauthorized(new { message = "Refresh token inv�lido" });
         }
 
-        Console.WriteLine($"✅ Token encontrado en BD - Usuario: {storedToken.Usuario.Correo}");
+        Console.WriteLine($"? Token encontrado en BD - Usuario: {storedToken.Usuario.Correo}");
 
         if (storedToken.Usado)
         {
-            Console.WriteLine("❌ Token ya fue usado");
+            Console.WriteLine("? Token ya fue usado");
             return Unauthorized(new { message = "Refresh token ya fue usado" });
         }
 
         if (storedToken.Revocado)
         {
-            Console.WriteLine("❌ Token revocado");
+            Console.WriteLine("? Token revocado");
             return Unauthorized(new { message = "Refresh token revocado" });
         }
 
         if (storedToken.FechaExpiracion < DateTime.UtcNow)
         {
-            Console.WriteLine($"❌ Token expirado");
-            Console.WriteLine($"   Expiró: {storedToken.FechaExpiracion}");
+            Console.WriteLine($"? Token expirado");
+            Console.WriteLine($"   Expir�: {storedToken.FechaExpiracion}");
             Console.WriteLine($"   Ahora: {DateTime.UtcNow}");
             return Unauthorized(new { message = "Refresh token expirado" });
         }
 
         if (!storedToken.Usuario.Estado)
         {
-            Console.WriteLine("❌ Usuario desactivado");
+            Console.WriteLine("? Usuario desactivado");
             return Unauthorized(new { message = "Usuario desactivado" });
         }
 
-        Console.WriteLine("✅ Todas las validaciones OK - Generando nuevos tokens");
+        Console.WriteLine("? Todas las validaciones OK - Generando nuevos tokens");
 
         // Marcar token actual como usado
         storedToken.Usado = true;
@@ -209,7 +209,7 @@ public class AuthController : ControllerBase
         _context.RefreshTokens.Add(nuevoRefreshTokenEntity);
         await _context.SaveChangesAsync();
 
-        Console.WriteLine($"✅ Nuevo token guardado en BD: {nuevoRefreshToken.Substring(0, 30)}...");
+        Console.WriteLine($"? Nuevo token guardado en BD: {nuevoRefreshToken.Substring(0, 30)}...");
 
         // Enviar cookie con el nuevo refresh token
         Response.Cookies.Append("refreshToken", nuevoRefreshToken, new CookieOptions
@@ -221,7 +221,7 @@ public class AuthController : ControllerBase
             Path = "/"
         });
 
-        Console.WriteLine("✅ Refresh completado exitosamente\n");
+        Console.WriteLine("? Refresh completado exitosamente\n");
 
         return Ok(new { token = nuevoAccessToken });
     }
@@ -247,7 +247,7 @@ public class AuthController : ControllerBase
         await _context.SaveChangesAsync();
         Response.Cookies.Delete("refreshToken");
 
-        return Ok(new { message = "Sesión cerrada correctamente" });
+        return Ok(new { message = "Sesi�n cerrada correctamente" });
     }
 }
 
