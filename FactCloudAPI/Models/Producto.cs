@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace FactCloudAPI.Models
+namespace NubeeAPI.Models
 {
     public class Producto
     {
@@ -18,7 +18,7 @@ namespace FactCloudAPI.Models
         // Producto o servicio
         public bool EsServicio { get; set; }
 
-        // Información general
+        // Informaci�n general
         [Required]
         [MaxLength(500)]
         public string Nombre { get; set; } = string.Empty;
@@ -26,19 +26,19 @@ namespace FactCloudAPI.Models
         [MaxLength(2000)]
         public string? Descripcion { get; set; }
 
-        // Codificación estándar
+        // Codificaci�n est�ndar
         [MaxLength(100)]
         public string? CodigoInterno { get; set; }
 
         [MaxLength(100)]
-        public string? CodigoUNSPSC { get; set; }  // ← Código arancelario DIAN
+        public string? CodigoUNSPSC { get; set; }  // ? C�digo arancelario DIAN
 
         // Unidad de medida
         [Required]
         [MaxLength(50)]
         public string UnidadMedida { get; set; } = "Unidad";
 
-        // Marca, modelo, categoría (producto)
+        // Marca, modelo, categor�a (producto)
         [MaxLength(200)]
         public string? Marca { get; set; }
 
@@ -48,7 +48,7 @@ namespace FactCloudAPI.Models
         [MaxLength(200)]
         public string? Categoria { get; set; }
 
-        // Código de barras (solo producto)
+        // C�digo de barras (solo producto)
         [MaxLength(200)]
         public string? CodigoBarras { get; set; }
 
@@ -71,17 +71,17 @@ namespace FactCloudAPI.Models
 
         // Inventario (solo producto)
         [Column(TypeName = "int")]
-        public int? CantidadDisponible { get; set; }  // ← ✅ Nullable
+        public int? CantidadDisponible { get; set; }  // ? ? Nullable
 
         [Column(TypeName = "int")]
-        public int CantidadMinima { get; set; } = 0;  // ← ✅ Stock mínimo
+        public int CantidadMinima { get; set; } = 0;  // ? ? Stock m�nimo
 
         // Tipo producto/servicio DIAN
         [MaxLength(50)]
         public string? TipoProducto { get; set; }
 
         // Estado / tracking
-        public bool Activo { get; set; } = true;  // ← `estado` del front
+        public bool Activo { get; set; } = true;  // ? `estado` del front
         public DateTime FechaRegistro { get; set; } = DateTime.Now;
 
         // Relaciones

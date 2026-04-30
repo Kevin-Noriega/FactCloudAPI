@@ -1,7 +1,7 @@
-﻿using FactCloudAPI.Data;
+using NubeeAPI.Data;
 using Microsoft.EntityFrameworkCore;
 
-namespace FactCloudAPI.Services
+namespace NubeeAPI.Services
 {
     public class UsuariosDesactivadosService : BackgroundService
     {

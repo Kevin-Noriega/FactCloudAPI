@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 
-namespace FactCloudAPI.Controllers
+namespace NubeeAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

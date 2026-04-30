@@ -1,4 +1,4 @@
-﻿namespace FactCloudAPI.DTOs.Cupones
+namespace NubeeAPI.DTOs.Cupones
 {
     public class CuponValidateResponseDto
     {

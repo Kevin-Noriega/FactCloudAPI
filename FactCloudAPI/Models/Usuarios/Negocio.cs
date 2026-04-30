@@ -1,7 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace FactCloudAPI.Models.Usuarios
+namespace NubeeAPI.Models.Usuarios
 {
     public class Negocio
     {
@@ -35,7 +35,7 @@ namespace FactCloudAPI.Models.Usuarios
         public ConfiguracionDian ConfiguracionDIAN { get; set; }
         public PerfilTributario? PerfilTributario { get; set; }
         public RepresentanteLegal? RepresentanteLegal { get; set; }
-        public ICollection<ResolucionDIAN> Resoluciones { get; set; } = new List<ResolucionDIAN>();
+        public ICollection<ResolucionDIAN>? Resoluciones { get; set; } = new List<ResolucionDIAN>();
         [NotMapped]
         public ResolucionDIAN? ResolucionActiva =>
            Resoluciones?.FirstOrDefault(r => r.EstaVigente);

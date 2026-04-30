@@ -1,7 +1,7 @@
-﻿using FactCloudAPI.Models;
+using NubeeAPI.Models;
 using System.Security.Cryptography;
 using System.Text;
-namespace FactCloudAPI.Services
+namespace NubeeAPI.Services
 {
     public class CufeService
     {

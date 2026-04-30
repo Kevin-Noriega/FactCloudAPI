@@ -1,13 +1,13 @@
-ï»¿using FactCloudAPI.Data;
-using FactCloudAPI.DTOs.Habilitacion;
-using FactCloudAPI.Models;
-using FactCloudAPI.Models.Usuarios;
+using NubeeAPI.Data;
+using NubeeAPI.DTOs.Habilitacion;
+using NubeeAPI.Models;
+using NubeeAPI.Models.Usuarios;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-namespace FactCloudAPI.Controllers
+namespace NubeeAPI.Controllers
 {
     [Authorize]
     [Route("api/[controller]")]
@@ -89,7 +89,7 @@ namespace FactCloudAPI.Controllers
                 .FirstOrDefaultAsync(c => c.NegocioId == negocio.Id)
                 ?? new ConfiguracionDian { NegocioId = negocio.Id };
 
-            // Mapear DTO â†’ campos reales
+            // Mapear DTO ? campos reales
             config.SoftwareProveedor = dto.NitFabricante;
             config.SoftwarePIN = dto.CodigoSoftware;
            // config.PrefijoAutorizadoDIAN = dto.Prefijo ?? "";
@@ -127,7 +127,7 @@ namespace FactCloudAPI.Controllers
             if (uid == null) return Unauthorized();
 
             if (dto.NumeroAutorizacion?.Length != 14)
-                return BadRequest(new { mensaje = "El nÃºmero de autorizaciÃ³n debe tener 14 dÃ­gitos." });
+                return BadRequest(new { mensaje = "El número de autorización debe tener 14 dígitos." });
 
             var negocio = await GetNegocioAsync(uid.Value);
             if (negocio == null)
@@ -154,7 +154,7 @@ namespace FactCloudAPI.Controllers
             });
 
             await _db.SaveChangesAsync();
-            return Ok(new { mensaje = "ResoluciÃ³n registrada. HabilitaciÃ³n completa." });
+            return Ok(new { mensaje = "Resolución registrada. Habilitación completa." });
         }
     }
 }

@@ -1,10 +1,10 @@
-using FactCloudAPI.Data;
-using FactCloudAPI.DTOs.Login;
-using FactCloudAPI.DTOs.Usuarios;
-using FactCloudAPI.Models;
-using FactCloudAPI.Models.Planes;
-using FactCloudAPI.Models.Suscripciones;
-using FactCloudAPI.Models.Usuarios;
+using NubeeAPI.Data;
+using NubeeAPI.DTOs.Login;
+using NubeeAPI.DTOs.Usuarios;
+using NubeeAPI.Models;
+using NubeeAPI.Models.Planes;
+using NubeeAPI.Models.Suscripciones;
+using NubeeAPI.Models.Usuarios;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,9 +12,9 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using static FactCloudAPI.DTOs.Login.UsuarioLoginDto;
+using static NubeeAPI.DTOs.Login.UsuarioLoginDto;
 
-namespace FactCloudAPI.Controllers
+namespace NubeeAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

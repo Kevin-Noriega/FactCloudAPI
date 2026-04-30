@@ -1,7 +1,7 @@
-﻿using FactCloudAPI.Data;
-using FactCloudAPI.DTOs.Productos;
-using FactCloudAPI.Models;
-using FactCloudAPI.Services.Productos;
+using NubeeAPI.Data;
+using NubeeAPI.DTOs.Productos;
+using NubeeAPI.Models;
+using NubeeAPI.Services.Productos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace FactCloudAPI.Controllers
+namespace NubeeAPI.Controllers
 {
     [Authorize]
     [Route("api/[controller]")]
@@ -33,7 +33,7 @@ namespace FactCloudAPI.Controllers
             var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
 
             var productos = await _context.Productos
-                .Where(p => p.UsuarioId == usuarioId) // ← sin filtro de Activo
+                .Where(p => p.UsuarioId == usuarioId) // ? sin filtro de Activo
                 .ToListAsync();
 
             return Ok(productos);

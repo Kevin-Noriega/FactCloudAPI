@@ -1,11 +1,11 @@
-Ôªøusing Newtonsoft.Json;
+using Newtonsoft.Json;
 using System.ComponentModel.DataAnnotations;
 
-namespace FactCloudAPI.DTOs.Usuarios
+namespace NubeeAPI.DTOs.Usuarios
 {
     public class CreateUsuarioDto
     {
-        // Datos b√°sicos del usuario
+        // Datos b·sicos del usuario
 
         [Required, MaxLength(100)]
         public string Nombre { get; set; }
@@ -22,7 +22,7 @@ namespace FactCloudAPI.DTOs.Usuarios
         [Required, MinLength(6)]
         public string Password { get; set; }
 
-        // Identificaci√≥n 
+        // IdentificaciÛn 
 
         [Required, MaxLength(20)]
         public string? TipoIdentificacion { get; set; }

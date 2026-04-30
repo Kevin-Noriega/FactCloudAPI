@@ -1,11 +1,11 @@
 using EllipticCurve;
-using FactCloudAPI.Models.Wompi;
+using NubeeAPI.Models.Wompi;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-namespace FactCloudAPI.Services.Wompi
+namespace NubeeAPI.Services.Wompi
 {
     public class WompiService : IWompiService
     {

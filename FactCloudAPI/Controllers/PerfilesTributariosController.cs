@@ -1,11 +1,11 @@
-﻿using FactCloudAPI.Data;
-using FactCloudAPI.Models.Usuarios;
+using NubeeAPI.Data;
+using NubeeAPI.Models.Usuarios;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-namespace FactCloudAPI.Controllers
+namespace NubeeAPI.Controllers
 {
     [ApiController]
     [Route("api/negocios/{negocioId:int}/perfil-tributario")]
@@ -29,7 +29,7 @@ namespace FactCloudAPI.Controllers
                 .FirstOrDefaultAsync(p => p.NegocioId == negocioId);
 
             if (perfil == null)
-                return NotFound(new { mensaje = "Perfil tributario no configurado aún." });
+                return NotFound(new { mensaje = "Perfil tributario no configurado a�n." });
 
             return Ok(perfil);
         }
@@ -66,7 +66,7 @@ namespace FactCloudAPI.Controllers
 
             if (perfil == null)
             {
-                // Si no existe, lo creamos automáticamente
+                // Si no existe, lo creamos autom�ticamente
                 dto.NegocioId = negocioId;
                 _context.PerfilesTributarios.Add(dto);
                 await _context.SaveChangesAsync();
@@ -85,7 +85,7 @@ namespace FactCloudAPI.Controllers
             return Ok(perfil);
         }
 
-        // ─── helpers ─────────────────────────────────────────────────
+        // --- helpers -------------------------------------------------
 
         private async Task<bool> OwnsNegocio(int negocioId)
         {

@@ -1,12 +1,12 @@
-ï»¿// Controllers/ResolucionesController.cs
-using FactCloudAPI.Data;
-using FactCloudAPI.Models;
+// Controllers/ResolucionesController.cs
+using NubeeAPI.Data;
+using NubeeAPI.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-namespace FactCloudAPI.Controllers
+namespace NubeeAPI.Controllers
 {
     [Authorize]
     [Route("api/[controller]")]
@@ -26,7 +26,7 @@ namespace FactCloudAPI.Controllers
             return claim != null ? int.Parse(claim.Value) : null;
         }
 
-        // GET api/resoluciones â€” obtener resoluciones del negocio
+        // GET api/resoluciones — obtener resoluciones del negocio
         [HttpGet]
         public async Task<IActionResult> ObtenerResoluciones()
         {
@@ -43,7 +43,7 @@ namespace FactCloudAPI.Controllers
             return Ok(negocio.Resoluciones.OrderByDescending(r => r.FechaRegistro));
         }
 
-        // POST api/resoluciones â€” registrar nueva resoluciÃ³n DIAN
+        // POST api/resoluciones — registrar nueva resolución DIAN
         [HttpPost]
         public async Task<IActionResult> RegistrarResolucion([FromBody] ResolucionDIAN dto)
         {
@@ -86,12 +86,12 @@ namespace FactCloudAPI.Controllers
                                        && r.Negocio.UsuarioId == usuarioId.Value);
 
             if (resolucion == null)
-                return NotFound(new { mensaje = "ResoluciÃ³n no encontrada." });
+                return NotFound(new { mensaje = "Resolución no encontrada." });
 
             resolucion.Activa = false;
             await _context.SaveChangesAsync();
 
-            return Ok(new { mensaje = "ResoluciÃ³n desactivada correctamente." });
+            return Ok(new { mensaje = "Resolución desactivada correctamente." });
         }
     }
 }

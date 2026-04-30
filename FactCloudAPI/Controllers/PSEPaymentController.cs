@@ -1,9 +1,9 @@
 
-using FactCloudAPI.Data;
-using FactCloudAPI.DTOs.Wompi;
-using FactCloudAPI.Models;
-using FactCloudAPI.Services;
-using FactCloudAPI.Services.Wompi;
+using NubeeAPI.Data;
+using NubeeAPI.DTOs.Wompi;
+using NubeeAPI.Models;
+using NubeeAPI.Services;
+using NubeeAPI.Services.Wompi;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -11,7 +11,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-namespace FactCloudAPI.Controllers
+namespace NubeeAPI.Controllers
 {
     [ApiController]
     [Route("api/payment/pse")]

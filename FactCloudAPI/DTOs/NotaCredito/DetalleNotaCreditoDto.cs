@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace FactCloudAPI.DTOs.NotaCredito
+namespace NubeeAPI.DTOs.NotaCredito
 {
     public class DetalleNotaCreditoDto
     {

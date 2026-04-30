@@ -1,7 +1,7 @@
-﻿using System.Security.Cryptography;
+using System.Security.Cryptography;
 using System.Text;
 
-namespace FactCloudAPI.Utils
+namespace NubeeAPI.Utils
 {
     public static class CufeGenerator
     {
@@ -15,7 +15,7 @@ namespace FactCloudAPI.Utils
             string nitAdquiriente,
             string claveTecnica)
         {
-            // Cadena según DIAN UBL 2.1
+            // Cadena seg�n DIAN UBL 2.1
             string cadena =
                 $"NumFac={numeroFactura}" +
                 $"&FecFac={fechaFactura}" +

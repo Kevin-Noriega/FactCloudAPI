@@ -1,12 +1,12 @@
-ï»¿using FactCloudAPI.Data;
-using FactCloudAPI.DTOs.DocumentoSoporte;
-using FactCloudAPI.Services;
+using NubeeAPI.Data;
+using NubeeAPI.DTOs.DocumentoSoporte;
+using NubeeAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-namespace FactCloudAPI.Controllers
+namespace NubeeAPI.Controllers
 {
     [Authorize]
     [ApiController]
@@ -110,7 +110,7 @@ namespace FactCloudAPI.Controllers
             if (usuario == null)
                 return NotFound("Usuario no encontrado");
 
-            // Obtener el Ãºltimo consecutivo
+            // Obtener el último consecutivo
             var ultimoConsecutivo = await _context.DocumentosSoporte
                 .Where(d => d.UsuarioId == usuarioId)
                 .MaxAsync(d => (int?)d.Consecutivo) ?? 0;
@@ -330,8 +330,8 @@ namespace FactCloudAPI.Controllers
             if (string.IsNullOrEmpty(documento.ProveedorEmail))
                 return BadRequest("El proveedor no tiene email registrado");
 
-            // TODO: Implementar envÃ­o de email real
-            // Por ahora retorna Ã©xito
+            // TODO: Implementar envío de email real
+            // Por ahora retorna éxito
 
             return Ok(new { mensaje = "Email enviado exitosamente" });
         }

@@ -1,4 +1,4 @@
-﻿namespace FactCloudAPI.Utils.Exceptions
+namespace NubeeAPI.Utils.Exceptions
 {
     public class BusinessException : Exception
     {

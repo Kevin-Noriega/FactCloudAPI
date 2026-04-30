@@ -1,7 +1,7 @@
-﻿using FactCloudAPI.Models.Wompi;
+using NubeeAPI.Models.Wompi;
 using System.Text.Json;
 
-namespace FactCloudAPI.Services.Wompi
+namespace NubeeAPI.Services.Wompi
 {
     public interface IWompiService
     {
@@ -11,6 +11,6 @@ namespace FactCloudAPI.Services.Wompi
         Task<WompiTransactionResponse> GetTransactionAsync(string transactionId);
         Task<JsonElement> GetFinancialInstitutionsAsync();
         Task<JsonElement> CreatePSETransactionAsync(object payload);
-        Task<JsonElement> GetTransactionStatusAsync(string transactionId); // ← para PSEController
+        Task<JsonElement> GetTransactionStatusAsync(string transactionId); // ? para PSEController
     }
 }

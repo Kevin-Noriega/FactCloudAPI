@@ -1,9 +1,9 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36518.9 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FactCloudAPI", "FactCloudAPI\FactCloudAPI.csproj", "{95D1021A-F8E5-4400-9E01-970E32FBE5DD}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NubeeAPI", "FactCloudAPI\NubeeAPI.csproj", "{95D1021A-F8E5-4400-9E01-970E32FBE5DD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

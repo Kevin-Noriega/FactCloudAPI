@@ -1,8 +1,8 @@
-﻿namespace FactCloudAPI.DTOs.Usuarios
+namespace NubeeAPI.DTOs.Usuarios
 {
     
     
-        // ─── DATOS GENERALES ──────────────────────────────────────────────────
+        // --- DATOS GENERALES --------------------------------------------------
         public class NegocioDatosGeneralesDto
         {
             public int TipoSujeto { get; set; }   // 1=PersonaNatural, 2=PersonaJuridica
@@ -24,7 +24,7 @@
             public string? CorreoRecepcionDian { get; set; }
         }
 
-        // ─── PERFIL TRIBUTARIO ────────────────────────────────────────────────
+        // --- PERFIL TRIBUTARIO ------------------------------------------------
         public class PerfilTributarioDto
         {
             public string? RegimenIvaCodigo { get; set; }
@@ -33,7 +33,7 @@
             public string? ResponsabilidadesFiscalesJson { get; set; }
         }
 
-        // ─── REPRESENTANTE LEGAL ──────────────────────────────────────────────
+        // --- REPRESENTANTE LEGAL ----------------------------------------------
         public class RepresentanteLegalDto
         {
             public string Nombre { get; set; } = "";
@@ -44,7 +44,7 @@
             public string? CiudadResidencia { get; set; }
         }
 
-        // ─── CONFIGURACIÓN DIAN ───────────────────────────────────────────────
+        // --- CONFIGURACI�N DIAN -----------------------------------------------
         public class ConfiguracionDianDto
         {
             public string? SoftwareProveedor { get; set; }
@@ -58,7 +58,7 @@
             public DateTime? FechaVigenciaFinal { get; set; }
         }
 
-        // ─── RESPUESTA COMPLETA ───────────────────────────────────────────────
+        // --- RESPUESTA COMPLETA -----------------------------------------------
         public class NegocioCompletoResponse
         {
             public int Id { get; set; }

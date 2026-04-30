@@ -1,4 +1,4 @@
-﻿namespace FactCloudAPI.DTOs.Clientes
+namespace NubeeAPI.DTOs.Clientes
 {
     public class ClienteDetalleDto
     {

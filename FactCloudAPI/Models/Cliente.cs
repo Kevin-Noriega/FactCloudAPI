@@ -1,9 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace FactCloudAPI.Models
+namespace NubeeAPI.Models
 {
     public class Cliente
     {
@@ -15,7 +15,7 @@ namespace FactCloudAPI.Models
         public int UsuarioId { get; set; }
         public Usuario? Usuario { get; set; }
 
-        // ── Identificación ──────────────────────────────────────
+        // -- Identificaci�n --------------------------------------
         [Required]
         [MaxLength(200)]
         public string Nombre { get; set; }
@@ -26,7 +26,7 @@ namespace FactCloudAPI.Models
         [MaxLength(200)]
         public string? NombreComercial { get; set; }
 
-        // Identificación tributaria y legal
+        // Identificaci�n tributaria y legal
         [Required]
         [MaxLength(50)]
         public string TipoIdentificacion { get; set; } // CC, NIT, CE, Pasaporte
@@ -39,13 +39,13 @@ namespace FactCloudAPI.Models
 
         [Required]
         [MaxLength(50)]
-        public string TipoPersona { get; set; } // Natural, Jurídica
+        public string TipoPersona { get; set; } // Natural, Jur�dica
         [MaxLength(20)]
-        public string CodigoSucursal { get; set; } = "0";  // ← NUEVO
+        public string CodigoSucursal { get; set; } = "0";  // ? NUEVO
 
 
 
-        // ── Ubicación ───────────────────────────────────────────
+        // -- Ubicaci�n -------------------------------------------
         [Required]
         [MaxLength(100)]
         public string Departamento { get; set; }
@@ -73,7 +73,7 @@ namespace FactCloudAPI.Models
         [MaxLength(20)]
         public string? ActividadEconomicaCIIU { get; set; }
 
-        // ── Facturación y envío ──────────────────────────────────
+        // -- Facturaci�n y env�o ----------------------------------
         [Required]
         [MaxLength(100)]
         [EmailAddress]
@@ -86,34 +86,34 @@ namespace FactCloudAPI.Models
         public string? RegimenFiscal { get; set; }
 
         [MaxLength(100)]
-        public string? NombreContactoFacturacion { get; set; }   // ← NUEVO
+        public string? NombreContactoFacturacion { get; set; }   // ? NUEVO
 
         [MaxLength(100)]
-        public string? ApellidoContactoFacturacion { get; set; } // ← NUEVO
+        public string? ApellidoContactoFacturacion { get; set; } // ? NUEVO
 
         [MaxLength(20)]
-        public string? IndicativoFacturacion { get; set; }       // ← NUEVO
+        public string? IndicativoFacturacion { get; set; }       // ? NUEVO
 
         [MaxLength(50)]
-        public string? TelefonoFacturacion { get; set; }         // ← NUEVO
+        public string? TelefonoFacturacion { get; set; }         // ? NUEVO
 
-        // ── Responsabilidades fiscales ────────────────────────────
-        public bool GranContribuyente { get; set; } = false;    // ← NUEVO O-13
+        // -- Responsabilidades fiscales ----------------------------
+        public bool GranContribuyente { get; set; } = false;    // ? NUEVO O-13
         public bool AutoretenedorRenta { get; set; } = false;    // O-15
         public bool RetenedorIVA { get; set; } = false;    // O-23
-        public bool RegimenSimple { get; set; } = false;    // ← NUEVO O-47
-        public bool NoAplica { get; set; } = false;    // ← NUEVO R-99-PN
+        public bool RegimenSimple { get; set; } = false;    // ? NUEVO O-47
+        public bool NoAplica { get; set; } = false;    // ? NUEVO R-99-PN
         public bool RetenedorICA { get; set; } = false;
         public bool RetenedorRenta { get; set; } = false;
         [Required]
         public bool EsProveedor { get; set; } = false;
 
-        // ── Estado y registro ────────────────────────────────────
+        // -- Estado y registro ------------------------------------
         public bool Activo { get; set; } = true;
         public DateTime FechaRegistro { get; set; } = DateTime.Now;
 
-        // ── Relaciones ───────────────────────────────────────────
-        public ICollection<TelefonoCliente> Telefonos { get; set; } = new List<TelefonoCliente>(); // ← NUEVO
+        // -- Relaciones -------------------------------------------
+        public ICollection<TelefonoCliente> Telefonos { get; set; } = new List<TelefonoCliente>(); // ? NUEVO
         public ICollection<ContactoCliente> Contactos { get; set; } = new List<ContactoCliente>();
         public ICollection<Factura>? Facturas { get; set; }
         public ICollection<NotaDebito>? NotasDebito { get; set; }

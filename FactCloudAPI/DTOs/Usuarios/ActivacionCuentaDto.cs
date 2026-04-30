@@ -1,5 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
-namespace FactCloudAPI.DTOs.Usuarios
+using System.ComponentModel.DataAnnotations;
+namespace NubeeAPI.DTOs.Usuarios
 {
     public class ActivacionCuentaDto
     {
@@ -9,7 +9,7 @@ namespace FactCloudAPI.DTOs.Usuarios
         [Required]
         public string TransaccionId { get; set; } // ID de Wompi
 
-        // Datos del negocio (opcionales en la activación)
+        // Datos del negocio (opcionales en la activaci�n)
         public string? NombreNegocio { get; set; }
         public string? Nit { get; set; }
         public int? DvNit { get; set; }

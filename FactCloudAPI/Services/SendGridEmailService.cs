@@ -1,4 +1,4 @@
-﻿using SendGrid;
+using SendGrid;
 using SendGrid.Helpers.Mail;
 using System.Net.Mail;
 
@@ -23,6 +23,6 @@ public class SendGridEmailService
         var msg = MailHelper.CreateSingleEmail(from, to, asunto, plainTextContent: null, htmlContent: html);
 
         var response = await client.SendEmailAsync(msg);
-        // response.StatusCode debe ser 202 si todo salió bien
+        // response.StatusCode debe ser 202 si todo sali� bien
     }
 }

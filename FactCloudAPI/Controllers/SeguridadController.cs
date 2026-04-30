@@ -1,7 +1,7 @@
-ï»¿using FactCloudAPI.Data;
-using FactCloudAPI.DTOs.Usuarios;
-using FactCloudAPI.Models.Sesiones;
-using FactCloudAPI.Services.Seguridad;
+using NubeeAPI.Data;
+using NubeeAPI.DTOs.Usuarios;
+using NubeeAPI.Models.Sesiones;
+using NubeeAPI.Services.Seguridad;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using MimeKit;
 using System.Security.Claims;
 
-namespace FactCloudAPI.Controllers
+namespace NubeeAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -30,9 +30,9 @@ namespace FactCloudAPI.Controllers
             _seguridadService = seguridadService;
         }
 
-        // CAMBIAR CONTRASEÃ‘A
-        [HttpPost("cambiar-contraseÃ±a")]
-        public async Task<ActionResult> CambiarContraseÃ±a([FromBody] CambiarContraseÃ±aDto dto)
+        // CAMBIAR CONTRASEÑA
+        [HttpPost("cambiar-contraseña")]
+        public async Task<ActionResult> CambiarContraseña([FromBody] CambiarContraseñaDto dto)
         {
             try
             {
@@ -42,29 +42,29 @@ namespace FactCloudAPI.Controllers
                 if (usuario == null)
                     return NotFound(new { error = "Usuario no encontrado" });
 
-                // Verificar contraseÃ±a actual
-                if (!BCrypt.Net.BCrypt.Verify(dto.ContraseÃ±aActual, usuario.ContrasenaHash))
-                    return BadRequest(new { error = "La contraseÃ±a actual es incorrecta" });
+                // Verificar contraseña actual
+                if (!BCrypt.Net.BCrypt.Verify(dto.ContraseñaActual, usuario.ContrasenaHash))
+                    return BadRequest(new { error = "La contraseña actual es incorrecta" });
 
-                // Validar nueva contraseÃ±a
-                if (dto.NuevaContraseÃ±a != dto.ConfirmarContraseÃ±a)
-                    return BadRequest(new { error = "Las contraseÃ±as no coinciden" });
+                // Validar nueva contraseña
+                if (dto.NuevaContraseña != dto.ConfirmarContraseña)
+                    return BadRequest(new { error = "Las contraseñas no coinciden" });
 
-                if (dto.NuevaContraseÃ±a.Length < 6)
-                    return BadRequest(new { error = "La contraseÃ±a debe tener al menos 6 caracteres" });
+                if (dto.NuevaContraseña.Length < 6)
+                    return BadRequest(new { error = "La contraseña debe tener al menos 6 caracteres" });
 
                 // Verificar que no sea igual a la actual
-                if (BCrypt.Net.BCrypt.Verify(dto.NuevaContraseÃ±a, usuario.ContrasenaHash))
-                    return BadRequest(new { error = "La nueva contraseÃ±a debe ser diferente a la actual" });
+                if (BCrypt.Net.BCrypt.Verify(dto.NuevaContraseña, usuario.ContrasenaHash))
+                    return BadRequest(new { error = "La nueva contraseña debe ser diferente a la actual" });
 
-                // Actualizar contraseÃ±a
-                usuario.ContrasenaHash = BCrypt.Net.BCrypt.HashPassword(dto.NuevaContraseÃ±a);
+                // Actualizar contraseña
+                usuario.ContrasenaHash = BCrypt.Net.BCrypt.HashPassword(dto.NuevaContraseña);
                 await _context.SaveChangesAsync();
 
                 // Registrar cambio en historial
-                await _seguridadService.RegistrarSesion(usuarioId, "Cambio de contraseÃ±a", true);
+                await _seguridadService.RegistrarSesion(usuarioId, "Cambio de contraseña", true);
 
-                return Ok(new { mensaje = "ContraseÃ±a actualizada correctamente" });
+                return Ok(new { mensaje = "Contraseña actualizada correctamente" });
             }
             catch (Exception ex)
             {
@@ -120,7 +120,7 @@ namespace FactCloudAPI.Controllers
             }
         }
 
-        //  CERRAR SESIÃ“N ESPECÃFICA
+        //  CERRAR SESIÓN ESPECÍFICA
         [HttpDelete("sesiones/{sesionId}")]
         public async Task<ActionResult> CerrarSesion(int sesionId)
         {
@@ -131,15 +131,15 @@ namespace FactCloudAPI.Controllers
                     .FirstOrDefaultAsync(h => h.Id == sesionId && h.UsuarioId == usuarioId);
 
                 if (sesion == null)
-                    return NotFound(new { error = "SesiÃ³n no encontrada" });
+                    return NotFound(new { error = "Sesión no encontrada" });
 
                 if (sesion.SesionActual)
-                    return BadRequest(new { error = "No puedes cerrar la sesiÃ³n actual desde aquÃ­" });
+                    return BadRequest(new { error = "No puedes cerrar la sesión actual desde aquí" });
 
                 _context.HistorialSesiones.Remove(sesion);
                 await _context.SaveChangesAsync();
 
-                return Ok(new { mensaje = "SesiÃ³n cerrada correctamente" });
+                return Ok(new { mensaje = "Sesión cerrada correctamente" });
             }
             catch (Exception ex)
             {

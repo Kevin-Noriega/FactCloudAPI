@@ -1,4 +1,4 @@
-namespace FactCloudAPI.Models.Usuarios
+namespace NubeeAPI.Models.Usuarios
 {
     public enum TipoDocumento
     {

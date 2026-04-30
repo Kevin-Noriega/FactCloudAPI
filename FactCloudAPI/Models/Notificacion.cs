@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace FactCloudAPI.Models
+namespace NubeeAPI.Models
 {
 
     public class Notificacion
@@ -29,7 +29,7 @@ namespace FactCloudAPI.Models
 
         public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
 
-        // Relación con Usuario
+        // Relaci�n con Usuario
         [ForeignKey("UsuarioId")]
         public virtual Usuario Usuario { get; set; }
     }

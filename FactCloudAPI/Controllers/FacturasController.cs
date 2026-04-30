@@ -1,8 +1,8 @@
-﻿using FactCloudAPI.Data;
-using FactCloudAPI.Models;
-using FactCloudAPI.Models.DTOs;
-using FactCloudAPI.Services;
-using FactCloudAPI.Utils;
+using NubeeAPI.Data;
+using NubeeAPI.Models;
+using NubeeAPI.Models.DTOs;
+using NubeeAPI.Services;
+using NubeeAPI.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Text;
 
-namespace FactCloudAPI.Controllers
+namespace NubeeAPI.Controllers
 {
     [Authorize]
     [Route("api/[controller]")]
@@ -21,20 +21,20 @@ namespace FactCloudAPI.Controllers
         private readonly IEmailService _emailService;
         private readonly IHubContext<NotificacionesHub> _hub;
         private readonly ILogger<FacturasController> _logger;
-        private readonly ISuscripcionService _suscripcionService; // ← NUEVO
+        private readonly ISuscripcionService _suscripcionService; // ? NUEVO
 
         public FacturasController(
             ApplicationDbContext context,
             IEmailService emailService,
             IHubContext<NotificacionesHub> hub,
             ILogger<FacturasController> logger,
-            ISuscripcionService suscripcionService) // ← NUEVO
+            ISuscripcionService suscripcionService) // ? NUEVO
         {
             _context = context;
             _emailService = emailService;
             _hub = hub;
             _logger = logger;
-            _suscripcionService = suscripcionService; // ← NUEVO
+            _suscripcionService = suscripcionService; // ? NUEVO
         }
 
         // ==================== HELPERS PRIVADOS ====================
@@ -48,7 +48,7 @@ namespace FactCloudAPI.Controllers
         private bool FacturaExists(int id) =>
             _context.Facturas.Any(e => e.Id == id);
 
-        // ==================== CRUD BÁSICO ====================
+        // ==================== CRUD B�SICO ====================
 
         // GET: api/Facturas
         [HttpGet]
@@ -56,7 +56,7 @@ namespace FactCloudAPI.Controllers
         {
             var usuarioId = ObtenerUsuarioId();
             if (usuarioId == null)
-                return Unauthorized(new { message = "Token inválido o sin claim de usuario" });
+                return Unauthorized(new { message = "Token inv�lido o sin claim de usuario" });
 
 
             var facturas = await _context.Facturas
@@ -114,7 +114,7 @@ namespace FactCloudAPI.Controllers
                 .Include(f => f.DetalleFacturas!)
                     .ThenInclude(d => d.Producto)
                 .Include(f => f.NotasDebito)
-                .FirstOrDefaultAsync(f => f.Id == id && f.UsuarioId == usuarioId); // ✅ Filtro por dueño
+                .FirstOrDefaultAsync(f => f.Id == id && f.UsuarioId == usuarioId); // ? Filtro por due�o
 
             if (factura == null)
                 return NotFound(new { mensaje = "Factura no encontrada" });
@@ -130,7 +130,7 @@ namespace FactCloudAPI.Controllers
             if (usuarioId == null)
                 return Unauthorized();
 
-            // ── 1. Cargar usuario con su negocio y resoluciones activas ──────────
+            // -- 1. Cargar usuario con su negocio y resoluciones activas ----------
             var usuario = await _context.Usuarios
                 .Include(u => u.Negocio)
                     .ThenInclude(n => n.Resoluciones)
@@ -143,31 +143,31 @@ namespace FactCloudAPI.Controllers
                 return BadRequest(new
                 {
                     mensaje = "Tu cuenta no tiene un negocio configurado. " +
-                              "Completa tu perfil en Ajustes → Mi negocio.",
+                              "Completa tu perfil en Ajustes ? Mi negocio.",
                     codigo = "SIN_NEGOCIO"
                 });
 
-            // ── 2. Obtener resolución DIAN vigente ────────────────────────────────
+            // -- 2. Obtener resoluci�n DIAN vigente --------------------------------
             var resolucion = usuario.Negocio.ResolucionActiva;
 
             if (resolucion == null)
                 return BadRequest(new
                 {
-                    mensaje = "No tienes una resolución DIAN activa. " +
-                              "Configura tu resolución en Ajustes → Facturación electrónica.",
+                    mensaje = "No tienes una resoluci�n DIAN activa. " +
+                              "Configura tu resoluci�n en Ajustes ? Facturaci�n electr�nica.",
                     codigo = "SIN_RESOLUCION"
                 });
 
             if (!resolucion.EstaVigente)
                 return BadRequest(new
                 {
-                    mensaje = $"La resolución DIAN venció el {resolucion.FechaFin:dd/MM/yyyy}. " +
-                               "Solicita una nueva resolución a la DIAN.",
+                    mensaje = $"La resoluci�n DIAN venci� el {resolucion.FechaFin:dd/MM/yyyy}. " +
+                               "Solicita una nueva resoluci�n a la DIAN.",
                     codigo = "RESOLUCION_VENCIDA",
                     fechaVencimiento = resolucion.FechaFin
                 });
 
-            // ── 3. Asignar campos del servidor (nunca confiar en el body) ─────────
+            // -- 3. Asignar campos del servidor (nunca confiar en el body) ---------
             factura.UsuarioId = usuarioId.Value;
             factura.FechaRegistro = DateTime.Now;
             factura.TipoAmbiente = resolucion.TipoAmbiente;
@@ -179,9 +179,9 @@ namespace FactCloudAPI.Controllers
             factura.ClaveTecnica = resolucion.ClaveTecnica;
             factura.Prefijo ??= resolucion.Prefijo;
 
-            // ── 4. Numeración secuencial dentro del rango autorizado ──────────────
-            // ⚠️ Se ordena por Id DESC para obtener el último consecutivo emitido.
-            // Se excluyen Borradores porque no consumen numeración.
+            // -- 4. Numeraci�n secuencial dentro del rango autorizado --------------
+            // ?? Se ordena por Id DESC para obtener el �ltimo consecutivo emitido.
+            // Se excluyen Borradores porque no consumen numeraci�n.
             var ultimoNumero = await _context.Facturas
                 .Where(f => f.UsuarioId == usuarioId.Value
                          && f.Prefijo == factura.Prefijo
@@ -197,25 +197,25 @@ namespace FactCloudAPI.Controllers
             if (siguiente > resolucion.RangoHasta)
                 return BadRequest(new
                 {
-                    mensaje = $"Rango de numeración agotado (hasta {resolucion.RangoHasta}). " +
-                               "Solicita una nueva resolución a la DIAN.",
+                    mensaje = $"Rango de numeraci�n agotado (hasta {resolucion.RangoHasta}). " +
+                               "Solicita una nueva resoluci�n a la DIAN.",
                     codigo = "RANGO_AGOTADO",
                     rangoHasta = resolucion.RangoHasta
                 });
 
             factura.NumeroFactura = siguiente.ToString();
 
-            // ── 5. Manejar estado: Borrador vs Emitida ────────────────────────────
-            // "Borrador"  → guardado sin numeración definitiva ni CUFE ni XML
-            // "Pendiente" → emitida, lista para enviar a la DIAN
+            // -- 5. Manejar estado: Borrador vs Emitida ----------------------------
+            // "Borrador"  ? guardado sin numeraci�n definitiva ni CUFE ni XML
+            // "Pendiente" ? emitida, lista para enviar a la DIAN
             bool esBorrador = factura.Estado == "Borrador";
             if (!esBorrador)
                 factura.Estado = "Emitida";
 
-            // ── 6. Calcular fechas (hora UTC-0500, FechaVencimiento, plazo DIAN) ──
+            // -- 6. Calcular fechas (hora UTC-0500, FechaVencimiento, plazo DIAN) --
             factura.CalcularFechas();
 
-            // ── 7. CUFE y QR — solo facturas emitidas ────────────────────────────
+            // -- 7. CUFE y QR � solo facturas emitidas ----------------------------
             if (!esBorrador)
             {
                 try
@@ -227,10 +227,10 @@ namespace FactCloudAPI.Controllers
                 {
                     _logger.LogWarning(ex,
                         "No se pudo generar CUFE para factura {Numero}", factura.NumeroFactura);
-                    // No bloqueamos — se puede regenerar con PUT /api/facturas/{id}/regenerar
+                    // No bloqueamos � se puede regenerar con PUT /api/facturas/{id}/regenerar
                 }
 
-                // ── 8. XML UBL 2.1 — solo facturas emitidas ──────────────────────
+                // -- 8. XML UBL 2.1 � solo facturas emitidas ----------------------
                 try
                 {
                     var xml = XmlFacturaGenerator.GenerarXml(factura);
@@ -239,17 +239,17 @@ namespace FactCloudAPI.Controllers
                 catch (Exception ex)
                 {
                     _logger.LogError(ex,
-                        "Error generando XML en emisión de factura {Numero}", factura.NumeroFactura);
+                        "Error generando XML en emisi�n de factura {Numero}", factura.NumeroFactura);
                     factura.XmlBase64 = null;
-                    // ⚠️ Factura queda sin XML — registrar para revisión manual
+                    // ?? Factura queda sin XML � registrar para revisi�n manual
                 }
             }
 
-            // ── 9. Persistir ──────────────────────────────────────────────────────
+            // -- 9. Persistir ------------------------------------------------------
             _context.Facturas.Add(factura);
             await _context.SaveChangesAsync();
 
-            // ── 10. Notificación en tiempo real via SignalR ───────────────────────
+            // -- 10. Notificaci�n en tiempo real via SignalR -----------------------
             if (!esBorrador)
             {
                 await _hub.Clients.All.SendAsync("FacturaCreada", new
@@ -258,11 +258,11 @@ namespace FactCloudAPI.Controllers
                     numero = factura.NumeroFacturaCompleto,
                     total = factura.TotalFactura,
                     fecha = factura.FechaRegistro,
-                    ambiente = factura.TipoAmbiente == 2 ? "Pruebas" : "Producción"
+                    ambiente = factura.TipoAmbiente == 2 ? "Pruebas" : "Producci�n"
                 });
             }
 
-            // ── 11. Respuesta ─────────────────────────────────────────────────────
+            // -- 11. Respuesta -----------------------------------------------------
             return CreatedAtAction(nameof(ObtenerFactura), new { id = factura.Id }, new
             {
                 factura.Id,
@@ -274,7 +274,7 @@ namespace FactCloudAPI.Controllers
                 factura.HorasRestantesEnvioDIAN,
                 xmlGenerado = !string.IsNullOrEmpty(factura.XmlBase64),
                 diasVigencia = resolucion.DiasRestantes,
-                ambiente = resolucion.TipoAmbiente == 2 ? "Pruebas" : "Producción"
+                ambiente = resolucion.TipoAmbiente == 2 ? "Pruebas" : "Producci�n"
             });
         }
     
@@ -292,7 +292,7 @@ namespace FactCloudAPI.Controllers
             if (usuarioId == null)
                 return Unauthorized();
 
-            // ✅ Verificar propiedad antes de editar
+            // ? Verificar propiedad antes de editar
             var facturaExistente = await _context.Facturas
                 .AsNoTracking()
                 .FirstOrDefaultAsync(f => f.Id == id && f.UsuarioId == usuarioId);
@@ -300,7 +300,7 @@ namespace FactCloudAPI.Controllers
             if (facturaExistente == null)
                 return NotFound(new { mensaje = "Factura no encontrada" });
 
-            // ✅ No permitir editar facturas ya enviadas a la DIAN
+            // ? No permitir editar facturas ya enviadas a la DIAN
             if (facturaExistente.EnviadaDIAN)
                 return BadRequest(new { mensaje = "No se puede modificar una factura ya enviada a la DIAN" });
 
@@ -348,11 +348,11 @@ namespace FactCloudAPI.Controllers
             if (factura == null)
                 return NotFound(new { mensaje = "Factura no encontrada" });
 
-            // ✅ No permitir eliminar facturas ya enviadas o validadas por la DIAN
+            // ? No permitir eliminar facturas ya enviadas o validadas por la DIAN
             if (factura.EnviadaDIAN || factura.Estado == "Validada")
                 return BadRequest(new
                 {
-                    mensaje = "No se puede eliminar una factura enviada o validada por la DIAN. Use una Nota Crédito."
+                    mensaje = "No se puede eliminar una factura enviada o validada por la DIAN. Use una Nota Cr�dito."
                 });
 
             _context.Facturas.Remove(factura);
@@ -360,7 +360,7 @@ namespace FactCloudAPI.Controllers
             return NoContent();
         }
 
-        // ==================== ENVÍO ====================
+        // ==================== ENV�O ====================
 
         // POST: api/Facturas/5/enviar-cliente
         [HttpPost("{id}/enviar-cliente")]
@@ -416,32 +416,32 @@ namespace FactCloudAPI.Controllers
             if (!factura.DentroPlazoEnvioDIAN)
                 return BadRequest(new
                 {
-                    mensaje = "Factura fuera del plazo de 48 horas para envío a la DIAN",
+                    mensaje = "Factura fuera del plazo de 48 horas para env�o a la DIAN",
                     horasVencida = factura.HorasRestantesEnvioDIAN
                 });
 
-            // ✅ Validar que el XML esté generado antes de enviar
+            // ? Validar que el XML est� generado antes de enviar
             if (string.IsNullOrEmpty(factura.XmlBase64))
                 return BadRequest(new
                 {
-                    mensaje = "El XML de la factura no está generado. Regenere la factura.",
+                    mensaje = "El XML de la factura no est� generado. Regenere la factura.",
                     accion = $"PUT api/Facturas/{id}"
                 });
 
-            // ✅ Validar que el CUFE esté calculado
+            // ? Validar que el CUFE est� calculado
             if (string.IsNullOrEmpty(factura.Cufe))
-                return BadRequest(new { mensaje = "El CUFE no está calculado. Regenere la factura." });
+                return BadRequest(new { mensaje = "El CUFE no est� calculado. Regenere la factura." });
 
             try
             {
-                // TODO: Aquí irá el envío real al Web Service DIAN (SendBillAsync)
+                // TODO: Aqu� ir� el env�o real al Web Service DIAN (SendBillAsync)
                 // cuando tengas el certificado digital. Por ahora se registra el intento.
                 factura.EnviadaDIAN = true;
                 factura.FechaEnvioDIAN = DateTime.Now;
                 factura.Estado = "Enviada";
                 factura.RespuestaDIAN = factura.TipoAmbiente == 2
-                    ? "Ambiente de pruebas — integración WS pendiente"
-                    : "Pendiente integración WS DIAN (SendBillAsync)";
+                    ? "Ambiente de pruebas � integraci�n WS pendiente"
+                    : "Pendiente integraci�n WS DIAN (SendBillAsync)";
 
                 await _context.SaveChangesAsync();
 
@@ -452,7 +452,7 @@ namespace FactCloudAPI.Controllers
                         : "Factura enviada a la DIAN",
                     cufe = factura.Cufe,
                     fechaEnvio = factura.FechaEnvioDIAN,
-                    ambiente = factura.TipoAmbiente == 2 ? "Pruebas" : "Producción"
+                    ambiente = factura.TipoAmbiente == 2 ? "Pruebas" : "Producci�n"
                 });
             }
             catch (Exception ex)
@@ -469,7 +469,7 @@ namespace FactCloudAPI.Controllers
         public async Task<IActionResult> RegistrarPago(int id, [FromBody] FacturaPagoDto pago)
         {
             if (pago == null)
-                return BadRequest(new { mensaje = "Datos de pago inválidos" });
+                return BadRequest(new { mensaje = "Datos de pago inv�lidos" });
 
             var usuarioId = ObtenerUsuarioId();
             if (usuarioId == null)
@@ -485,13 +485,13 @@ namespace FactCloudAPI.Controllers
                 return NotFound(new { mensaje = "Factura no encontrada" });
 
             if (factura.Estado == "Pagada")
-                return BadRequest(new { mensaje = "Esta factura ya está pagada" });
+                return BadRequest(new { mensaje = "Esta factura ya est� pagada" });
 
-            // ✅ Aplicar cambios de pago
+            // ? Aplicar cambios de pago
             factura.Estado = pago.Estado ?? factura.Estado;
-            // ✅ Códigos DIAN: "10"=Efectivo, "42"=Transferencia, "48"=Tarjeta crédito, "ZZZ"=Otro
+            // ? C�digos DIAN: "10"=Efectivo, "42"=Transferencia, "48"=Tarjeta cr�dito, "ZZZ"=Otro
             factura.MedioPago = pago.MedioPago ?? factura.MedioPago;
-            // ✅ Códigos DIAN: "1"=Contado, "2"=Crédito
+            // ? C�digos DIAN: "1"=Contado, "2"=Cr�dito
             factura.FormaPago = pago.FormaPago ?? factura.FormaPago;
             factura.Observaciones = pago.Observaciones ?? factura.Observaciones;
 
@@ -500,7 +500,7 @@ namespace FactCloudAPI.Controllers
 
             factura.FechaPago = pago.FechaPago != default ? pago.FechaPago : DateTime.Now;
 
-            // ✅ Un solo generador de CUFE usando ClaveTecnica del modelo (no hardcodeada)
+            // ? Un solo generador de CUFE usando ClaveTecnica del modelo (no hardcodeada)
             try
             {
                 factura.Cufe = CufeService.GenerarCUFE(factura);
@@ -511,7 +511,7 @@ namespace FactCloudAPI.Controllers
                 _logger.LogError(ex, "Error regenerando CUFE en pago de factura {Id}", id);
             }
 
-            // ✅ Regenerar XML con datos de pago actualizados
+            // ? Regenerar XML con datos de pago actualizados
             try
             {
                 var xml = XmlFacturaGenerator.GenerarXml(factura);
@@ -532,13 +532,13 @@ namespace FactCloudAPI.Controllers
                 factura.TotalFactura,
                 factura.MontoPagado,
                 factura.FechaPago,
-                // ✅ Descriptores legibles del código DIAN
+                // ? Descriptores legibles del c�digo DIAN
                 medioPagoDescripcion = factura.MedioPago switch
                 {
                     "10" => "Efectivo",
                     "42" => "Transferencia bancaria",
-                    "47" => "Débito bancario",
-                    "48" => "Tarjeta crédito",
+                    "47" => "D�bito bancario",
+                    "48" => "Tarjeta cr�dito",
                     "ZZZ" => "Otro",
                     _ => factura.MedioPago
                 },
@@ -577,7 +577,7 @@ namespace FactCloudAPI.Controllers
             }
             catch
             {
-                return BadRequest(new { mensaje = "El XML almacenado está corrupto. Regenere la factura." });
+                return BadRequest(new { mensaje = "El XML almacenado est� corrupto. Regenere la factura." });
             }
         }
 
@@ -598,7 +598,7 @@ namespace FactCloudAPI.Controllers
 
             var path = $"./PDF/factura_{id}.pdf";
             if (!System.IO.File.Exists(path))
-                return NotFound(new { mensaje = "PDF no encontrado. Genérelo primero." });
+                return NotFound(new { mensaje = "PDF no encontrado. Gen�relo primero." });
 
             var stream = new FileStream(path, FileMode.Open, FileAccess.Read);
             return File(stream, "application/pdf", $"Factura_{factura.NumeroFacturaCompleto}.pdf");
@@ -636,8 +636,8 @@ namespace FactCloudAPI.Controllers
                 totalVentasPagadas = facturas.Where(f => f.Estado == "Pagada").Sum(f => f.TotalFactura),
                 totalVentasPendientes = facturas.Where(f => f.Estado != "Pagada").Sum(f => f.TotalFactura),
                 totalIVA = facturas.Sum(f => f.TotalIVA),
-                totalINC = facturas.Sum(f => f.TotalINC),  // ✅ ya no nullable
-                totalICA = facturas.Sum(f => f.TotalICA),  // ✅ nuevo campo
+                totalINC = facturas.Sum(f => f.TotalINC),  // ? ya no nullable
+                totalICA = facturas.Sum(f => f.TotalICA),  // ? nuevo campo
                 facturas = facturas.Select(f => new
                 {
                     f.Id,
@@ -647,7 +647,7 @@ namespace FactCloudAPI.Controllers
                     cliente = new { f.Cliente!.Nombre, f.Cliente.Apellido },
                     f.Subtotal,
                     f.TotalIVA,
-                    f.TotalINC,  // ✅ ya no necesita ?? 0
+                    f.TotalINC,  // ? ya no necesita ?? 0
                     f.TotalICA,
                     f.TotalFactura,
                     f.Estado,
@@ -723,7 +723,7 @@ namespace FactCloudAPI.Controllers
 
             var limite = DateTime.Now.AddHours(24);
 
-            // ✅ Filtro por usuario incluido
+            // ? Filtro por usuario incluido
             var facturas = await _context.Facturas
                 .Where(f => !f.EnviadaDIAN && f.FechaLimiteEnvioDIAN <= DateTime.Now.AddHours(24))
                 .Include(f => f.Cliente)
