@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using FactCloudAPI.Models.Impuestos;
+using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -66,5 +67,6 @@ namespace FactCloudAPI.Models
 
         [MaxLength(50)]
         public string? CodigoInterno { get; set; }
+        public ICollection<DetalleFacturaImpuesto> Impuestos { get; set; } = new List<DetalleFacturaImpuesto>();
     }
 }

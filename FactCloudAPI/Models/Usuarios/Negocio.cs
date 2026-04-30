@@ -82,7 +82,7 @@ namespace FactCloudAPI.Models.Usuarios
         public PerfilTributario? PerfilTributario { get; set; }
         public ConfiguracionDian? ConfiguracionDIAN { get; set; }
 
-        public ICollection<ResolucionDIAN> Resoluciones { get; set; } = new List<ResolucionDIAN>();
+        public ICollection<ResolucionDIAN>? Resoluciones { get; set; } = new List<ResolucionDIAN>();
     }
 
 }
