@@ -1,4 +1,4 @@
-﻿using FactCloudAPI.Data;
+using FactCloudAPI.Data;
 using FactCloudAPI.DTOs.Login;
 using FactCloudAPI.DTOs.Usuarios;
 using FactCloudAPI.Models;
@@ -95,7 +95,7 @@ namespace FactCloudAPI.Controllers
                         telefono = usuario.Telefono,
                         estado = usuario.Estado,
                         SuscripcionId = suscripcionActiva?.PlanFacturacionId ?? 0,
-                        PlanNombre = suscripcionActiva?.PlanFacturacion.Nombre ?? "Prueba",
+                        PlanNombre = suscripcionActiva?.PlanFacturacion?.Nombre ?? "Prueba",
                         DocumentosRestantes = suscripcionActiva?.DocumentosUsados ?? 0,
                         FechaExpiracion = suscripcionActiva?.FechaFin,
                         tipoIdentificacion = usuario.TipoIdentificacion,
@@ -115,10 +115,10 @@ namespace FactCloudAPI.Controllers
                     } : null,
                     suscripcion = suscripcionActiva != null ? new
                     {
-                        plan = suscripcionActiva.PlanFacturacion.Nombre,
-                        documentosIncluidos = suscripcionActiva.PlanFacturacion.LimiteDocumentosAnuales,
+                        plan = suscripcionActiva.PlanFacturacion?.Nombre ?? "Sin plan",
+                        documentosIncluidos = suscripcionActiva.PlanFacturacion?.LimiteDocumentosAnuales ?? 0,
                         documentosUsados = suscripcionActiva.DocumentosUsados,
-                        documentosRestantes = (suscripcionActiva.PlanFacturacion.LimiteDocumentosAnuales ?? 0) - suscripcionActiva.DocumentosUsados,
+                        documentosRestantes = (suscripcionActiva.PlanFacturacion?.LimiteDocumentosAnuales ?? 0) - suscripcionActiva.DocumentosUsados,
                         fechaExpiracion = suscripcionActiva.FechaFin,
                         activa = suscripcionActiva.Activa
                     } : null
@@ -139,7 +139,7 @@ namespace FactCloudAPI.Controllers
             {
                 Console.WriteLine($"[DEBUG] UsuarioId: {id}, Estado: {dto.Estado}");
 
-                var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
                 if (id != usuarioId)
                 {
                     Console.WriteLine("[DEBUG] Forbid - IDs no coinciden");

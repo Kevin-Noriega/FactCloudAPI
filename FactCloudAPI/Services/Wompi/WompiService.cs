@@ -21,9 +21,9 @@ namespace FactCloudAPI.Services.Wompi
         {
             _httpClient = httpClient;
             _config = config;
-            _publicKey  = config["Wompi:PublicKey"]  ?? throw new ArgumentNullException("Wompi:PublicKey");
-            _privateKey = config["Wompi:PrivateKey"] ?? throw new ArgumentNullException("Wompi:PrivateKey");
-            _baseUrl    = config["Wompi:BaseUrl"]    ?? "https://sandbox.wompi.co/v1";
+            _publicKey  = config["Wompi:PublicKey"]?.Trim()  ?? throw new ArgumentNullException("Wompi:PublicKey");
+            _privateKey = config["Wompi:PrivateKey"]?.Trim() ?? throw new ArgumentNullException("Wompi:PrivateKey");
+            _baseUrl    = config["Wompi:BaseUrl"]?.Trim()    ?? "https://sandbox.wompi.co/v1";
         }
 
         // ─── ACCEPTANCE TOKEN ───────────────────────

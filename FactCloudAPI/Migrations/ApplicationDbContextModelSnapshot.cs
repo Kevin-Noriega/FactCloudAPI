@@ -2172,6 +2172,9 @@ namespace FactCloudAPI.Migrations
                     b.Property<string>("Correo")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("DatosFacturacionCompletos")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Departamento")
                         .HasColumnType("nvarchar(max)");
 
@@ -2210,6 +2213,84 @@ namespace FactCloudAPI.Migrations
                         .IsUnique();
 
                     b.ToTable("Negocios");
+                });
+
+            modelBuilder.Entity("FactCloudAPI.Models.Usuarios.PerfilTributario", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ActividadEconomicaCIIU")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<int>("NegocioId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RegimenIvaCodigo")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("ResponsabilidadesFiscalesJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TributosJson")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NegocioId")
+                        .IsUnique();
+
+                    b.ToTable("PerfilesTributarios");
+                });
+
+            modelBuilder.Entity("FactCloudAPI.Models.Usuarios.RepresentanteLegal", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Apellidos")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("CiudadExpedicion")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("CiudadResidencia")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("NegocioId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("NumeroIdentificacion")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<int>("TipoDocumento")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NegocioId")
+                        .IsUnique();
+
+                    b.ToTable("RepresentantesLegales");
                 });
 
             modelBuilder.Entity("FactCloudAPI.Models.Wompi.Transaccion", b =>
@@ -2615,6 +2696,28 @@ namespace FactCloudAPI.Migrations
                     b.Navigation("Usuario");
                 });
 
+            modelBuilder.Entity("FactCloudAPI.Models.Usuarios.PerfilTributario", b =>
+                {
+                    b.HasOne("FactCloudAPI.Models.Usuarios.Negocio", "Negocio")
+                        .WithOne("PerfilTributario")
+                        .HasForeignKey("FactCloudAPI.Models.Usuarios.PerfilTributario", "NegocioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Negocio");
+                });
+
+            modelBuilder.Entity("FactCloudAPI.Models.Usuarios.RepresentanteLegal", b =>
+                {
+                    b.HasOne("FactCloudAPI.Models.Usuarios.Negocio", "Negocio")
+                        .WithOne("RepresentanteLegal")
+                        .HasForeignKey("FactCloudAPI.Models.Usuarios.RepresentanteLegal", "NegocioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Negocio");
+                });
+
             modelBuilder.Entity("FactCloudAPI.Models.Cliente", b =>
                 {
                     b.Navigation("Contactos");
@@ -2686,6 +2789,10 @@ namespace FactCloudAPI.Migrations
                 {
                     b.Navigation("ConfiguracionDIAN")
                         .IsRequired();
+
+                    b.Navigation("PerfilTributario");
+
+                    b.Navigation("RepresentanteLegal");
 
                     b.Navigation("Resoluciones");
                 });

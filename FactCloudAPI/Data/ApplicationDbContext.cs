@@ -1,4 +1,4 @@
-﻿using FactCloudAPI.Models;
+using FactCloudAPI.Models;
 using FactCloudAPI.Models.Cupones;
 using FactCloudAPI.Models.Planes;
 using FactCloudAPI.Models.Sesiones;
@@ -41,6 +41,8 @@ namespace FactCloudAPI.Data
         // Data/ApplicationDbContext.cs
         public DbSet<ResolucionDIAN> ResolucionesDIAN { get; set; }
         public DbSet<UsuarioAddon> UsuariosAddons { get; set; }
+        public DbSet<RepresentanteLegal> RepresentantesLegales { get; set; }
+        public DbSet<PerfilTributario> PerfilesTributarios { get; set; }
        
 
 

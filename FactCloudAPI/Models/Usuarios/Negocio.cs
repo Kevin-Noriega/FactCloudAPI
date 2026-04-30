@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace FactCloudAPI.Models.Usuarios
@@ -22,6 +22,7 @@ namespace FactCloudAPI.Models.Usuarios
         public string Pais { get; set; } = "CO";
         public string? Telefono { get; set; }
         public string? Correo { get; set; }
+        public bool DatosFacturacionCompletos { get; set; } = false;
 
         public string? TipoPersona { get; set; }
         public string? ActividadEconomicaCIIU { get; set; }
@@ -32,6 +33,8 @@ namespace FactCloudAPI.Models.Usuarios
 
         // 1 negocio → 1 configuración DIAN
         public ConfiguracionDian ConfiguracionDIAN { get; set; }
+        public PerfilTributario? PerfilTributario { get; set; }
+        public RepresentanteLegal? RepresentanteLegal { get; set; }
         public ICollection<ResolucionDIAN> Resoluciones { get; set; } = new List<ResolucionDIAN>();
         [NotMapped]
         public ResolucionDIAN? ResolucionActiva =>
