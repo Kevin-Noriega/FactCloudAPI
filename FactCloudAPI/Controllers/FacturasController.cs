@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Text;
+using static FactCloudAPI.Models.Factura;
 
 namespace FactCloudAPI.Controllers
 {
@@ -186,7 +187,7 @@ namespace FactCloudAPI.Controllers
             var ultimoNumero = await _context.Facturas
                 .Where(f => f.UsuarioId == usuarioId.Value
                          && f.Prefijo == factura.Prefijo
-                         && f.Estado != "Borrador")
+                         && f.Estado != EstadoFactura.Borrador)
                 .OrderByDescending(f => f.Id)
                 .Select(f => f.NumeroFactura)
                 .FirstOrDefaultAsync();
@@ -209,9 +210,9 @@ namespace FactCloudAPI.Controllers
             // ── 5. Manejar estado: Borrador vs Emitida ────────────────────────────
             // "Borrador"  → guardado sin numeración definitiva ni CUFE ni XML
             // "Pendiente" → emitida, lista para enviar a la DIAN
-            bool esBorrador = factura.Estado == "Borrador";
+            bool esBorrador = factura.Estado == EstadoFactura.Borrador;
             if (!esBorrador)
-                factura.Estado = "Emitida";
+                factura.Estado = EstadoFactura.Emitida;
 
             // ── 6. Calcular fechas (hora UTC-0500, FechaVencimiento, plazo DIAN) ──
             factura.CalcularFechas();
@@ -350,7 +351,7 @@ namespace FactCloudAPI.Controllers
                 return NotFound(new { mensaje = "Factura no encontrada" });
 
             // ✅ No permitir eliminar facturas ya enviadas o validadas por la DIAN
-            if (factura.EnviadaDIAN || factura.Estado == "Validada")
+            if (factura.EnviadaDIAN || factura.Estado == EstadoFactura.Validada)
                 return BadRequest(new
                 {
                     mensaje = "No se puede eliminar una factura enviada o validada por la DIAN. Use una Nota Crédito."
@@ -439,7 +440,7 @@ namespace FactCloudAPI.Controllers
                 // cuando tengas el certificado digital. Por ahora se registra el intento.
                 factura.EnviadaDIAN = true;
                 factura.FechaEnvioDIAN = DateTime.Now;
-                factura.Estado = "Enviada";
+                factura.Estado = EstadoFactura.Enviada;
                 factura.RespuestaDIAN = factura.TipoAmbiente == 2
                     ? "Ambiente de pruebas — integración WS pendiente"
                     : "Pendiente integración WS DIAN (SendBillAsync)";
@@ -485,11 +486,13 @@ namespace FactCloudAPI.Controllers
             if (factura == null)
                 return NotFound(new { mensaje = "Factura no encontrada" });
 
-            if (factura.Estado == "Pagada")
+            if (factura.Estado == EstadoFactura.Pagada)
                 return BadRequest(new { mensaje = "Esta factura ya está pagada" });
 
             // ✅ Aplicar cambios de pago
-            factura.Estado = pago.Estado ?? factura.Estado;
+            if (!string.IsNullOrEmpty(pago.Estado) &&
+                  Enum.TryParse<EstadoFactura>(pago.Estado, out var nuevoEstado))
+                factura.Estado = nuevoEstado;
             // ✅ Códigos DIAN: "10"=Efectivo, "42"=Transferencia, "48"=Tarjeta crédito, "ZZZ"=Otro
             factura.MedioPago = pago.MedioPago ?? factura.MedioPago;
             // ✅ Códigos DIAN: "1"=Contado, "2"=Crédito
@@ -630,12 +633,12 @@ namespace FactCloudAPI.Controllers
             return Ok(new
             {
                 totalFacturas = facturas.Count,
-                facturasPagadas = facturas.Count(f => f.Estado == "Pagada"),
-                facturasPendientes = facturas.Count(f => f.Estado is "Emitida" or "Enviada"),
+                facturasPagadas = facturas.Count(f => f.Estado == EstadoFactura.Pagada),
+                facturasPendientes = facturas.Count(f => f.Estado is EstadoFactura.Emitida or EstadoFactura.Enviada),
                 facturasVencidas = facturas.Count(f => f.EstaVencida),
                 totalVentas = facturas.Sum(f => f.TotalFactura),
-                totalVentasPagadas = facturas.Where(f => f.Estado == "Pagada").Sum(f => f.TotalFactura),
-                totalVentasPendientes = facturas.Where(f => f.Estado != "Pagada").Sum(f => f.TotalFactura),
+                totalVentasPagadas = facturas.Where(f => f.Estado == EstadoFactura.Pagada).Sum(f => f.TotalFactura),
+                totalVentasPendientes = facturas.Where(f => f.Estado != EstadoFactura.Pagada).Sum(f => f.TotalFactura),
                 totalIVA = facturas.Sum(f => f.TotalIVA),
                 totalINC = facturas.Sum(f => f.TotalINC),  // ✅ ya no nullable
                 totalICA = facturas.Sum(f => f.TotalICA),  // ✅ nuevo campo

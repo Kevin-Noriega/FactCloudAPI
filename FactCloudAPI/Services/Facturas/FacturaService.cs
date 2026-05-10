@@ -2,6 +2,8 @@
 using FactCloudAPI.DTOs.Facturas;
 using FactCloudAPI.Models;
 using Microsoft.EntityFrameworkCore;
+using static FactCloudAPI.Models.Factura;
+
 namespace FactCloudAPI.Services.Facturas
 {
     public class FacturaService : IFacturaService
@@ -15,20 +17,23 @@ namespace FactCloudAPI.Services.Facturas
 
         public async Task<List<FacturaDto>> ObtenerAsync(int usuarioId)
         {
-            return await _context.Facturas
+            // Traer primero a memoria para poder usar .ToString() en el enum
+            var facturas = await _context.Facturas
                 .Include(f => f.Cliente)
                 .Where(f => f.UsuarioId == usuarioId)
                 .OrderByDescending(f => f.FechaEmision)
-                .Select(f => new FacturaDto
-                {
-                    Id = f.Id,
-                    NumeroFactura = f.NumeroFactura,
-                    FechaEmision = f.FechaEmision,
-                    Cliente = $"{f.Cliente.Nombre} {f.Cliente.Apellido}",
-                    TotalFactura = f.TotalFactura,
-                    Estado = f.Estado
-                })
-                .ToListAsync();
+                .ToListAsync(); // ← primero a memoria
+
+            // ✅ Luego mapear con .ToString() fuera de la query SQL
+            return facturas.Select(f => new FacturaDto
+            {
+                Id = f.Id,
+                NumeroFactura = f.NumeroFactura,
+                FechaEmision = f.FechaEmision,
+                Cliente = $"{f.Cliente!.Nombre} {f.Cliente.Apellido}",
+                TotalFactura = f.TotalFactura,
+                Estado = f.Estado.ToString() 
+            }).ToList();
         }
 
         public async Task<FacturaDetalleDTO?> ObtenerPorIdAsync(int id, int usuarioId)
@@ -47,21 +52,21 @@ namespace FactCloudAPI.Services.Facturas
                 NumeroFactura = factura.NumeroFactura,
                 FechaEmision = factura.FechaEmision,
                 FechaVencimiento = factura.FechaVencimiento,
-                Cliente = $"{factura.Cliente.Nombre} {factura.Cliente.Apellido}",
+                Cliente = $"{factura.Cliente!.Nombre} {factura.Cliente.Apellido}",
                 ClienteCorreo = factura.Cliente.Correo,
                 Subtotal = factura.Subtotal,
                 TotalIVA = factura.TotalIVA,
                 TotalINC = factura.TotalINC,
                 TotalFactura = factura.TotalFactura,
-                Estado = factura.Estado,
+                Estado = factura.Estado.ToString(),  // ✅ con ()
                 MedioPago = factura.MedioPago,
                 FormaPago = factura.FormaPago,
                 EnviadaDIAN = factura.EnviadaDIAN,
                 EnviadaCliente = factura.EnviadaCliente,
-                Items = factura.DetalleFacturas.Select(d => new FacturaDetalleItemDto
+                Items = factura.DetalleFacturas!.Select(d => new FacturaDetalleItemDto
                 {
                     ProductoId = d.ProductoId,
-                    Producto = d.Producto.Nombre,
+                    Producto = d.Producto!.Nombre,
                     Cantidad = d.Cantidad,
                     PrecioUnitario = d.PrecioUnitario,
                     Total = d.Cantidad * d.PrecioUnitario
@@ -71,8 +76,6 @@ namespace FactCloudAPI.Services.Facturas
 
         public async Task<int> CrearAsync(FacturaCreateDto dto, int usuarioId)
         {
-            // aquí va lógica de stock, totales, impuestos, etc.
-            // (la dejamos lista para siguiente paso)
             var factura = new Factura
             {
                 UsuarioId = usuarioId,
@@ -96,12 +99,16 @@ namespace FactCloudAPI.Services.Facturas
                 .FirstOrDefaultAsync(f => f.Id == id && f.UsuarioId == usuarioId);
 
             if (factura == null)
-                throw new Exception("Factura no encontrada");
+                throw new KeyNotFoundException("Factura no encontrada");
 
-            factura.Estado = dto.Estado;
-            factura.MedioPago = dto.MedioPago;
-            factura.FormaPago = dto.FormaPago;
-            factura.MontoPagado = dto.MontoPagado;
+            // ✅ Parsear string del DTO al enum de forma segura
+            if (!string.IsNullOrEmpty(dto.Estado) &&
+                Enum.TryParse<EstadoFactura>(dto.Estado, out var nuevoEstado))
+                factura.Estado = nuevoEstado;
+
+            factura.MedioPago = dto.MedioPago ?? factura.MedioPago;
+            factura.FormaPago = dto.FormaPago ?? factura.FormaPago;
+            factura.MontoPagado = dto.MontoPagado > 0 ? dto.MontoPagado : factura.MontoPagado;
             factura.FechaPago = dto.FechaPago ?? DateTime.Now;
 
             factura.Cufe = CufeService.GenerarCUFE(factura);
@@ -109,15 +116,7 @@ namespace FactCloudAPI.Services.Facturas
             await _context.SaveChangesAsync();
         }
 
-        public async Task EnviarClienteAsync(int id, int usuarioId)
-        {
-            // email logic
-        }
-
-        public async Task EnviarDIANAsync(int id, int usuarioId)
-        {
-            // DIAN logic
-        }
+        public async Task EnviarClienteAsync(int id, int usuarioId) { }
+        public async Task EnviarDIANAsync(int id, int usuarioId) { }
     }
-
 }

@@ -1,4 +1,6 @@
-﻿namespace FactCloudAPI.DTOs.Facturas
+﻿using FactCloudAPI.Models;
+
+namespace FactCloudAPI.DTOs.Facturas
 {
     public class FacturaDto
     {
@@ -7,6 +9,6 @@
         public DateTime FechaEmision { get; set; }
         public string Cliente { get; set; }
         public decimal TotalFactura { get; set; }
-        public string Estado { get; set; }
+        public string Estado { get; set; } = string.Empty;
     }
 }

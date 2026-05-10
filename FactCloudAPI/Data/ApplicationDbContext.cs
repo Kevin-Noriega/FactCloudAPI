@@ -7,6 +7,7 @@ using FactCloudAPI.Models.Suscripciones;
 using FactCloudAPI.Models.Usuarios;
 using FactCloudAPI.Models.Wompi;
 using Microsoft.EntityFrameworkCore;
+using static FactCloudAPI.Models.Factura;
 
 namespace FactCloudAPI.Data
 {
@@ -358,9 +359,10 @@ namespace FactCloudAPI.Data
                     .HasDefaultValue("10");
 
                 entity.Property(f => f.Estado)
+                     .HasConversion<string>()
                     .IsRequired()
                     .HasMaxLength(50)
-                    .HasDefaultValue("Emitida");
+                    .HasDefaultValue(EstadoFactura.Emitida);
 
                 entity.Property(f => f.RespuestaDIAN)
                     .HasMaxLength(1000);
@@ -417,27 +419,6 @@ namespace FactCloudAPI.Data
                     .HasPrecision(18, 2);
 
                 entity.Property(d => d.SubtotalLinea)
-                    .HasPrecision(18, 2);
-
-                entity.Property(d => d.TarifaIVA)
-                    .HasPrecision(6, 4)
-                    .HasDefaultValue(0);
-
-                entity.Property(d => d.ValorIVA)
-                    .HasPrecision(18, 2);
-
-                entity.Property(d => d.TarifaINC)
-                    .HasPrecision(6, 4)
-                    .HasDefaultValue(0);
-
-                entity.Property(d => d.ValorINC)
-                    .HasPrecision(18, 2);
-
-                entity.Property(d => d.TarifaICA)
-                    .HasPrecision(6, 4)
-                    .HasDefaultValue(0);
-
-                entity.Property(d => d.ValorICA)
                     .HasPrecision(18, 2);
 
                 entity.Property(d => d.TotalLinea)

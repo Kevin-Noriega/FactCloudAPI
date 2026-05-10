@@ -184,14 +184,13 @@ namespace FactCloudAPI.Models
         // ==================== ESTADO Y OBSERVACIONES ====================
 
         /// <summary>Estados: "Emitida" | "Enviada" | "Validada" | "Pagada" | "Anulada" | "Vencida"</summary>
-        [Required]
-        [MaxLength(50)]
-        public string Estado { get; set; } = "Emitida";
+        public enum EstadoFactura { Emitida, Enviada, Validada, Pagada, Borrador, Anulada, Vencida }
+        public EstadoFactura Estado { get; set; } = EstadoFactura.Emitida;
 
         [MaxLength(2000)]
         public string? Observaciones { get; set; }
 
-        public DateTime FechaRegistro { get; set; } = DateTime.Now;
+        public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;
 
         // ==================== ENVÍO DIAN ====================
 
@@ -259,7 +258,7 @@ namespace FactCloudAPI.Models
 
         [NotMapped]
         public bool EstaVencida =>
-            FechaVencimiento.HasValue && DateTime.Now > FechaVencimiento && Estado != "Pagada";
+            FechaVencimiento.HasValue && DateTime.Now > FechaVencimiento && Estado != EstadoFactura.Pagada;
 
         [NotMapped]
         public int? HorasRestantesEnvioDIAN
@@ -270,6 +269,39 @@ namespace FactCloudAPI.Models
                 var horas = (FechaLimiteEnvioDIAN.Value - DateTime.Now).TotalHours;
                 return horas > 0 ? (int)Math.Ceiling(horas) : 0;
             }
+        }
+        // Agregar a Factura
+        public void RecalcularTotales()
+        {
+            if (DetalleFacturas == null || !DetalleFacturas.Any()) return;
+
+            Subtotal = DetalleFacturas.Sum(d => d.SubtotalLinea);
+
+            // ⚠️ Requiere que la colección Impuestos esté cargada (Include en la query EF)
+            var todosImpuestos = DetalleFacturas
+                .SelectMany(d => d.Impuestos)
+                .ToList();
+
+            TotalIVA = todosImpuestos
+                .Where(i => i.Impuesto?.CodigoTributoDIAN == "01")
+                .Sum(i => i.ValorImpuesto);
+
+            TotalINC = todosImpuestos
+                .Where(i => i.Impuesto?.CodigoTributoDIAN == "04")
+                .Sum(i => i.ValorImpuesto);
+
+            TotalICA = todosImpuestos
+                .Where(i => i.Impuesto?.CodigoTributoDIAN == "03")
+                .Sum(i => i.ValorImpuesto);
+
+            TotalRetenciones = todosImpuestos
+                .Where(i => i.NaturalezaImpuesto == "Retencion")
+                .Sum(i => i.ValorImpuesto);
+
+            TotalDescuentos = DetalleFacturas.Sum(d => d.ValorDescuento);
+
+            TotalFactura = Subtotal + TotalIVA + TotalINC + TotalICA
+                         - TotalRetenciones - TotalDescuentos;
         }
 
 
