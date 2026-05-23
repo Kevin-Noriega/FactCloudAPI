@@ -40,7 +40,7 @@ public class AuthController : ControllerBase
 
         if (!BCrypt.Net.BCrypt.Verify(model.Contrasena, usuario.ContrasenaHash))
         {
-            Console.WriteLine("? Contraseña incorrecta");
+            Console.WriteLine("? Contraseï¿½a incorrecta");
             return Unauthorized(new { message = "Credenciales incorrectas" });
         }
 
@@ -62,6 +62,7 @@ public class AuthController : ControllerBase
             Apellido = usuario.Apellido,
             Correo = usuario.Correo,
             Estado = usuario.Estado,
+            Rol = usuario.Rol ?? "usuario",
             FechaDesactivacion = usuario.FechaDesactivacion
         };
 
@@ -138,21 +139,21 @@ public class AuthController : ControllerBase
         {
             Console.WriteLine("? Token NO existe en base de datos");
 
-            // Debug: Mostrar últimos tokens en BD
+            // Debug: Mostrar ï¿½ltimos tokens en BD
             var recentTokens = await _context.RefreshTokens
                 .OrderByDescending(t => t.FechaCreacion)
                 .Take(3)
                 .Select(t => new { t.Token, t.UsuarioId, t.Usado, t.FechaCreacion })
                 .ToListAsync();
 
-            Console.WriteLine("Últimos 3 tokens en BD:");
+            Console.WriteLine("ï¿½ltimos 3 tokens en BD:");
             foreach (var t in recentTokens)
             {
                 var preview = t.Token.Substring(0, 30) + "...";
                 Console.WriteLine($"  - {preview} Usuario:{t.UsuarioId} Usado:{t.Usado} Creado:{t.FechaCreacion}");
             }
 
-            return Unauthorized(new { message = "Refresh token inválido" });
+            return Unauthorized(new { message = "Refresh token invï¿½lido" });
         }
 
         Console.WriteLine($"? Token encontrado en BD - Usuario: {storedToken.Usuario.Correo}");
@@ -172,7 +173,7 @@ public class AuthController : ControllerBase
         if (storedToken.FechaExpiracion < DateTime.UtcNow)
         {
             Console.WriteLine($"? Token expirado");
-            Console.WriteLine($"   Expiró: {storedToken.FechaExpiracion}");
+            Console.WriteLine($"   Expirï¿½: {storedToken.FechaExpiracion}");
             Console.WriteLine($"   Ahora: {DateTime.UtcNow}");
             return Unauthorized(new { message = "Refresh token expirado" });
         }
@@ -247,7 +248,7 @@ public class AuthController : ControllerBase
         await _context.SaveChangesAsync();
         Response.Cookies.Delete("refreshToken");
 
-        return Ok(new { message = "Sesión cerrada correctamente" });
+        return Ok(new { message = "Sesiï¿½n cerrada correctamente" });
     }
 }
 

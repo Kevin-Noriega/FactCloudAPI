@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NubeeAPI.Data;
 
@@ -11,9 +12,11 @@ using NubeeAPI.Data;
 namespace NubeeAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260523023633_formAdmin")]
+    partial class formAdmin
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,40 +24,6 @@ namespace NubeeAPI.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("NubeeAPI.Models.AuditoriaAdmin", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Accion")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<int>("AdminId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Detalle")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<DateTime>("FechaHora")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AdminId");
-
-                    b.HasIndex("FechaHora");
-
-                    b.ToTable("AuditoriaAdmin");
-                });
 
             modelBuilder.Entity("NubeeAPI.Models.Cliente", b =>
                 {
@@ -3375,6 +3344,7 @@ namespace NubeeAPI.Migrations
                         .HasColumnType("bit");
 
                     b.Property<int?>("DescuentoPorcentaje")
+                        .HasPrecision(5, 2)
                         .HasColumnType("int");
 
                     b.Property<bool>("Destacado")
@@ -4426,17 +4396,6 @@ namespace NubeeAPI.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Transacciones");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.AuditoriaAdmin", b =>
-                {
-                    b.HasOne("NubeeAPI.Models.Usuario", "Admin")
-                        .WithMany()
-                        .HasForeignKey("AdminId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Admin");
                 });
 
             modelBuilder.Entity("NubeeAPI.Models.Cliente", b =>

@@ -94,6 +94,7 @@ namespace NubeeAPI.Controllers
                         correo = usuario.Correo,
                         telefono = usuario.Telefono,
                         estado = usuario.Estado,
+                        rol = usuario.Rol ?? "usuario",
                         SuscripcionId = suscripcionActiva?.PlanFacturacionId ?? 0,
                         PlanNombre = suscripcionActiva?.PlanFacturacion?.Nombre ?? "Prueba",
                         DocumentosRestantes = suscripcionActiva?.DocumentosUsados ?? 0,
@@ -173,6 +174,19 @@ namespace NubeeAPI.Controllers
 
 
 
+        [HttpGet("validar-registro")]
+        [AllowAnonymous]
+        public async Task<ActionResult> ValidarRegistro([FromQuery] string correo, [FromQuery] string? nit)
+        {
+            if (await _context.Usuarios.AnyAsync(u => u.Correo == correo))
+                return BadRequest(new { error = "El correo ya está registrado" });
+
+            if (!string.IsNullOrEmpty(nit) && await _context.Negocios.AnyAsync(n => n.Nit == nit))
+                return BadRequest(new { error = "El NIT ya está registrado en otra cuenta" });
+
+            return Ok(new { valid = true });
+        }
+
         [HttpPost("crear-y-activar")]
         [AllowAnonymous]
         public async Task<ActionResult> CrearYActivarUsuario([FromBody] CrearYActivarDto dto)
@@ -181,11 +195,12 @@ namespace NubeeAPI.Controllers
 
             try
             {
-                // 1. Verificar si el correo ya existe
+                // 1. Verificar duplicados
                 if (await _context.Usuarios.AnyAsync(u => u.Correo == dto.Correo))
-                {
                     return BadRequest(new { error = "El correo ya está registrado" });
-                }
+
+                if (!string.IsNullOrEmpty(dto.Nit) && await _context.Negocios.AnyAsync(n => n.Nit == dto.Nit))
+                    return BadRequest(new { error = "El NIT ya está registrado en otra cuenta" });
 
                 // 2. Hash de contraseña
                 string passwordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password);
@@ -293,7 +308,7 @@ namespace NubeeAPI.Controllers
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                return StatusCode(500, new { error = ex.Message });
+                return StatusCode(500, new { error = ex.Message, detail = ex.InnerException?.Message ?? ex.InnerException?.InnerException?.Message });
             }
         }
 

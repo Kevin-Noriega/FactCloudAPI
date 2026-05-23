@@ -50,7 +50,7 @@ namespace NubeeAPI.Data
         public DbSet<Autoretencion> Autorretenciones { get; set; }
         public DbSet<DetalleFacturaImpuesto> DetalleFacturaImpuestos { get; set; }
         public DbSet<PerfilTributario> PerfilesTributarios { get; set; }
-       
+        public DbSet<AuditoriaAdmin> AuditoriaAdmin { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -866,6 +866,21 @@ namespace NubeeAPI.Data
             });
 
             // ══════════════════════════════════════════════════════════════
+            // AUDITORIA ADMIN
+            // ══════════════════════════════════════════════════════════════
+            modelBuilder.Entity<AuditoriaAdmin>(entity =>
+            {
+                entity.HasKey(a => a.Id);
+                entity.HasOne(a => a.Admin)
+                    .WithMany()
+                    .HasForeignKey(a => a.AdminId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasIndex(a => a.FechaHora);
+                entity.HasIndex(a => a.AdminId);
+                entity.Property(a => a.FechaHora).HasDefaultValueSql("GETUTCDATE()");
+            });
+
+            // ══════════════════════════════════════════════════════════════
             // SEED DATA
             // ══════════════════════════════════════════════════════════════
 
@@ -946,7 +961,7 @@ namespace NubeeAPI.Data
             modelBuilder.Entity<PlanFacturacion>(entity =>
             {
                 entity.Property(p => p.PrecioAnual).HasPrecision(18, 2);
-                entity.Property(p => p.DescuentoPorcentaje).HasPrecision(5, 2);
+                // DescuentoPorcentaje es int? → no soporta HasPrecision
             });
 
             modelBuilder.Entity<PlanFeature>().HasData(

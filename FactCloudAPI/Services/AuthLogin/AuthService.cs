@@ -35,7 +35,7 @@ public class AuthService : IAuthService
         if (!usuario.Estado)
         {
             var diasRestantes = (int)(usuario.FechaDesactivacion.Value.AddDays(30) - DateTime.Now).TotalDays;
-            throw new InvalidOperationException($"Cuenta suspendida. {diasRestantes} días restantes.");
+            throw new InvalidOperationException($"Cuenta suspendida. {diasRestantes} dï¿½as restantes.");
         }
         var suscripcionActiva = usuario.Suscripciones
        ?.FirstOrDefault(s => s.Activa && s.FechaFin > DateTime.Now);
@@ -60,17 +60,23 @@ public class AuthService : IAuthService
         return (token, usuarioDto);
     }
 
-    // MÉTODO 1: Generar Access Token (corta duración)
+    // Mï¿½TODO 1: Generar Access Token (corta duraciï¿½n)
     public string GenerarAccessToken(Usuario usuario)
     {
+        // Normalizar el rol: siempre primera letra mayÃºscula para que coincida con [Authorize(Roles = "Admin")]
+        var rolNormalizado = string.IsNullOrWhiteSpace(usuario.Rol)
+            ? "Usuario"
+            : char.ToUpper(usuario.Rol[0]) + usuario.Rol[1..].ToLower();
+
         var claims = new List<Claim>
     {
-        new Claim(JwtRegisteredClaimNames.Sub, usuario.Id.ToString()), // ? CAMBIAR: ID en lugar de Correo
+        new Claim(JwtRegisteredClaimNames.Sub, usuario.Id.ToString()),
         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
         new Claim(ClaimTypes.Email, usuario.Correo),
-        new Claim(ClaimTypes.Role, "Usuario"),
-        new Claim(ClaimTypes.Name, $"{usuario.Nombre} {usuario.Apellido}")
+        new Claim(ClaimTypes.Role, rolNormalizado),
+        new Claim(ClaimTypes.Name, $"{usuario.Nombre} {usuario.Apellido}"),
+        new Claim("rol", usuario.Rol ?? "usuario")
     };
 
         var keyString = _config["Jwt:Key"];
@@ -102,7 +108,7 @@ public class AuthService : IAuthService
     }
 
 
-    // MÉTODO 2: Generar Refresh Token (string aleatorio seguro)
+    // Mï¿½TODO 2: Generar Refresh Token (string aleatorio seguro)
     public string GenerarRefreshToken()
     {
         var randomNumber = new byte[64];

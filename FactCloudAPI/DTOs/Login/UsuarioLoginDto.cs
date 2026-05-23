@@ -10,6 +10,7 @@ namespace NubeeAPI.DTOs.Login
         public string NombreCompleto => $"{Nombre} {Apellido ?? ""}".Trim();
         public string Correo { get; set; }
         public bool Estado { get; set; }
+        public string Rol { get; set; } = "usuario";
         public int SuscripcionId { get; set; }
         public string PlanNombre { get; set; } = "Demo";
         public int DocumentosRestantes { get; set; }
