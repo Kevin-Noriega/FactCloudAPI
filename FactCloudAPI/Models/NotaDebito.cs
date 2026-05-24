@@ -1,11 +1,11 @@
-﻿using FactCloudAPI.Models;
+using NubeeAPI.Models;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System;
 using System.Collections.Generic;
 
 
-namespace FactCloudAPI.Models
+namespace NubeeAPI.Models
 {
     public class NotaDebito
     {

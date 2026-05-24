@@ -1,9 +1,9 @@
-﻿using FactCloudAPI.Data;
-using FactCloudAPI.DTOs.Busqueda;
+using NubeeAPI.Data;
+using NubeeAPI.DTOs.Busqueda;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace FactCloudAPI.Controllers
+namespace NubeeAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -28,7 +28,7 @@ namespace FactCloudAPI.Controllers
 
             var results = new List<BusquedaGlobalDTO>();
 
-            // ── FACTURAS ──
+            // -- FACTURAS --
             var facturas = await _context.Facturas
                 .Where(f =>
                     EF.Functions.Like(f.Cufe.ToLower(), $"%{query}%") ||
@@ -48,7 +48,7 @@ namespace FactCloudAPI.Controllers
                 .Take(5)
                 .ToListAsync();
 
-            // ── CLIENTES ──
+            // -- CLIENTES --
             var clientes = await _context.Clientes
                 .Where(c =>
                     EF.Functions.Like(c.Nombre.ToLower(), $"%{query}%") ||
@@ -67,7 +67,7 @@ namespace FactCloudAPI.Controllers
                 .Take(5)
                 .ToListAsync();
 
-            // ── PRODUCTOS ──
+            // -- PRODUCTOS --
             var productos = await _context.Productos
                 .Where(p =>
                     EF.Functions.Like(p.Nombre.ToLower(), $"%{query}%") ||
@@ -85,10 +85,10 @@ namespace FactCloudAPI.Controllers
                 .Take(5)
                 .ToListAsync();
 
-            // ── PÁGINAS Y ACCIONES ──
+            // -- P�GINAS Y ACCIONES --
             var acciones = new List<BusquedaGlobalDTO>
     {
-        // 🔹 NAVEGACIÓN
+        // ?? NAVEGACI�N
         new BusquedaGlobalDTO {
             Title = "Facturas",
             Subtitle = "Ver todas las facturas",
@@ -98,7 +98,7 @@ namespace FactCloudAPI.Controllers
         },
         new BusquedaGlobalDTO {
             Title = "Clientes",
-            Subtitle = "Gestión de clientes",
+            Subtitle = "Gesti�n de clientes",
             Route = "/clientes",
             Type = "pagina",
             Icon = "PersonFill"
@@ -111,7 +111,7 @@ namespace FactCloudAPI.Controllers
             Icon = "BoxSeam"
         },
 
-        // 🔹 ACCIONES
+        // ?? ACCIONES
         new BusquedaGlobalDTO {
             Title = "Crear factura",
             Subtitle = "Registrar nueva factura",
@@ -120,14 +120,14 @@ namespace FactCloudAPI.Controllers
             Icon = "PlusCircleFill"
         },
         new BusquedaGlobalDTO {
-            Title = "Crear nota crédito",
-            Subtitle = "Registrar devolución",
+            Title = "Crear nota cr�dito",
+            Subtitle = "Registrar devoluci�n",
             Route = "/nueva-nota-credito",
             Type = "accion",
             Icon = "ArrowCounterclockwise"
         },
         new BusquedaGlobalDTO {
-            Title = "Crear nota débito",
+            Title = "Crear nota d�bito",
             Subtitle = "Registrar ajuste",
             Route = "/nueva-nota-debito",
             Type = "accion",
@@ -141,10 +141,10 @@ namespace FactCloudAPI.Controllers
             Icon = "FileText"
         },
 
-        // 🔹 CONFIG / PERFIL
+        // ?? CONFIG / PERFIL
         new BusquedaGlobalDTO {
-            Title = "Configuración",
-            Subtitle = "Abrir configuración",
+            Title = "Configuraci�n",
+            Subtitle = "Abrir configuraci�n",
             Route = "/configuracion",
             Type = "modal",
             Icon = "GearFill"
@@ -158,7 +158,7 @@ namespace FactCloudAPI.Controllers
         }
     };
 
-            // 🔍 FILTRAR ACCIONES
+            // ?? FILTRAR ACCIONES
             var accionesFiltradas = acciones
                 .Where(a =>
                     a.Title.ToLower().Contains(query) ||
@@ -167,13 +167,13 @@ namespace FactCloudAPI.Controllers
                 .Take(5)
                 .ToList();
 
-            // 🔥 UNIFICAR TODO
+            // ?? UNIFICAR TODO
             results.AddRange(accionesFiltradas);
             results.AddRange(facturas);
             results.AddRange(clientes);
             results.AddRange(productos);
 
-            // 🧠 ORDEN INTELIGENTE
+            // ?? ORDEN INTELIGENTE
             var ordered = results
                 .OrderBy(r => r.Type switch
                 {

@@ -1,29 +1,29 @@
-﻿using FactCloudAPI.Models.Planes;
+using NubeeAPI.Models.Planes;
 using System.ComponentModel.DataAnnotations;
 
-namespace FactCloudAPI.Models.Suscripciones
+namespace NubeeAPI.Models.Suscripciones
 {
     public class SuscripcionFacturacion
     {
         public int Id { get; set; }
 
-        // 🔗 Usuario
+        // ?? Usuario
         [Required]
         public int UsuarioId { get; set; }
         public Usuario Usuario { get; set; } = null!;
 
-        // 🔗 Plan de facturación
+        // ?? Plan de facturaci�n
         [Required]
         public int PlanFacturacionId { get; set; }
         public PlanFacturacion PlanFacturacion { get; set; } = null!;
 
-        // 📅 Ciclo de la suscripción
+        // ?? Ciclo de la suscripci�n
         [Required]
         public DateTime FechaInicio { get; set; }
 
         public DateTime? FechaFin { get; set; }
 
-        // 📊 Control de consumo
+        // ?? Control de consumo
         public int DocumentosUsados { get; set; } = 0;
 
         // Estado

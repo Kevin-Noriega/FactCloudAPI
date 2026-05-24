@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace FactCloudAPI.DTOs.Usuarios
+namespace NubeeAPI.DTOs.Usuarios
 {
     public class CrearYActivarDto
     {  // Usuario
@@ -22,20 +22,20 @@ namespace FactCloudAPI.DTOs.Usuarios
         public string? Pais { get; set; }
 
         // Negocio
-        
-        public string? NombreComercial { get; set; } = null!;
+        [Required]
+        public string NombreNegocio { get; set; } = null!;
 
-       
-        public string? NumeroIdentificacionE { get; set; } = null!;
+        [Required]
+        public string Nit { get; set; } = null!;
 
         public int? DvNit { get; set; }
         public string? Direccion { get; set; }
         public string? Ciudad { get; set; }
         public string? Departamento { get; set; }
         public string? TelefonoNegocio { get; set; }
-        public string? CorreoRecepcionDian { get; set; }
+        public string? CorreoNegocio { get; set; }
 
-        // Suscripción
+        // Suscripci�n
         [Required]
         public int PlanFacturacionId { get; set; }
 

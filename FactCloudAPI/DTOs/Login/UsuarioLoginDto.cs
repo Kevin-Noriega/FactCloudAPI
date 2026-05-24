@@ -1,6 +1,6 @@
-﻿using FactCloudAPI.Models.Suscripciones;
+using NubeeAPI.Models.Suscripciones;
 
-namespace FactCloudAPI.DTOs.Login
+namespace NubeeAPI.DTOs.Login
 {
     public class UsuarioLoginDto
     {

@@ -1,7 +1,7 @@
-锘縰sing System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace FactCloudAPI.Models
+namespace NubeeAPI.Models
 {
     [Table("DocumentosSoporte")]
     public class DocumentoSoporte
@@ -22,12 +22,12 @@ namespace FactCloudAPI.Models
 
         [Required]
         [StringLength(96)]
-        public string CUDS { get; set; } // C贸digo 脷nico de Documento Soporte (SHA-384)
+        public string CUDS { get; set; } // C骴igo 趎ico de Documento Soporte (SHA-384)
 
         [Required]
         public DateTime FechaGeneracion { get; set; } = DateTime.Now;
 
-        // Informaci贸n del Proveedor (No obligado a facturar)
+        // Informaci髇 del Proveedor (No obligado a facturar)
         [Required]
         [StringLength(200)]
         public string ProveedorNombre { get; set; }
@@ -77,7 +77,7 @@ namespace FactCloudAPI.Models
         [StringLength(500)]
         public string Observaciones { get; set; }
 
-        // Informaci贸n DIAN
+        // Informaci髇 DIAN
         [StringLength(50)]
         public string EstadoDian { get; set; } = "Pendiente"; // Pendiente, Aceptado, Rechazado
 
@@ -94,14 +94,14 @@ namespace FactCloudAPI.Models
 
         public string RutaPDF { get; set; }
 
-        // Relaci贸n con Usuario
+        // Relaci髇 con Usuario
         [Required]
         public int UsuarioId { get; set; }
 
         [ForeignKey("UsuarioId")]
         public Usuario Usuario { get; set; }
 
-        // Auditor铆a
+        // Auditor韆
         public bool Estado { get; set; } = true;
 
         public DateTime FechaRegistro { get; set; } = DateTime.Now;

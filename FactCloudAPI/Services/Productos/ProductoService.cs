@@ -1,7 +1,7 @@
-﻿using FactCloudAPI.Data;
-using FactCloudAPI.DTOs.Productos;
-using FactCloudAPI.Models;
-using FactCloudAPI.Services.Productos;
+using NubeeAPI.Data;
+using NubeeAPI.DTOs.Productos;
+using NubeeAPI.Models;
+using NubeeAPI.Services.Productos;
 using Microsoft.EntityFrameworkCore;
 
 public class ProductoService : IProductoService
@@ -23,9 +23,9 @@ public class ProductoService : IProductoService
                 Nombre = p.Nombre,
                 UnidadMedida = p.UnidadMedida,
                 PrecioUnitario = p.PrecioUnitario,
-                CantidadDisponible = p.CantidadDisponible,  // ← Ya es nullable
+                CantidadDisponible = p.CantidadDisponible,  // ? Ya es nullable
                 Activo = p.Activo,
-                EsServicio = p.EsServicio                   // ← Agrega
+                EsServicio = p.EsServicio                   // ? Agrega
             })
             .ToListAsync();
     }
@@ -37,7 +37,7 @@ public class ProductoService : IProductoService
             .Select(p => new ProductoDetalleDto
             {
                 Id = p.Id,
-                EsServicio = p.EsServicio,                  // ← Agrega
+                EsServicio = p.EsServicio,                  // ? Agrega
                 Nombre = p.Nombre,
                 Descripcion = p.Descripcion,
                 CodigoInterno = p.CodigoInterno,
@@ -45,12 +45,12 @@ public class ProductoService : IProductoService
                 UnidadMedida = p.UnidadMedida,
                 PrecioUnitario = p.PrecioUnitario,
                 Costo = p.Costo,
-                ImpuestoCargo = p.ImpuestoCargo,            // ← Nuevo
-                Retencion = p.Retencion,                    // ← Nuevo
-                CantidadDisponible = p.CantidadDisponible,  // ← Nullable
+                ImpuestoCargo = p.ImpuestoCargo,            // ? Nuevo
+                Retencion = p.Retencion,                    // ? Nuevo
+                CantidadDisponible = p.CantidadDisponible,  // ? Nullable
                 CantidadMinima = p.CantidadMinima,
                 Categoria = p.Categoria,
-                IncluyeIVA = p.IncluyeIVA,                  // ← Nuevo
+                IncluyeIVA = p.IncluyeIVA,                  // ? Nuevo
                 Activo = p.Activo
             })
             .FirstOrDefaultAsync();

@@ -1,4 +1,4 @@
-﻿namespace FactCloudAPI.DTOs.Habilitacion
+namespace NubeeAPI.DTOs.Habilitacion
 {
     public class ConfiguracionSoftwareDto
     {

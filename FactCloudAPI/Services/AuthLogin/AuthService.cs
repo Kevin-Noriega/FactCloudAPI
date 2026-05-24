@@ -1,7 +1,7 @@
-﻿using FactCloudAPI.Data;
-using FactCloudAPI.DTOs.Login;
-using FactCloudAPI.Models;
-using FactCloudAPI.Services.AuthLogin;
+using NubeeAPI.Data;
+using NubeeAPI.DTOs.Login;
+using NubeeAPI.Models;
+using NubeeAPI.Services.AuthLogin;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -35,7 +35,7 @@ public class AuthService : IAuthService
         if (!usuario.Estado)
         {
             var diasRestantes = (int)(usuario.FechaDesactivacion.Value.AddDays(30) - DateTime.Now).TotalDays;
-            throw new InvalidOperationException($"Cuenta suspendida. {diasRestantes} días restantes.");
+            throw new InvalidOperationException($"Cuenta suspendida. {diasRestantes} d�as restantes.");
         }
         var suscripcionActiva = usuario.Suscripciones
        ?.FirstOrDefault(s => s.Activa && s.FechaFin > DateTime.Now);
@@ -60,12 +60,12 @@ public class AuthService : IAuthService
         return (token, usuarioDto);
     }
 
-    // MÉTODO 1: Generar Access Token (corta duración)
+    // M�TODO 1: Generar Access Token (corta duraci�n)
     public string GenerarAccessToken(Usuario usuario)
     {
         var claims = new List<Claim>
     {
-        new Claim(JwtRegisteredClaimNames.Sub, usuario.Id.ToString()), // ✅ CAMBIAR: ID en lugar de Correo
+        new Claim(JwtRegisteredClaimNames.Sub, usuario.Id.ToString()), // ? CAMBIAR: ID en lugar de Correo
         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         new Claim(ClaimTypes.NameIdentifier, usuario.Id.ToString()),
         new Claim(ClaimTypes.Email, usuario.Correo),
@@ -93,16 +93,16 @@ public class AuthService : IAuthService
 
         var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
-        Console.WriteLine($"✅ Token generado para usuario {usuario.Correo}");
+        Console.WriteLine($"? Token generado para usuario {usuario.Correo}");
         Console.WriteLine($"   - ID en claim: {usuario.Id}");
-        Console.WriteLine($"   - Sub: {usuario.Id}"); // ✅ Verificar que sea el ID
+        Console.WriteLine($"   - Sub: {usuario.Id}"); // ? Verificar que sea el ID
         Console.WriteLine($"   - Claims totales: {claims.Count}");
 
         return tokenString;
     }
 
 
-    // MÉTODO 2: Generar Refresh Token (string aleatorio seguro)
+    // M�TODO 2: Generar Refresh Token (string aleatorio seguro)
     public string GenerarRefreshToken()
     {
         var randomNumber = new byte[64];

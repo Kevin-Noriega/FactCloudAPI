@@ -1,11 +1,11 @@
-﻿using FactCloudAPI.Data;
-using FactCloudAPI.Models.Usuarios;
+using NubeeAPI.Data;
+using NubeeAPI.Models.Usuarios;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-namespace FactCloudAPI.Controllers
+namespace NubeeAPI.Controllers
 {
     [ApiController]
     [Route("api/negocios/{negocioId:int}/configuracion-dian")]
@@ -29,7 +29,7 @@ namespace FactCloudAPI.Controllers
                 .FirstOrDefaultAsync(c => c.NegocioId == negocioId);
 
             if (config == null)
-                return NotFound(new { mensaje = "Configuración DIAN no registrada aún." });
+                return NotFound(new { mensaje = "Configuraci�n DIAN no registrada a�n." });
 
             return Ok(config);
         }
@@ -43,7 +43,7 @@ namespace FactCloudAPI.Controllers
             var existe = await _context.ConfiguracionesDian
                 .AnyAsync(c => c.NegocioId == negocioId);
             if (existe)
-                return Conflict(new { mensaje = "Ya existe una configuración. Usa PUT para actualizarla." });
+                return Conflict(new { mensaje = "Ya existe una configuraci�n. Usa PUT para actualizarla." });
 
             dto.NegocioId = negocioId;
             _context.ConfiguracionesDian.Add(dto);
@@ -88,7 +88,7 @@ namespace FactCloudAPI.Controllers
             return Ok(config);
         }
 
-        // ─── helpers ─────────────────────────────────────────────────
+        // --- helpers -------------------------------------------------
 
         private async Task<bool> OwnsNegocio(int negocioId)
         {

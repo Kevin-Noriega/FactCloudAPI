@@ -1,8 +1,8 @@
-﻿using FactCloudAPI.Models.Planes;
+using NubeeAPI.Models.Planes;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace FactCloudAPI.Models.Cupones
+namespace NubeeAPI.Models.Cupones
 {
     public class Cupon
     {

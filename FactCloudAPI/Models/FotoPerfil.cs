@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace FactCloudAPI.Models
+namespace NubeeAPI.Models
 {
     public class FotoPerfil
     {

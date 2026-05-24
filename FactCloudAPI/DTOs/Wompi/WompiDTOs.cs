@@ -1,4 +1,4 @@
-﻿namespace FactCloudAPI.DTOs.Wompi
+namespace NubeeAPI.DTOs.Wompi
 {
     public class RegistroPendienteDto
     {

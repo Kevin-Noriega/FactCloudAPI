@@ -1,12 +1,12 @@
-﻿using FactCloudAPI.Data;
-using FactCloudAPI.DTOs.NotaDebito;
-using FactCloudAPI.Models;
-using FactCloudAPI.Services;
+using NubeeAPI.Data;
+using NubeeAPI.DTOs.NotaDebito;
+using NubeeAPI.Models;
+using NubeeAPI.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace FactCloudAPI.Controllers
+namespace NubeeAPI.Controllers
 {
 
     [Authorize]
@@ -15,14 +15,14 @@ namespace FactCloudAPI.Controllers
     public class NotasDebitoController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
-        private readonly ISuscripcionService _suscripcionService; // ← NUEVO
+        private readonly ISuscripcionService _suscripcionService; // ? NUEVO
 
         public NotasDebitoController(
             ApplicationDbContext context,
-            ISuscripcionService suscripcionService) // ← NUEVO
+            ISuscripcionService suscripcionService) // ? NUEVO
         {
             _context = context;
-            _suscripcionService = suscripcionService; // ← NUEVO
+            _suscripcionService = suscripcionService; // ? NUEVO
         }
 
         // GET: api/NotasDebito
@@ -96,7 +96,7 @@ namespace FactCloudAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Error al obtener notas débito", error = ex.Message });
+                return StatusCode(500, new { message = "Error al obtener notas d�bito", error = ex.Message });
             }
         }
 
@@ -115,7 +115,7 @@ namespace FactCloudAPI.Controllers
 
                 if (notaDebito == null)
                 {
-                    return NotFound(new { message = "Nota débito no encontrada" });
+                    return NotFound(new { message = "Nota d�bito no encontrada" });
                 }
 
                 var response = new NotaDebitoResponseDto
@@ -175,7 +175,7 @@ namespace FactCloudAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Error al obtener nota débito", error = ex.Message });
+                return StatusCode(500, new { message = "Error al obtener nota d�bito", error = ex.Message });
             }
         }
 
@@ -195,7 +195,7 @@ namespace FactCloudAPI.Controllers
                     return BadRequest(new { message = "Factura no encontrada" });
                 }
 
-                // Crear nota débito
+                // Crear nota d�bito
                 var notaDebito = new NotaDebito
                 {
                     UsuarioId = dto.UsuarioId,
@@ -324,7 +324,7 @@ namespace FactCloudAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Error al crear nota débito", error = ex.Message });
+                return StatusCode(500, new { message = "Error al crear nota d�bito", error = ex.Message });
             }
         }
 
@@ -341,7 +341,7 @@ namespace FactCloudAPI.Controllers
 
                 if (notaDebito == null)
                 {
-                    return NotFound(new { message = "Nota débito no encontrada" });
+                    return NotFound(new { message = "Nota d�bito no encontrada" });
                 }
 
                 // Actualizar campos principales
@@ -403,11 +403,11 @@ namespace FactCloudAPI.Controllers
 
                 await _context.SaveChangesAsync();
 
-                return Ok(new { message = "Nota débito actualizada exitosamente" });
+                return Ok(new { message = "Nota d�bito actualizada exitosamente" });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Error al actualizar nota débito", error = ex.Message });
+                return StatusCode(500, new { message = "Error al actualizar nota d�bito", error = ex.Message });
             }
         }
 
@@ -424,7 +424,7 @@ namespace FactCloudAPI.Controllers
 
                 if (notaDebito == null)
                 {
-                    return NotFound(new { message = "Nota débito no encontrada" });
+                    return NotFound(new { message = "Nota d�bito no encontrada" });
                 }
 
                 _context.DetalleNotaDebito.RemoveRange(notaDebito.Detalles);
@@ -432,15 +432,15 @@ namespace FactCloudAPI.Controllers
                 _context.NotasDebito.Remove(notaDebito);
                 await _context.SaveChangesAsync();
 
-                return Ok(new { message = "Nota débito eliminada exitosamente" });
+                return Ok(new { message = "Nota d�bito eliminada exitosamente" });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { message = "Error al eliminar nota débito", error = ex.Message });
+                return StatusCode(500, new { message = "Error al eliminar nota d�bito", error = ex.Message });
             }
         }
 
-        // ── Helper de mapeo ───────────────────────────────────────────────
+        // -- Helper de mapeo -----------------------------------------------
         private static NotaDebitoResponseDto MapToDto(NotaDebito nd) => new()
         {
             Id = nd.Id,

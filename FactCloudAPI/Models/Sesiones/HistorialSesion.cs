@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace FactCloudAPI.Models.Sesiones
+namespace NubeeAPI.Models.Sesiones
 {
     public class HistorialSesion
     {

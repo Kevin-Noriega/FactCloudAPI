@@ -1,15 +1,15 @@
-﻿using FactCloudAPI.Data;
-using FactCloudAPI.DTOs;
-using FactCloudAPI.DTOs.Impuestos;
-using FactCloudAPI.Models;
-using FactCloudAPI.Models.Impuestos;
+﻿using NubeeAPI.Data;
+using NubeeAPI.DTOs;
+using NubeeAPI.DTOs.Impuestos;
+using NubeeAPI.Models;
+using NubeeAPI.Models.Impuestos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Security.Claims;
 
-namespace FactCloudAPI.Controllers.Impuestos
+namespace NubeeAPI.Controllers.Impuestos
 {
     [ApiController]
     [Route("api/autorretenciones")]
@@ -29,20 +29,19 @@ namespace FactCloudAPI.Controllers.Impuestos
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var usuarioId = GetUsuarioId();
+            var usuarioId = GetUsuarioId();   // ← única variable de tenant
 
             var lista = await _db.Autorretenciones
                 .Include(a => a.CuentaDebito)
                 .Include(a => a.CuentaCredito)
-                .Where(a => a.UsuarioId == null || a.UsuarioId == usuarioId) // ← fix
+                .Where(a => a.UsuarioId == null || a.UsuarioId == usuarioId)  // ← fix 1 y 2
                 .OrderBy(a => a.Codigo)
                 .Select(a => MapToDto(a))
                 .ToListAsync();
 
             return Ok(lista);
         }
-
-        // ── GET /api/autorretenciones/{id} ────────────────────────────────
+        // -- GET /api/autorretenciones/{id} --------------------------------
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -56,7 +55,7 @@ namespace FactCloudAPI.Controllers.Impuestos
             return Ok(MapToDto(ar));
         }
 
-        // ── POST /api/autorretenciones ────────────────────────────────────
+        // -- POST /api/autorretenciones ------------------------------------
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CrearAutoretencionDto dto)
         {
@@ -104,7 +103,7 @@ namespace FactCloudAPI.Controllers.Impuestos
             return CreatedAtAction(nameof(GetById), new { id = ar.Id }, MapToDto(ar));
         }
 
-        // ── PUT /api/autorretenciones/{id} ────────────────────────────────
+        // -- PUT /api/autorretenciones/{id} --------------------------------
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] ActualizarAutoretencionDto dto)
         {
@@ -129,7 +128,7 @@ namespace FactCloudAPI.Controllers.Impuestos
             return Ok(MapToDto(ar));
         }
 
-        // ── DELETE /api/autorretenciones/{id} ─────────────────────────────
+        // -- DELETE /api/autorretenciones/{id} -----------------------------
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -144,7 +143,7 @@ namespace FactCloudAPI.Controllers.Impuestos
             return NoContent();
         }
 
-        // ── Helpers ───────────────────────────────────────────────────────
+        // -- Helpers -------------------------------------------------------
         private static AutoretencionDto MapToDto(Autoretencion a) => new()
         {
             Id = a.Id,

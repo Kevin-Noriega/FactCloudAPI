@@ -1,6 +1,6 @@
-﻿using FactCloudAPI.Models;
+using NubeeAPI.Models;
 
-namespace FactCloudAPI.DTOs.Facturas
+namespace NubeeAPI.DTOs.Facturas
 {
     public class FacturaDto
     {

@@ -1,14 +1,14 @@
-Ôªøusing FactCloudAPI.Data;
-using FactCloudAPI.DTOs.Usuarios;
-using FactCloudAPI.Models;
-using FactCloudAPI.Models.Suscripciones;
-using FactCloudAPI.Models.Usuarios;
-using FactCloudAPI.Utils.Exceptions;
+using NubeeAPI.Data;
+using NubeeAPI.DTOs.Usuarios;
+using NubeeAPI.Models;
+using NubeeAPI.Models.Suscripciones;
+using NubeeAPI.Models.Usuarios;
+using NubeeAPI.Utils.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
-using FactCloudAPI.Models.Suscripciones;
+using NubeeAPI.Models.Suscripciones;
 
-namespace FactCloudAPI.Services.Usuarios
+namespace NubeeAPI.Services.Usuarios
 {
     public class UsuarioService : IUsuarioService
     {
@@ -44,7 +44,7 @@ namespace FactCloudAPI.Services.Usuarios
         public async Task<int> CreateAsync(CreateUsuarioDto dto)
         {
             if (await _context.Usuarios.AnyAsync(u => u.Correo == dto.Correo))
-                throw new BusinessException("El correo ya est√° registrado");
+                throw new BusinessException("El correo ya est· registrado");
 
             var usuario = new Usuario
             {
@@ -76,7 +76,7 @@ namespace FactCloudAPI.Services.Usuarios
 
             // REGLA DE NEGOCIO 
             if (usuario.Clientes?.Count >= 100)
-                throw new BusinessException("No puedes tener m√°s de 100 clientes");
+                throw new BusinessException("No puedes tener m·s de 100 clientes");
 
             usuario.Nombre = dto.Nombre;
             usuario.Apellido = dto.Apellido;
@@ -112,7 +112,7 @@ namespace FactCloudAPI.Services.Usuarios
         {
             // Validar correo duplicado
             if (await _context.Usuarios.AnyAsync(u => u.Correo == dto.Correo))
-                throw new BusinessException("El correo ya est√° registrado");
+                throw new BusinessException("El correo ya est· registrado");
 
             // 1. Crear usuario
             var usuario = new Usuario
@@ -133,21 +133,21 @@ namespace FactCloudAPI.Services.Usuarios
             var negocio = new Negocio
             {
                 UsuarioId = usuario.Id,
-                NombreComercial = dto.NombreComercial,
-                NumeroIdentificacionE = dto.NumeroIdentificacionE,
+                NombreNegocio = dto.NombreNegocio,
+                Nit = dto.Nit,
                 DvNit = dto.DvNit,
                 Direccion = dto.Direccion,
                 Ciudad = dto.Ciudad,
                 Departamento = dto.Departamento,
                 Telefono = dto.TelefonoNegocio,
-                CorreoRecepcionDian = dto.CorreoRecepcionDian,
+                Correo = dto.CorreoNegocio,
                 
             };
             _context.Negocios.Add(negocio);
             await _context.SaveChangesAsync(); // Genera negocio.Id
 
-            // 3. Crear suscripci√≥n activa
-            // 3. Crear suscripci√≥n activa
+            // 3. Crear suscripciÛn activa
+            // 3. Crear suscripciÛn activa
             var suscripcion = new SuscripcionFacturacion
             {
                 UsuarioId = usuario.Id,

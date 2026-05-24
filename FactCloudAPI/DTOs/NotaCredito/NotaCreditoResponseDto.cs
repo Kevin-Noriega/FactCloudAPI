@@ -1,6 +1,6 @@
-﻿using FactCloudAPI.DTOs.NotaDebito;
+using NubeeAPI.DTOs.NotaDebito;
 
-namespace FactCloudAPI.DTOs.NotaCredito
+namespace NubeeAPI.DTOs.NotaCredito
 {
     public class NotaCreditoResponseDto
     {

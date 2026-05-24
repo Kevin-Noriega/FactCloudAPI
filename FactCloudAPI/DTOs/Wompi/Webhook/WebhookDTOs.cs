@@ -1,4 +1,4 @@
-﻿namespace FactCloudAPI.DTOs.Wompi.Webhook
+namespace NubeeAPI.DTOs.Wompi.Webhook
 {
     public class WompiWebhookDto
     {

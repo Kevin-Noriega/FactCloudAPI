@@ -1,4 +1,4 @@
-﻿namespace FactCloudAPI.DTOs.FotoPerfil
+namespace NubeeAPI.DTOs.FotoPerfil
 {
     public class FotoPerfilDto
     {

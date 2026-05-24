@@ -1,13 +1,13 @@
-﻿using FactCloudAPI.Models.Impuestos;
-using System.ComponentModel;
+﻿using NubeeAPI.Models.Impuestos;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace FactCloudAPI.Models
+namespace NubeeAPI.Models
 {
     public class DetalleFactura
     {
-        [Key] public int Id { get; set; }
+        [Key]
+        public int Id { get; set; }
 
         [Required]
         public int FacturaId { get; set; }
@@ -35,51 +35,47 @@ namespace FactCloudAPI.Models
         [Column(TypeName = "decimal(18,2)")]
         public decimal ValorDescuento { get; set; } = 0;
 
-        /// <summary>Subtotal antes de impuestos = (Cantidad × PrecioUnitario) - ValorDescuento</summary>
         [Required, Column(TypeName = "decimal(18,2)")]
         public decimal SubtotalLinea { get; set; }
 
-        /// <summary>
-        /// Total de la línea incluyendo impuestos de cargo y descontando retenciones.
-        /// = SubtotalLinea + SUM(Cargos) - SUM(Retenciones)
-        /// </summary>
         [Required, Column(TypeName = "decimal(18,2)")]
         public decimal TotalLinea { get; set; }
 
-        /// <summary>Código estándar de producto UNSPSC — requerido en XML DIAN cac:Item</summary>
         [MaxLength(10)]
         public string? CodigoUNSPSC { get; set; }
 
         [MaxLength(50)]
         public string? CodigoInterno { get; set; }
 
-        // ── Relaciones ──────────────────────────────────────────
-        /// <summary>
-        /// Impuestos aplicados a esta línea (IVA, INC, ICA, Retefuente, etc.)
-        /// Genera múltiples cac:TaxSubtotal en el XML DIAN v1.9
-        /// </summary>
-        public ICollection<DetalleFacturaImpuesto> Impuestos { get; set; } = new List<DetalleFacturaImpuesto>();
+        public ICollection<DocumentoLineaImpuesto> Impuestos { get; set; }
+            = new List<DocumentoLineaImpuesto>();
 
-        // ── Propiedades calculadas (no mapeadas) ────────────────
         [NotMapped]
-        public decimal TotalCargos =>
-            Impuestos.Where(i => i.NaturalezaImpuesto == "Cargo")
-                     .Sum(i => i.ValorImpuesto);
+        public decimal TotalImpuestosTrasladados =>
+            Impuestos
+                .Where(i => i.Naturaleza == NaturalezaFiscal.Trasladado)
+                .Sum(i => i.ValorCalculado);
+
+        [NotMapped]
+        public decimal TotalImpuestosDescontables =>
+            Impuestos
+                .Where(i => i.Naturaleza == NaturalezaFiscal.Descontable)
+                .Sum(i => i.ValorCalculado);
 
         [NotMapped]
         public decimal TotalRetenciones =>
-            Impuestos.Where(i => i.NaturalezaImpuesto == "Retencion")
-                     .Sum(i => i.ValorImpuesto);
+            Impuestos
+                .Where(i => i.Naturaleza == NaturalezaFiscal.Retenido
+                         || i.Naturaleza == NaturalezaFiscal.Autorretenido)
+                .Sum(i => i.ValorCalculado);
 
-        // ── Métodos ─────────────────────────────────────────────
-        /// <summary>
-        /// Recalcula SubtotalLinea y TotalLinea a partir de los valores base.
-        /// Llamar siempre que cambie Cantidad, PrecioUnitario, ValorDescuento o Impuestos.
-        /// </summary>
         public void Recalcular()
         {
             SubtotalLinea = (Cantidad * PrecioUnitario) - ValorDescuento;
-            TotalLinea = SubtotalLinea + TotalCargos - TotalRetenciones;
+
+            TotalLinea = SubtotalLinea
+                       + TotalImpuestosTrasladados
+                       - TotalRetenciones;
         }
     }
 }

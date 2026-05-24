@@ -1,13 +1,13 @@
-﻿using FactCloudAPI.Data;
-using FactCloudAPI.DTOs.Planes;
-using FactCloudAPI.Models.Planes;
-using FactCloudAPI.Models.Suscripciones;
+using NubeeAPI.Data;
+using NubeeAPI.DTOs.Planes;
+using NubeeAPI.Models.Planes;
+using NubeeAPI.Models.Suscripciones;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-namespace FactCloudAPI.Controllers
+namespace NubeeAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -64,11 +64,11 @@ namespace FactCloudAPI.Controllers
                 .FirstOrDefaultAsync();
 
             if (suscripcion == null)
-                return NotFound("No se encontró suscripción activa");
+                return NotFound("No se encontr� suscripci�n activa");
 
             var plan = suscripcion.PlanFacturacion;
             if (plan == null)
-                return NotFound("El plan de la suscripción no existe");
+                return NotFound("El plan de la suscripci�n no existe");
 
             return Ok(new
             {
@@ -94,7 +94,7 @@ namespace FactCloudAPI.Controllers
 
             var id = int.Parse(userId);
 
-            // ✅ Buscar directamente la suscripción activa, sin pasar por SuscripcionActual
+            // ? Buscar directamente la suscripci�n activa, sin pasar por SuscripcionActual
             var suscripcion = await _context.SuscripcionesFacturacion
                 .Include(s => s.PlanFacturacion)
                 .Where(s => s.UsuarioId == id && s.Activa)
@@ -102,17 +102,17 @@ namespace FactCloudAPI.Controllers
                 .FirstOrDefaultAsync();
 
             if (suscripcion == null)
-                return NotFound("No se encontró suscripción activa");
+                return NotFound("No se encontr� suscripci�n activa");
 
             if (suscripcion.PlanFacturacion == null)
-                return NotFound("El plan de la suscripción no existe");
+                return NotFound("El plan de la suscripci�n no existe");
 
             var plan = suscripcion.PlanFacturacion;
             var fechaInicio = suscripcion.FechaInicio;
 
-            // ── Contar documentos reales desde las tablas ──────────────────
+            // -- Contar documentos reales desde las tablas ------------------
             // Se suma cada tipo de documento creado desde el inicio
-            // de la suscripción activa para el usuario autenticado.
+            // de la suscripci�n activa para el usuario autenticado.
             var facturas = await _context.Facturas
                 .Where(f => f.UsuarioId == id && f.FechaEmision >= fechaInicio)
                 .CountAsync();
@@ -177,7 +177,7 @@ namespace FactCloudAPI.Controllers
             if (planNuevo == null)
                 return NotFound("Plan no encontrado");
 
-            // Desactivar suscripción activa actual
+            // Desactivar suscripci�n activa actual
             var suscripcionActiva = await _context.SuscripcionesFacturacion
                 .Where(s => s.UsuarioId == id && s.Activa)
                 .FirstOrDefaultAsync();
@@ -188,7 +188,7 @@ namespace FactCloudAPI.Controllers
                 suscripcionActiva.FechaFin = DateTime.Now;
             }
 
-            // Crear nueva suscripción
+            // Crear nueva suscripci�n
             var nuevaSuscripcion = new SuscripcionFacturacion
             {
                 UsuarioId = id,

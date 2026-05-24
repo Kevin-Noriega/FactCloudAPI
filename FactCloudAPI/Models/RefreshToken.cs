@@ -1,6 +1,6 @@
-ï»¿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace FactCloudAPI.Models
+namespace NubeeAPI.Models
 {
     public class RefreshToken
     {
@@ -8,10 +8,10 @@ namespace FactCloudAPI.Models
         public int Id { get; set; }
 
         [Required]
-        public string Token { get; set; }  // El refresh token en sÃ­ (GUID o string aleatorio)
+        public string Token { get; set; }  // El refresh token en sí (GUID o string aleatorio)
 
         [Required]
-        public string JwtId { get; set; }  // ID del access token asociado (para validaciÃ³n)
+        public string JwtId { get; set; }  // ID del access token asociado (para validación)
 
         [Required]
         public int UsuarioId { get; set; }  // FK a Usuario
@@ -22,7 +22,7 @@ namespace FactCloudAPI.Models
         public bool Usado { get; set; } = false;  // Para evitar reusar el mismo token
         public bool Revocado { get; set; } = false;  // Para invalidar manualmente (logout)
 
-        // NavegaciÃ³n
+        // Navegación
         public Usuario Usuario { get; set; }
     }
 }

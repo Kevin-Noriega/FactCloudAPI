@@ -1,6 +1,6 @@
-﻿using FactCloudAPI.DTOs.Clientes;
+using NubeeAPI.DTOs.Clientes;
 
-namespace FactCloudAPI.Services.Clientes
+namespace NubeeAPI.Services.Clientes
 {
     public interface IClienteService
     {

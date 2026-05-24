@@ -1,7 +1,7 @@
-ï»¿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace FactCloudAPI.Models
+namespace NubeeAPI.Models
 {
     [Table("RegistrosPendientes")]
     public class RegistroPendiente
@@ -12,6 +12,44 @@ namespace FactCloudAPI.Models
         [Required]
         [MaxLength(100)]
         public string TransaccionId { get; set; }
+        public string WompiReference { get; set; } = "";
+        [Required]
+        [MaxLength(20)]
+        public string Estado { get; set; } = "PENDING";
+        // -- Datos del usuario --
+        [MaxLength(200)]
+        public string Nombre { get; set; } = "";
+        [MaxLength(200)]
+        public string Correo { get; set; } = "";
+        [MaxLength(20)]
+        public string Telefono { get; set; } = "";
+        [MaxLength(500)]
+        public string PasswordHash { get; set; } = "";
+        [MaxLength(50)]
+        public string TipoIdentificacion { get; set; } = "";
+        [MaxLength(50)]
+        public string NumeroIdentificacion { get; set; } = "";
+        // -- Datos del negocio --
+        [MaxLength(200)]
+        public string NombreNegocio { get; set; } = "";
+        [MaxLength(50)]
+        public string Nit { get; set; } = "";
+        [MaxLength(5)]
+        public string? DvNit { get; set; }
+        [MaxLength(300)]
+        public string Direccion { get; set; } = "";
+        [MaxLength(100)]
+        public string Ciudad { get; set; } = "";
+        [MaxLength(100)]
+        public string Departamento { get; set; } = "";
+        [MaxLength(20)]
+        public string? TelefonoNegocio { get; set; }
+        [MaxLength(200)]
+        public string? CorreoNegocio { get; set; }
+        // -- Datos del plan --
+        public int PlanFacturacionId { get; set; }
+        [MaxLength(20)]
+        public DateTime? FechaAprobacion { get; set; }
 
         [Required]
         [Column(TypeName = "nvarchar(max)")]
@@ -24,11 +62,9 @@ namespace FactCloudAPI.Models
         public string DatosPlan { get; set; } // JSON serializado
 
         [MaxLength(50)]
-        public string Email { get; set; } // Para bÃºsquedas rÃ¡pidas
+        public string Email { get; set; } // Para búsquedas rápidas
 
-        [Required]
-        [MaxLength(20)]
-        public string Estado { get; set; } = "PENDING"; // PENDING, APPROVED, DECLINED, COMPLETED
+        
 
         public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
 

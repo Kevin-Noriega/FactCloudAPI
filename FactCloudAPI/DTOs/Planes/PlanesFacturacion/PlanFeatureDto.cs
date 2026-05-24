@@ -1,6 +1,6 @@
-﻿using FactCloudAPI.Models.Planes;
+using NubeeAPI.Models.Planes;
 
-namespace FactCloudAPI.DTOs.Planes.PlanesFacturacion
+namespace NubeeAPI.DTOs.Planes.PlanesFacturacion
 {
     public class PlanFeatureDto
     {

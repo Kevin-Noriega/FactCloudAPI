@@ -1,10 +1,10 @@
-﻿using FactCloudAPI.Data;
-using FactCloudAPI.DTOs.Facturas;
-using FactCloudAPI.Models;
+﻿using NubeeAPI.Data;
+using NubeeAPI.DTOs.Facturas;
+using NubeeAPI.Models;
 using Microsoft.EntityFrameworkCore;
-using static FactCloudAPI.Models.Factura;
+using static NubeeAPI.Models.Factura;
 
-namespace FactCloudAPI.Services.Facturas
+namespace NubeeAPI.Services.Facturas
 {
     public class FacturaService : IFacturaService
     {

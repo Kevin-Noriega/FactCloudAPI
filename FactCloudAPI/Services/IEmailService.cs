@@ -1,4 +1,4 @@
-﻿namespace FactCloudAPI.Services
+namespace NubeeAPI.Services
 {
     public interface IEmailService
     {

@@ -1,6 +1,6 @@
-﻿using FactCloudAPI.Models;
+using NubeeAPI.Models;
 using System.Xml.Linq;
-namespace FactCloudAPI.Services
+namespace NubeeAPI.Services
 {
     public static class XmlFacturaGenerator
     {

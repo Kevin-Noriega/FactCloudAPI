@@ -1,4 +1,4 @@
-﻿namespace FactCloudAPI.DTOs.NotaDebito
+namespace NubeeAPI.DTOs.NotaDebito
 {
     public class NotaDebitoResponseDto
     {

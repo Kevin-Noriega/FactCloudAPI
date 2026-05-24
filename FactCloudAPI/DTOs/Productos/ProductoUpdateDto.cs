@@ -1,4 +1,4 @@
-﻿namespace FactCloudAPI.DTOs.Productos
+namespace NubeeAPI.DTOs.Productos
 {
     public class ProductoUpdateDto
     {

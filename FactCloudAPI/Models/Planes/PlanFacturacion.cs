@@ -1,8 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using FactCloudAPI.Models.Suscripciones;
+using NubeeAPI.Models.Suscripciones;
 
-namespace FactCloudAPI.Models.Planes
+namespace NubeeAPI.Models.Planes
 {
     public class PlanFacturacion
     {

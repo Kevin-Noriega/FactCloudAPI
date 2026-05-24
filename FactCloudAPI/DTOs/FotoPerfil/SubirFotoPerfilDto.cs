@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace FactCloudAPI.DTOs.FotoPerfil
+namespace NubeeAPI.DTOs.FotoPerfil
 {
     public class SubirFotoPerfilDto
     {

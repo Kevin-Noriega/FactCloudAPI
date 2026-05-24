@@ -1,4 +1,4 @@
-﻿namespace FactCloudAPI.Models.DTOs
+namespace NubeeAPI.Models.DTOs
 {
     public class DatosEmpresaDIANDTO
     {

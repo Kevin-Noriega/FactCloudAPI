@@ -1,11 +1,11 @@
-﻿namespace FactCloudAPI.DTOs.Clientes
+namespace NubeeAPI.DTOs.Clientes
 {
     public class ClienteCreateDto
     {
         public string Nombre { get; set; }
         public string? Apellido { get; set; }
         public string? NombreComercial { get; set; }
-        // ✅ Agrega esto
+        // ? Agrega esto
 
         public string TipoIdentificacion { get; set; }
         public string NumeroIdentificacion { get; set; }
@@ -25,13 +25,13 @@
         public string Direccion { get; set; }
         public string? CodigoPostal { get; set; }
 
-        // ── Facturación ─────────────────────────────────────
+        // -- Facturaci�n -------------------------------------
         public string? NombreContactoFacturacion { get; set; }
         public string? ApellidoContactoFacturacion { get; set; }
         public string? IndicativoFacturacion { get; set; }
         public string? TelefonoFacturacion { get; set; }
 
-        // ── Responsabilidades fiscales ───────────────────────
+        // -- Responsabilidades fiscales -----------------------
         public bool GranContribuyente { get; set; }   // O-13
         public bool AutoretenedorRenta { get; set; }   // O-15
         public bool RetenedorIVA { get; set; }   // O-23
@@ -40,11 +40,11 @@
         public bool RetenedorICA { get; set; }
         public bool RetenedorRenta { get; set; }
 
-        // ── Teléfonos y contactos ────────────────────────────
+        // -- Tel�fonos y contactos ----------------------------
         public List<TelefonoDto> Telefonos { get; set; } = new();
         public List<ContactoDto> Contactos { get; set; } = new();
 
-        // Array de códigos (opcional, referencia para facturación)
+        // Array de c�digos (opcional, referencia para facturaci�n)
         public List<string>? Responsabilidades { get; set; }
     }
 

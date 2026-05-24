@@ -1,4 +1,4 @@
-﻿namespace FactCloudAPI.DTOs.Facturas
+namespace NubeeAPI.DTOs.Facturas
 {
     public class FacturaDetalleItemDto
     {

@@ -1,22 +1,24 @@
-﻿using FactCloudAPI.Data;
-using FactCloudAPI.Services;
-using FactCloudAPI.Services.AuthLogin;
-using FactCloudAPI.Services.Clientes;
-using FactCloudAPI.Services.Facturas;
-using FactCloudAPI.Services.Productos;
-using FactCloudAPI.Services.Seguridad;
-using FactCloudAPI.Services.Usuarios;
-using FactCloudAPI.Services.Wompi;
-using FactCloudAPI.Utils.Exceptions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using NubeeAPI.Data;
+using NubeeAPI.Services;
+using NubeeAPI.Services.AuthLogin;
+using NubeeAPI.Services.Clientes;
+using NubeeAPI.Services.Facturas;
+using NubeeAPI.Services.Factus;
+using NubeeAPI.Services.Productos;
+using NubeeAPI.Services.Seguridad;
+using NubeeAPI.Services.Usuarios;
+using NubeeAPI.Services.Wompi;
+using NubeeAPI.Utils.Exceptions;
 using System.IdentityModel.Tokens.Jwt;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json.Serialization;
-JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
+JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,26 +28,59 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowReact", policy =>
     {
         policy.SetIsOriginAllowed(origin =>
-                origin.StartsWith("http://localhost") ||
-                origin.StartsWith("https://localhost"))
-              .AllowCredentials()
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+        origin.StartsWith("http://localhost") ||
+        origin.StartsWith("https://localhost"))
+        .AllowCredentials()
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials();
     });
 });
 
 // ===== Controllers y JSON =====
 builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-    });
+.AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+});
+
+// ===== HttpClient para Factus =====
+builder.Services.AddHttpClient("Factus", client =>
+{
+    client.BaseAddress = new Uri(builder.Configuration["Factus:BaseUrl"] ?? "https://api-sandbox.factus.com.co");
+    client.DefaultRequestHeaders.Accept.Add(
+    new MediaTypeWithQualityHeaderValue("application/json"));
+});
 
 // ===== Swagger =====
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Ingresa 'Bearer' [espacio] y tu token.\n\nEjemplo: 'Bearer eyJhbGciOiJIUzI1Ni...'"
+    });
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+{
+{
+new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+{
+Reference = new Microsoft.OpenApi.Models.OpenApiReference
+{
+Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+Id = "Bearer"
+}
+},
+new string[] {}
+}
+});
+});
 builder.Services.AddHttpClient();
 builder.Services.AddSignalR();
 builder.Services.AddScoped<SeguridadService>();
@@ -55,50 +90,79 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IProductoService, ProductoService>();
 builder.Services.AddScoped<IFacturaService, FacturaService>();
-builder.Services.AddHttpClient<WompiService>();
-builder.Services.AddScoped<WompiService>();
-builder.Services.AddScoped<IDocumentoSoporteService, DocumentoSoporteService>();
-builder.Services.AddHttpClient<WompiService>(client =>
+builder.Services.AddScoped<IUsuarioService, UsuarioService>();
+builder.Services.AddSingleton<IFactusService, FactusService>();
+builder.Services.AddHttpClient<IWompiService, WompiService>(client =>
 {
     client.DefaultRequestHeaders.Add("Accept", "application/json");
     client.Timeout = TimeSpan.FromSeconds(30);
 });
-
+builder.Services.AddScoped<IDocumentoSoporteService, DocumentoSoporteService>();
 
 // ===== Base de datos =====
 var conn = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(conn, sqlServerOptions =>
-    {
-        // ✅ Cambiar a 0 reintentos
-        sqlServerOptions.EnableRetryOnFailure(maxRetryCount: 0);
-    }));
-
-
+options.UseSqlServer(conn, sqlServerOptions =>
+{
+    // ✅ Cambiar a 0 reintentos
+    sqlServerOptions.EnableRetryOnFailure(maxRetryCount: 0);
+}));
 
 // ===== Servicios =====
 builder.Services.AddScoped<IEmailService, EmailService>();
-
 builder.Services.AddScoped<ISuscripcionService, SuscripcionService>();
 
+// ===== JWT Config (robusto para diseño) =====
+// Obtenemos configuraciones pero no lanzamos excepción en diseño
+var jwtKeyConfig = builder.Configuration["Jwt:Key"];
+var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+var jwtAudience = builder.Configuration["Jwt:Audience"];
 
-// ===== JWT Config =====
-var key = Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key missing"));
+var isDevelopment = builder.Environment.IsDevelopment();
+
+// En Development permitimos una clave temporal para poder ejecutar dotnet ef sin variables de entorno
+if (string.IsNullOrWhiteSpace(jwtKeyConfig) && isDevelopment)
+{
+    jwtKeyConfig = "dev-temporary-key-for-design-time-please-change";
+}
+
+// En producción exigimos la clave
+if (string.IsNullOrWhiteSpace(jwtKeyConfig) && !isDevelopment)
+{
+    throw new InvalidOperationException("JWT Key missing");
+}
+
+var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKeyConfig));
+
+// Registrar autenticación normalmente; si signingKey es temporal seguirá funcionando en Dev
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
+.AddJwtBearer(options =>
+{
+    // Si no hay clave real, evitamos validaciones estrictas (solo en diseño)
+    if (string.IsNullOrWhiteSpace(builder.Configuration["Jwt:Key"]) && isDevelopment)
     {
-        options.TokenValidationParameters = new TokenValidationParameters
+        options.RequireHttpsMetadata = false;
+        options.Events = new JwtBearerEvents
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(key)
+            OnMessageReceived = context => Task.CompletedTask
         };
-    });
+        return;
+    }
+
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtIssuer,
+        ValidAudience = jwtAudience,
+        IssuerSigningKey = signingKey
+    };
+});
+
 var app = builder.Build();
+
 // ===== Manejo global de excepciones =====
 app.UseExceptionHandler(errorApp =>
 {
@@ -121,14 +185,15 @@ app.UseExceptionHandler(errorApp =>
             context.Response.StatusCode = StatusCodes.Status500InternalServerError;
             await context.Response.WriteAsJsonAsync(new
             {
-                mensaje = "Error interno del servidor"
+                mensaje = "Error interno del servidor",
+                errorReal = exception?.Message,
+                detalle = exception?.InnerException?.Message
             });
         }
     });
 });
 
 // ===== Middleware ordenado =====
-
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -147,14 +212,29 @@ app.MapGet("/api/db-test", async (ApplicationDbContext db) =>
     }
 });
 
-
-
-app.UseHttpsRedirection();  // 1. Primero redirección HTTPS
-app.UseCors("AllowReact");  // 2. Luego CORS
-app.UseAuthentication();    // 3. Autenticación (lee el token)
-app.UseAuthorization();     // 4. Autorización (verifica permisos)
+app.UseCors("AllowReact");
+app.UseHttpsRedirection();
+app.UseAuthentication(); // 3. Autenticación (lee el token)
+app.UseAuthorization(); // 4. Autorización (verifica permisos)
 app.MapHub<NotificacionesHub>("/api/notificacionesHub").AllowAnonymous();
 
-app.MapControllers();       // 5. Finalmente los controllers
+// ===== Auto-creación de tablas (Garantiza que ResolucionesDIAN exista) =====
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        context.Database.EnsureCreated(); // Esto creará las tablas si no existen
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Ocurrió un error al crear la base de datos.");
+    }
+}
+
+app.MapControllers(); // 5. Finalmente los controllers
 
 app.Run();
+

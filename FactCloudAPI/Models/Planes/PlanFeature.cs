@@ -1,4 +1,4 @@
-﻿namespace FactCloudAPI.Models.Planes
+namespace NubeeAPI.Models.Planes
 {
     public class PlanFeature
     {

@@ -1,8 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace FactCloudAPI.DTOs.Impuestos
+namespace NubeeAPI.DTOs.Impuestos
 {
-    // ─── READ ────────────────────────────────────────────────────────────────
+    // --- READ ----------------------------------------------------------------
     public class AutoretencionDto
     {
         public int Id { get; set; }
@@ -19,7 +19,7 @@ namespace FactCloudAPI.DTOs.Impuestos
         public CuentaContableResumenDto? CuentaCredito { get; set; }
     }
 
-    // ─── CREATE ──────────────────────────────────────────────────────────────
+    // --- CREATE --------------------------------------------------------------
     public class CrearAutoretencionDto
     {
         [Required]
@@ -30,9 +30,9 @@ namespace FactCloudAPI.DTOs.Impuestos
         public string Nombre { get; set; } = string.Empty;
 
         [Required]
-        [RegularExpression("^(Autoretención 2201|Autoretención ICA)$",
-            ErrorMessage = "TipoAutoretencion debe ser 'Autoretención 2201' o 'Autoretención ICA'")]
-        public string TipoAutoretencion { get; set; } = "Autoretención 2201";
+        [RegularExpression("^(Autoretenci�n 2201|Autoretenci�n ICA)$",
+            ErrorMessage = "TipoAutoretencion debe ser 'Autoretenci�n 2201' o 'Autoretenci�n ICA'")]
+        public string TipoAutoretencion { get; set; } = "Autoretenci�n 2201";
 
         [Required]
         [Range(0, 100, ErrorMessage = "La tarifa debe estar entre 0 y 100")]
@@ -49,7 +49,7 @@ namespace FactCloudAPI.DTOs.Impuestos
         public int? CuentaCreditoId { get; set; }
     }
 
-    // ─── UPDATE ──────────────────────────────────────────────────────────────
+    // --- UPDATE --------------------------------------------------------------
     public class ActualizarAutoretencionDto
     {
         [MaxLength(100)]

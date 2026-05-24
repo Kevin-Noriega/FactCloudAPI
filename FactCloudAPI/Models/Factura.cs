@@ -1,11 +1,12 @@
-using FactCloudAPI.Models;
+using NubeeAPI.Models;
+using NubeeAPI.Models.Impuestos;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 
-namespace FactCloudAPI.Models
+namespace NubeeAPI.Models
 {
     public class Factura
     {
@@ -51,6 +52,14 @@ namespace FactCloudAPI.Models
         /// </summary>
         [MaxLength(200)]
         public string? ClaveTecnica { get; set; }
+
+        /// <summary>
+        /// ID del rango Factus copiado desde ResolucionDIAN al momento de emitir.
+        /// Necesario para el payload de Factus.
+        /// </summary>
+        [NotMapped]
+        public int FactusRangoId { get; set; }
+
 
         // ==================== TIPO Y AMBIENTE ====================
 
@@ -273,30 +282,35 @@ namespace FactCloudAPI.Models
         // Agregar a Factura
         public void RecalcularTotales()
         {
-            if (DetalleFacturas == null || !DetalleFacturas.Any()) return;
+            if (DetalleFacturas == null || !DetalleFacturas.Any())
+                return;
 
             Subtotal = DetalleFacturas.Sum(d => d.SubtotalLinea);
 
-            // ⚠️ Requiere que la colección Impuestos esté cargada (Include en la query EF)
             var todosImpuestos = DetalleFacturas
+                .Where(d => d.Impuestos != null)
                 .SelectMany(d => d.Impuestos)
                 .ToList();
 
             TotalIVA = todosImpuestos
-                .Where(i => i.Impuesto?.CodigoTributoDIAN == "01")
-                .Sum(i => i.ValorImpuesto);
+                .Where(i => i.SnapshotCodigoDIAN == "01" ||
+                            i.TarifaImpuesto.ImpuestoConcepto.CodigoTributoDIAN == "01")
+                .Sum(i => i.ValorCalculado);
 
             TotalINC = todosImpuestos
-                .Where(i => i.Impuesto?.CodigoTributoDIAN == "04")
-                .Sum(i => i.ValorImpuesto);
+                .Where(i => i.SnapshotCodigoDIAN == "02" ||
+                            i.TarifaImpuesto.ImpuestoConcepto.CodigoTributoDIAN == "02")
+                .Sum(i => i.ValorCalculado);
 
             TotalICA = todosImpuestos
-                .Where(i => i.Impuesto?.CodigoTributoDIAN == "03")
-                .Sum(i => i.ValorImpuesto);
+                .Where(i => i.SnapshotCodigoDIAN == "06" ||
+                            i.TarifaImpuesto.ImpuestoConcepto.CodigoTributoDIAN == "06")
+                .Sum(i => i.ValorCalculado);
 
             TotalRetenciones = todosImpuestos
-                .Where(i => i.NaturalezaImpuesto == "Retencion")
-                .Sum(i => i.ValorImpuesto);
+                .Where(i => i.Naturaleza == NaturalezaFiscal.Retenido
+                         || i.Naturaleza == NaturalezaFiscal.Autorretenido)
+                .Sum(i => i.ValorCalculado);
 
             TotalDescuentos = DetalleFacturas.Sum(d => d.ValorDescuento);
 

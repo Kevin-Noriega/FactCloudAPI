@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace FactCloudAPI.DTOs.NotaDebito
+namespace NubeeAPI.DTOs.NotaDebito
 {
         public class NotaDebitoDto
         {

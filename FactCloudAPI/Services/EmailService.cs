@@ -1,15 +1,15 @@
-ï»¿using MailKit.Net.Smtp;
+using MailKit.Net.Smtp;
 using MimeKit;
 using MailKit.Security;
 using Microsoft.EntityFrameworkCore;
-using FactCloudAPI.Data;
-using FactCloudAPI.Models;
+using NubeeAPI.Data;
+using NubeeAPI.Models;
 using SendGrid;
 using SendGrid.Helpers.Mail;
 using System.Net.Mime;
 
 
-namespace FactCloudAPI.Services
+namespace NubeeAPI.Services
 {
     public class EmailService : IEmailService
     {
@@ -43,7 +43,7 @@ namespace FactCloudAPI.Services
 <html>
 <head>
     <meta charset='UTF-8'>
-    <title>Factura ElectrÃ³nica #{factura.NumeroFactura}</title>
+    <title>Factura Electrónica #{factura.NumeroFactura}</title>
     <style>
         body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
         .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
@@ -59,20 +59,20 @@ namespace FactCloudAPI.Services
 <body>
     <div class='container'>
         <div class='header'>
-            <h1 style='margin: 0;'>Factura ElectrÃ³nica</h1>
+            <h1 style='margin: 0;'>Factura Electrónica</h1>
             <p style='margin: 5px 0 0 0;'>{_config["Email:NombreEmpresa"]}</p>
         </div>
         <div class='content'>
             <h2>Estimado/a {factura.Cliente.Nombre}</h2>
-            <p>Adjuntamos su factura electrÃ³nica con los siguientes detalles:</p>
+            <p>Adjuntamos su factura electrónica con los siguientes detalles:</p>
             
             <table class='table'>
                 <tr>
-                    <td>NÃºmero de Factura:</td>
+                    <td>Número de Factura:</td>
                     <td>{factura.NumeroFactura}</td>
                 </tr>
                 <tr>
-                    <td>Fecha de EmisiÃ³n:</td>
+                    <td>Fecha de Emisión:</td>
                     <td>{factura.FechaEmision:dd/MM/yyyy}</td>
                 </tr>
                 <tr>
@@ -110,8 +110,8 @@ namespace FactCloudAPI.Services
             <p>Gracias por su confianza.</p>
         </div>
         <div class='footer'>
-            <p>Este es un mensaje automÃ¡tico, por favor no responda a este correo.</p>
-            <p>Â© {DateTime.Now.Year} {_config["Email:NombreEmpresa"]} - Todos los derechos reservados</p>
+            <p>Este es un mensaje automático, por favor no responda a este correo.</p>
+            <p>© {DateTime.Now.Year} {_config["Email:NombreEmpresa"]} - Todos los derechos reservados</p>
         </div>
     </div>
 </body>
@@ -136,7 +136,7 @@ namespace FactCloudAPI.Services
             var msg = MailHelper.CreateSingleEmail(
                 from,
                 to,
-                $"Factura ElectrÃ³nica #{factura.NumeroFactura}",
+                $"Factura Electrónica #{factura.NumeroFactura}",
                 plainTextContent: null,
                 htmlContent: builder.HtmlBody
             );

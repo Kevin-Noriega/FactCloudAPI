@@ -1,6 +1,6 @@
-锘縰sing FactCloudAPI.Data;
-using FactCloudAPI.DTOs.Cupones;
-using FactCloudAPI.Models.Planes;
+using NubeeAPI.Data;
+using NubeeAPI.DTOs.Cupones;
+using NubeeAPI.Models.Planes;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -8,7 +8,7 @@ using Microsoft.Identity.Client;
 
 
 
-namespace FactCloudAPI.Controllers
+namespace NubeeAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -41,21 +41,21 @@ namespace FactCloudAPI.Controllers
                 return Ok(new CuponValidateResponseDto
                 {
                     IsValid = false,
-                    Message = "C贸digo inv谩lido, expirado o no aplica a este plan"
+                    Message = "C骴igo inv醠ido, expirado o no aplica a este plan"
                 });
             }
 
             var precioFinalPlan = plan.PrecioAnualFinal;
-            var descuentoCup贸n = precioFinalPlan * cupon.DescuentoPorcentaje / 100m;
-            var precioFinalConCup贸n = decimal.Round(precioFinalPlan - descuentoCup贸n, 0);
+            var descuentoCup髇 = precioFinalPlan * cupon.DescuentoPorcentaje / 100m;
+            var precioFinalConCup髇 = decimal.Round(precioFinalPlan - descuentoCup髇, 0);
 
             return Ok(new CuponValidateResponseDto
             {
                 IsValid = true,
                 Code = cupon.Codigo,
                 DiscountPercentage = cupon.DescuentoPorcentaje,
-                Message = "Cup贸n aplicado correctamente",
-                PriceAfterDiscount = precioFinalConCup贸n
+                Message = "Cup髇 aplicado correctamente",
+                PriceAfterDiscount = precioFinalConCup髇
             });
         }
     }

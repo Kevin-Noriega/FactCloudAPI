@@ -1,7 +1,7 @@
-﻿using FactCloudAPI.Models.Suscripciones;
+using NubeeAPI.Models.Suscripciones;
 using System.ComponentModel.DataAnnotations;
 
-namespace FactCloudAPI.Models.Cupones
+namespace NubeeAPI.Models.Cupones
 {
     public class CuponUso
     {

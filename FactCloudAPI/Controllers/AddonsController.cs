@@ -1,13 +1,13 @@
-﻿// Controllers/AddonsController.cs
-using FactCloudAPI.Data;
-using FactCloudAPI.DTOs.Addons;
-using FactCloudAPI.Models.Planes;
+// Controllers/AddonsController.cs
+using NubeeAPI.Data;
+using NubeeAPI.DTOs.Addons;
+using NubeeAPI.Models.Planes;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-namespace FactCloudAPI.Controllers
+namespace NubeeAPI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -21,7 +21,7 @@ namespace FactCloudAPI.Controllers
             _context = context;
         }
 
-        // ── Helper: obtener userId del token ──────────────────────────
+        // -- Helper: obtener userId del token --------------------------
         private int? GetUserId()
         {
             var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -29,7 +29,7 @@ namespace FactCloudAPI.Controllers
         }
 
         // GET: api/addons
-        // Devuelve todos los addons activos, marcando cuáles ya tiene el usuario
+        // Devuelve todos los addons activos, marcando cu�les ya tiene el usuario
         [HttpGet]
         public async Task<ActionResult<IEnumerable<AddonResponseDto>>> GetAddons()
         {
@@ -104,7 +104,7 @@ namespace FactCloudAPI.Controllers
             if (request.Addons == null || !request.Addons.Any())
                 return BadRequest(new { mensaje = "Debes seleccionar al menos un complemento." });
 
-            // Verificar que el usuario tiene suscripción activa
+            // Verificar que el usuario tiene suscripci�n activa
             var suscripcion = await _context.SuscripcionesFacturacion
                 .Where(s => s.UsuarioId == userId && s.Activa)
                 .FirstOrDefaultAsync();
@@ -121,18 +121,18 @@ namespace FactCloudAPI.Controllers
             var nuevosIds = request.Addons.Except(yaContratados).ToList();
 
             if (!nuevosIds.Any())
-                return BadRequest(new { mensaje = "Todos los complementos seleccionados ya están contratados." });
+                return BadRequest(new { mensaje = "Todos los complementos seleccionados ya est�n contratados." });
 
-            // Verificar que los addons existen y están activos
+            // Verificar que los addons existen y est�n activos
             var addonsValidos = await _context.Addons
                 .Where(a => nuevosIds.Contains(a.Id) && a.Activo)
                 .ToListAsync();
 
             if (addonsValidos.Count != nuevosIds.Count)
-                return BadRequest(new { mensaje = "Uno o más complementos no son válidos." });
+                return BadRequest(new { mensaje = "Uno o m�s complementos no son v�lidos." });
 
             // Crear registros UsuarioAddon
-            var fechaVencimiento = suscripcion.FechaFin; // mismo vencimiento que la suscripción
+            var fechaVencimiento = suscripcion.FechaFin; // mismo vencimiento que la suscripci�n
 
             var nuevosRegistros = addonsValidos.Select(a => new UsuarioAddon
             {
@@ -171,7 +171,7 @@ namespace FactCloudAPI.Controllers
                     ua.Activo);
 
             if (usuarioAddon == null)
-                return NotFound(new { mensaje = "No se encontró el complemento contratado." });
+                return NotFound(new { mensaje = "No se encontr� el complemento contratado." });
 
             usuarioAddon.Activo = false;
             await _context.SaveChangesAsync();

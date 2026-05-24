@@ -1,11 +1,11 @@
-﻿using FactCloudAPI.Data;
-using FactCloudAPI.Models.Usuarios;
+using NubeeAPI.Data;
+using NubeeAPI.Models.Usuarios;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
-namespace FactCloudAPI.Controllers
+namespace NubeeAPI.Controllers
 {
     [ApiController]
     [Route("api/negocios/{negocioId:int}/representante-legal")]
@@ -29,7 +29,7 @@ namespace FactCloudAPI.Controllers
                 .FirstOrDefaultAsync(r => r.NegocioId == negocioId);
 
             if (rep == null)
-                return NotFound(new { mensaje = "Representante legal no configurado aún." });
+                return NotFound(new { mensaje = "Representante legal no configurado a�n." });
 
             return Ok(rep);
         }
@@ -80,7 +80,7 @@ namespace FactCloudAPI.Controllers
             return Ok(rep);
         }
 
-        // ─── helpers ─────────────────────────────────────────────────
+        // --- helpers -------------------------------------------------
 
         private async Task<bool> OwnsNegocio(int negocioId)
         {

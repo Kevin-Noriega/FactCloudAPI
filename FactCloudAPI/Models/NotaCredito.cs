@@ -1,7 +1,7 @@
-Ôªøusing System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace FactCloudAPI.Models
+namespace NubeeAPI.Models
 {
     public class NotaCredito
     {
@@ -23,7 +23,7 @@ namespace FactCloudAPI.Models
         [ForeignKey("FacturaId")]
         public Factura? Factura { get; set; }
 
-        // Datos de la factura (desnormalizado para consultas r√°pidas)
+        // Datos de la factura (desnormalizado para consultas r·pidas)
         [MaxLength(50)]
         public string? NumeroFactura { get; set; }
 
@@ -31,7 +31,7 @@ namespace FactCloudAPI.Models
         [ForeignKey("ClienteId")]
         public Cliente? Cliente { get; set; }
 
-        // Tipo de nota cr√©dito
+        // Tipo de nota crÈdito
         [Required]
         [MaxLength(20)]
         public string Tipo { get; set; } = "devolucion"; // anulacion, devolucion, descuento

@@ -1,15 +1,17 @@
-﻿using FactCloudAPI.Models;
-using FactCloudAPI.Models.Cupones;
-using FactCloudAPI.Models.Impuestos;
-using FactCloudAPI.Models.Planes;
-using FactCloudAPI.Models.Sesiones;
-using FactCloudAPI.Models.Suscripciones;
-using FactCloudAPI.Models.Usuarios;
-using FactCloudAPI.Models.Wompi;
 using Microsoft.EntityFrameworkCore;
-using static FactCloudAPI.Models.Factura;
+using NubeeAPI.Data;
+using NubeeAPI.Data.Seeds;
+using NubeeAPI.Models;
+using NubeeAPI.Models.Cupones;
+using NubeeAPI.Models.Impuestos;
+using NubeeAPI.Models.Planes;
+using NubeeAPI.Models.Sesiones;
+using NubeeAPI.Models.Suscripciones;
+using NubeeAPI.Models.Usuarios;
+using NubeeAPI.Models.Wompi;
+using static NubeeAPI.Models.Factura;
 
-namespace FactCloudAPI.Data
+namespace NubeeAPI.Data
 {
     public class ApplicationDbContext : DbContext
     {
@@ -43,7 +45,6 @@ namespace FactCloudAPI.Data
         public DbSet<ContactoCliente> ContactosCliente { get; set; }
         public DbSet<ResolucionDIAN> ResolucionesDIAN { get; set; }
         public DbSet<UsuarioAddon> UsuariosAddons { get; set; }
-        public DbSet<PerfilTributario> PerfilesTributarios { get; set; }
         public DbSet<RepresentanteLegal> RepresentantesLegales { get; set; }
 
         // ── DbSets nuevos: PUC / Impuestos / Autoretenciones ──────────────
@@ -51,10 +52,26 @@ namespace FactCloudAPI.Data
         public DbSet<Impuesto> Impuestos { get; set; }
         public DbSet<Autoretencion> Autorretenciones { get; set; }
         public DbSet<DetalleFacturaImpuesto> DetalleFacturaImpuestos { get; set; }
+        public DbSet<PerfilTributario> PerfilesTributarios { get; set; }
+        public DbSet<ImpuestoConcepto> ImpuestosConceptos { get; set; } = null!;
+        public DbSet<TarifaImpuesto> TarifasImpuestos { get; set; } = null!;
+        public DbSet<ConfiguracionImpuestoEmpresa> ConfiguracionesImpuestoEmpresa { get; set; } = null!;
+        public DbSet<MapeoContableTarifa> MapeosContablesTarifa { get; set; } = null!;
+        public DbSet<ReglaImpuesto> ReglasImpuesto { get; set; } = null!;
+        public DbSet<DocumentoLineaImpuesto> DocumentosLineasImpuesto { get; set; } = null!;
+        public DbSet<DocumentoResumenImpuesto> DocumentosResumenImpuesto { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            // ── 🆕 Aplicar configuraciones del motor tributario ──────────────
+            modelBuilder.ApplyConfiguration(new ImpuestoConceptoConfiguration());
+            modelBuilder.ApplyConfiguration(new TarifaImpuestoConfiguration());
+            modelBuilder.ApplyConfiguration(new ConfiguracionImpuestoEmpresaConfiguration());
+            modelBuilder.ApplyConfiguration(new MapeoContableTarifaConfiguration());
+            modelBuilder.ApplyConfiguration(new ReglaImpuestoConfiguration());
+            modelBuilder.ApplyConfiguration(new DocumentoLineaImpuestoConfiguration());
+            modelBuilder.ApplyConfiguration(new DocumentoResumenImpuestoConfiguration());
 
             // ══════════════════════════════════════════════════════════════
             // PRODUCTO
@@ -103,7 +120,7 @@ namespace FactCloudAPI.Data
             // ══════════════════════════════════════════════════════════════
             modelBuilder.Entity<Negocio>(entity =>
             {
-                entity.HasIndex(n => n.NumeroIdentificacionE)
+                entity.HasIndex(n => n.Nit)
                       .IsUnique();
 
                 entity.HasIndex(n => n.UsuarioId)
@@ -817,33 +834,7 @@ namespace FactCloudAPI.Data
                 entity.Ignore(e => e.TarifaDisplay);
             });
 
-            // ══════════════════════════════════════════════════════════════
-            // ── NUEVO: DETALLE FACTURA IMPUESTO ───────────────────────────
-            // ══════════════════════════════════════════════════════════════
-            modelBuilder.Entity<DetalleFacturaImpuesto>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-
-                entity.HasIndex(e => new { e.DetalleFacturaId, e.ImpuestoId })
-                    .HasDatabaseName("IX_DetalleFacturaImpuesto_Detalle_Impuesto");
-
-                entity.Property(e => e.BaseGravable).HasColumnType("decimal(18,2)");
-                entity.Property(e => e.TarifaAplicada).HasColumnType("decimal(7,4)");
-                entity.Property(e => e.ValorImpuesto).HasColumnType("decimal(18,2)");
-                entity.Property(e => e.NaturalezaImpuesto)
-                    .HasMaxLength(15)
-                    .HasDefaultValue("Cargo");
-
-                entity.HasOne(e => e.DetalleFactura)
-                    .WithMany(d => d.Impuestos)
-                    .HasForeignKey(e => e.DetalleFacturaId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(e => e.Impuesto)
-                    .WithMany()
-                    .HasForeignKey(e => e.ImpuestoId)
-                    .OnDelete(DeleteBehavior.NoAction);
-            });
+           
 
             // ══════════════════════════════════════════════════════════════
             // SEED DATA
@@ -954,7 +945,7 @@ namespace FactCloudAPI.Data
             // ── Cupones ───────────────────────────────────────────────────
             modelBuilder.Entity<Cupon>().HasData(
                 new Cupon { Id = 1, Codigo = "WELCOMEFC", DescuentoPorcentaje = 20, MaxUsos = 30, IsActive = true },
-                new Cupon { Id = 2, Codigo = "FACTCLOUDPRO", DescuentoPorcentaje = 30, MaxUsos = 30, PlanId = 3, IsActive = true },
+                new Cupon { Id = 2, Codigo = "NUBEE S.A.SPRO", DescuentoPorcentaje = 30, MaxUsos = 30, PlanId = 3, IsActive = true },
                 new Cupon { Id = 3, Codigo = "STARTEFC25", DescuentoPorcentaje = 12, MaxUsos = 20, PlanId = 1, IsActive = true }
             );
 
@@ -966,7 +957,7 @@ namespace FactCloudAPI.Data
             );
 
             // ── Cuentas PUC semilla (UsuarioId = 0 → plantilla sistema) ──
-            SeedPUC.Seed(modelBuilder);
+            SeedData.Seed(modelBuilder);
         }
     }
 }

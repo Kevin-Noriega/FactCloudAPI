@@ -1,8 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace FactCloudAPI.DTOs.Impuestos
+namespace NubeeAPI.DTOs.Impuestos
 {
-    // ─── READ ────────────────────────────────────────────────────────────────
+    // --- READ ----------------------------------------------------------------
     public class ImpuestoDto
     {
         public int Id { get; set; }
@@ -24,7 +24,7 @@ namespace FactCloudAPI.DTOs.Impuestos
         public CuentaContableResumenDto? CuentaDevolucionCompras { get; set; }
     }
 
-    // ─── CREATE ──────────────────────────────────────────────────────────────
+    // --- CREATE --------------------------------------------------------------
     public class CrearImpuestoDto
     {
         [Required]
@@ -57,7 +57,7 @@ namespace FactCloudAPI.DTOs.Impuestos
         public int? CuentaDevolucionComprasId { get; set; }
     }
 
-    // ─── UPDATE ──────────────────────────────────────────────────────────────
+    // --- UPDATE --------------------------------------------------------------
     public class ActualizarImpuestoDto
     {
         [MaxLength(100)]
@@ -77,7 +77,7 @@ namespace FactCloudAPI.DTOs.Impuestos
         public int? CuentaDevolucionComprasId { get; set; }
     }
 
-    // ─── SHARED RESUMEN ──────────────────────────────────────────────────────
+    // --- SHARED RESUMEN ------------------------------------------------------
     public class CuentaContableResumenDto
     {
         public int Id { get; set; }

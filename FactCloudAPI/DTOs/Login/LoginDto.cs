@@ -1,6 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
-namespace FactCloudAPI.DTOs.Login
+namespace NubeeAPI.DTOs.Login
 {
     public class LoginDto
     {

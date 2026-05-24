@@ -1,10 +1,10 @@
-﻿namespace FactCloudAPI.DTOs.Usuarios
+namespace NubeeAPI.DTOs.Usuarios
 {
-    public class CambiarContraseñaDto
+    public class CambiarContrase�aDto
     {
-            public string ContraseñaActual { get; set; } = "";
-            public string NuevaContraseña { get; set; } = "";
-            public string ConfirmarContraseña { get; set; } = "";
+            public string Contrase�aActual { get; set; } = "";
+            public string NuevaContrase�a { get; set; } = "";
+            public string ConfirmarContrase�a { get; set; } = "";
         
     }
 }

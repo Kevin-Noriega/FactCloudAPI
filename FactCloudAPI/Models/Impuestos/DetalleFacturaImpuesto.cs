@@ -1,8 +1,8 @@
-﻿using FactCloudAPI.Models;
+﻿using NubeeAPI.Models;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace FactCloudAPI.Models.Impuestos
+namespace NubeeAPI.Models.Impuestos
 {
     /// <summary>
     /// Tabla intermedia para manejar múltiples impuestos por línea de factura.
@@ -38,12 +38,12 @@ namespace FactCloudAPI.Models.Impuestos
         public decimal ValorImpuesto { get; set; }
 
         /// <summary>
-        /// Indica si el impuesto suma (+) o resta (-) al total de la línea:
-        /// "Cargo"     → IVA, INC, ICA (suma al valor a pagar)
-        /// "Retencion" → Retefuente, ReteICA, ReteIVA (resta al valor a pagar)
+        /// ✅ FIX: reemplaza string "Cargo"/"Retencion" por enum tipado.
+        /// Elimina typos silenciosos ("cargo", "Retención", "CARGO").
+        /// Trasladado  → IVA, INC, ICA (suma al valor a pagar)
+        /// Retenido    → Retefuente, ReteICA, ReteIVA (resta al valor a pagar)
         /// </summary>
         [Required]
-        [MaxLength(15)]
-        public string NaturalezaImpuesto { get; set; } = "Cargo";
+        public NaturalezaFiscal NaturalezaImpuesto { get; set; } = NaturalezaFiscal.Trasladado;
     }
 }
