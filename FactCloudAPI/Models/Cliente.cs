@@ -60,6 +60,9 @@ namespace NubeeAPI.Models
         [MaxLength(20)]
         public string? CiudadCodigo { get; set; }
 
+        [MaxLength(10)]
+        public string? CodigoMunicipio { get; set; }
+
         [Required]
         [MaxLength(500)]
         public string Direccion { get; set; }
@@ -82,6 +85,9 @@ namespace NubeeAPI.Models
         [MaxLength(100)]
         public string? RegimenTributario { get; set; }
 
+        [MaxLength(5)]
+        public string? CodigoTributo { get; set; }
+
         [MaxLength(100)]
         public string? RegimenFiscal { get; set; }
 
@@ -96,6 +102,7 @@ namespace NubeeAPI.Models
 
         [MaxLength(50)]
         public string? TelefonoFacturacion { get; set; }         // ? NUEVO
+        public int? MunicipioId { get; set; }
 
         // -- Responsabilidades fiscales ----------------------------
         public bool GranContribuyente { get; set; } = false;    // ? NUEVO O-13

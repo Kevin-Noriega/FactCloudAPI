@@ -1,3 +1,5 @@
+using NubeeAPI.Models;
+
 namespace NubeeAPI.DTOs.Facturas
 {
     public class FacturaDto
@@ -7,6 +9,6 @@ namespace NubeeAPI.DTOs.Facturas
         public DateTime FechaEmision { get; set; }
         public string Cliente { get; set; }
         public decimal TotalFactura { get; set; }
-        public string Estado { get; set; }
+        public string Estado { get; set; } = string.Empty;
     }
 }

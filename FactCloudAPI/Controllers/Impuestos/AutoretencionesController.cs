@@ -1,4 +1,4 @@
-using NubeeAPI.Data;
+﻿using NubeeAPI.Data;
 using NubeeAPI.DTOs;
 using NubeeAPI.DTOs.Impuestos;
 using NubeeAPI.Models;
@@ -29,19 +29,18 @@ namespace NubeeAPI.Controllers.Impuestos
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var usuarioId = GetUsuarioId();
+            var usuarioId = GetUsuarioId();   // ← única variable de tenant
 
             var lista = await _db.Autorretenciones
                 .Include(a => a.CuentaDebito)
                 .Include(a => a.CuentaCredito)
-                .Where(a => a.UsuarioId == null || a.UsuarioId == usuarioId) // ? fix
+                .Where(a => a.UsuarioId == null || a.UsuarioId == usuarioId)  // ← fix 1 y 2
                 .OrderBy(a => a.Codigo)
                 .Select(a => MapToDto(a))
                 .ToListAsync();
 
             return Ok(lista);
         }
-
         // -- GET /api/autorretenciones/{id} --------------------------------
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
@@ -50,7 +49,8 @@ namespace NubeeAPI.Controllers.Impuestos
             var ar = await _db.Autorretenciones
                 .Include(a => a.CuentaDebito)
                 .Include(a => a.CuentaCredito)
-                .FirstOrDefaultAsync(a => a.Id == id && a.UsuarioId == usuarioId);
+                .FirstOrDefaultAsync(a => a.Id == id
+                               && (a.UsuarioId == null || a.UsuarioId == usuarioId));
 
             if (ar == null) return NotFound();
             return Ok(MapToDto(ar));
@@ -65,21 +65,21 @@ namespace NubeeAPI.Controllers.Impuestos
             var usuarioId = GetUsuarioId();
 
             if (await _db.Autorretenciones.AnyAsync(a => a.UsuarioId == usuarioId && a.Codigo == dto.Codigo))
-                return Conflict(new { message = $"Ya existe una autorretenci�n con el c�digo {dto.Codigo}." });
+                return Conflict(new { message = $"Ya existe una autorretención con el código {dto.Codigo}." });
 
             // Validar cuentas PUC
             if (dto.CuentaDebitoId.HasValue)
             {
                 var existe = await _db.CuentasContables
                     .AnyAsync(c => c.Id == dto.CuentaDebitoId && c.UsuarioId == usuarioId);
-                if (!existe) return BadRequest(new { message = "La cuenta d�bito PUC no existe." });
+                if (!existe) return BadRequest(new { message = "La cuenta débito PUC no existe." });
             }
 
             if (dto.CuentaCreditoId.HasValue)
             {
                 var existe = await _db.CuentasContables
                     .AnyAsync(c => c.Id == dto.CuentaCreditoId && c.UsuarioId == usuarioId);
-                if (!existe) return BadRequest(new { message = "La cuenta cr�dito PUC no existe." });
+                if (!existe) return BadRequest(new { message = "La cuenta crédito PUC no existe." });
             }
 
             var ar = new Autoretencion
@@ -114,7 +114,8 @@ namespace NubeeAPI.Controllers.Impuestos
             var ar = await _db.Autorretenciones
                 .Include(a => a.CuentaDebito)
                 .Include(a => a.CuentaCredito)
-                .FirstOrDefaultAsync(a => a.Id == id && a.UsuarioId == usuarioId);
+                .FirstOrDefaultAsync(a => a.Id == id
+                              && (a.UsuarioId == null || a.UsuarioId == usuarioId));
 
             if (ar == null) return NotFound();
 
@@ -135,7 +136,8 @@ namespace NubeeAPI.Controllers.Impuestos
         {
             var usuarioId = GetUsuarioId();
             var ar = await _db.Autorretenciones
-                .FirstOrDefaultAsync(a => a.Id == id && a.UsuarioId == usuarioId);
+                .FirstOrDefaultAsync(a => a.Id == id
+                           && (a.UsuarioId == null || a.UsuarioId == usuarioId));
 
             if (ar == null) return NotFound();
 

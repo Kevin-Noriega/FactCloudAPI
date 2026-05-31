@@ -49,6 +49,14 @@ namespace NubeeAPI.Models.Impuestos
         [Required]
         [Column(TypeName = "decimal(7,4)")]
         public decimal Tarifa { get; set; }
+        // Faltan en el modelo Impuesto:
+        public decimal? BaseMinimaVentas { get; set; }    // UVT mínimos para aplicar
+        public decimal? BaseMinimaCompras { get; set; }
+        public bool AplicaIVAExcluido { get; set; }       // bienes excluidos
+        public bool AplicaIVAExento { get; set; }          // bienes exentos
+        public string? ConceptoRetencionDIAN { get; set; } // tabla 6.2.4
+        public bool GeneraInformacionExogena { get; set; } // Res. 162/2023
+        public string? CodigoConceptoExogena { get; set; } // formato 1001, 1002...
 
         /// <summary>
         /// Si es true, el impuesto se calcula sobre un valor fijo (no porcentaje).

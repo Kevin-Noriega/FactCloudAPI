@@ -1,14 +1,15 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using NubeeAPI.Data;
 using NubeeAPI.DTOs.Admin;
 using NubeeAPI.Models;
 using NubeeAPI.Models.Planes;
 using NubeeAPI.Models.Usuarios;
 using NubeeAPI.Services;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using System.ComponentModel.DataAnnotations;
+using System.Security.Claims;
+using static NubeeAPI.Models.Factura;
 
 namespace NubeeAPI.Controllers
 {
@@ -393,7 +394,13 @@ namespace NubeeAPI.Controllers
                 select new { f, NombreCliente = c != null ? c.Nombre : null };
 
             if (!string.IsNullOrWhiteSpace(estado))
-                query = query.Where(x => x.f.Estado == estado);
+                if (!string.IsNullOrWhiteSpace(estado))
+                {
+                    if (!Enum.TryParse<EstadoFactura>(estado, ignoreCase: true, out var estadoEnum))
+                        return BadRequest(new { mensaje = $"Estado inválido. Use: {string.Join(", ", Enum.GetNames<EstadoFactura>())}" });
+
+                    query = query.Where(x => x.f.Estado == estadoEnum);
+                }
 
             if (usuarioId.HasValue)
                 query = query.Where(x => x.f.UsuarioId == usuarioId.Value);
@@ -433,8 +440,11 @@ namespace NubeeAPI.Controllers
             if (!estadosValidos.Contains(dto.Estado))
                 return BadRequest(new { mensaje = $"Estado inválido. Use: {string.Join(", ", estadosValidos)}" });
 
+            if (!Enum.TryParse<EstadoFactura>(dto.Estado, ignoreCase: true, out var estadoEnum))
+                return BadRequest(new { mensaje = $"Estado inválido. Use: {string.Join(", ", Enum.GetNames<EstadoFactura>())}" });
+
             var estadoAnterior = factura.Estado;
-            factura.Estado = dto.Estado;
+            factura.Estado = estadoEnum;
             await _context.SaveChangesAsync();
 
             return Ok(new
@@ -456,7 +466,7 @@ namespace NubeeAPI.Controllers
             if (factura is null)
                 return NotFound(new { mensaje = "Factura no encontrada" });
 
-            if (factura.Estado == "Emitida")
+            if (factura.Estado == EstadoFactura.Emitida)
                 return BadRequest(new { mensaje = "No se puede eliminar una factura emitida ante la DIAN" });
 
             _context.Facturas.Remove(factura);
@@ -710,10 +720,14 @@ namespace NubeeAPI.Controllers
 
             var totalFacturas      = statsFacturas.Sum(s => s.count);
             var totalIngresos      = statsFacturas.Sum(s => s.total);
-            var facturasEmitidas   = statsFacturas.Where(s => s.estado == "Emitida" || s.estado == "Pagada").Sum(s => s.count);
-            var facturasPendientes = statsFacturas.Where(s => s.estado == "Pendiente" || s.estado == "Borrador").Sum(s => s.count);
-            var facturasAnuladas   = statsFacturas.Where(s => s.estado == "Anulada" || s.estado == "Cancelada").Sum(s => s.count);
+            var facturasEmitidas = statsFacturas.Where(s => s.estado == Factura.EstadoFactura.Emitida || s.estado == Factura.EstadoFactura.Pagada).Sum(s => s.count);
 
+            var facturasPendientes = statsFacturas.Where(s => s.estado == Factura.EstadoFactura.Pendiente || s.estado == Factura.EstadoFactura.Borrador)
+                                                  .Sum(s => s.count);
+
+            var facturasAnuladas = statsFacturas.Where(s => s.estado == Factura.EstadoFactura.Anulada
+                                                            || s.estado == Factura.EstadoFactura.Cancelada)
+                                                  .Sum(s => s.count);
             // Ventas por mes del año actual
             var ventasPorMes = await _context.Facturas
                 .Where(f => f.FechaEmision.Year == añoActual)
@@ -842,6 +856,7 @@ namespace NubeeAPI.Controllers
                     descuentoActivo = p.DescuentoActivo,
                     descuentoPorcentaje = p.DescuentoPorcentaje,
                     activo = p.Activo,
+                    incluyePOS = p.IncluyePOS,
                     caracteristicas = p.Features.Select(f => new { f.Id, f.Texto, f.Tooltip }).ToList()
                 })
                 .ToListAsync();
@@ -867,6 +882,7 @@ namespace NubeeAPI.Controllers
                 DescuentoActivo = dto.DescuentoActivo,
                 DescuentoPorcentaje = dto.DescuentoPorcentaje,
                 Activo = dto.Activo,
+                IncluyePOS = dto.IncluyePOS,
                 Features = dto.Caracteristicas.Select(t => new PlanFeature { Texto = t }).ToList()
             };
 
@@ -900,6 +916,7 @@ namespace NubeeAPI.Controllers
             plan.Destacado = dto.Destacado;
             plan.DescuentoActivo = dto.DescuentoActivo;
             plan.DescuentoPorcentaje = dto.DescuentoPorcentaje;
+            plan.IncluyePOS = dto.IncluyePOS;
             plan.Activo = dto.Activo;
 
             // Reemplazar características
@@ -1130,6 +1147,7 @@ namespace NubeeAPI.Controllers
         public bool DescuentoActivo { get; set; }
         public int? DescuentoPorcentaje { get; set; }
         public bool Activo { get; set; } = true;
+        public bool IncluyePOS { get; set; } = false;
         public List<string> Caracteristicas { get; set; } = new();
     }
 

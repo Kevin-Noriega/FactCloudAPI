@@ -24,6 +24,7 @@ namespace NubeeAPI.Models.Planes
         public decimal PrecioAnual { get; set; }
 
         public bool Destacado { get; set; } = false;
+        public bool IncluyePOS { get; set; } = false;
 
         //Descuento en porcentaje 
         public int? DescuentoPorcentaje { get; set; }

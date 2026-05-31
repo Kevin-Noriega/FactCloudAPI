@@ -1,4 +1,5 @@
 using NubeeAPI.Models;
+using NubeeAPI.Models.Impuestos;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -51,6 +52,14 @@ namespace NubeeAPI.Models
         /// </summary>
         [MaxLength(200)]
         public string? ClaveTecnica { get; set; }
+
+        /// <summary>
+        /// ID del rango Factus copiado desde ResolucionDIAN al momento de emitir.
+        /// Necesario para el payload de Factus.
+        /// </summary>
+        
+        public int FactusRangoId { get; set; }
+
 
         // ==================== TIPO Y AMBIENTE ====================
 
@@ -184,14 +193,13 @@ namespace NubeeAPI.Models
         // ==================== ESTADO Y OBSERVACIONES ====================
 
         /// <summary>Estados: "Emitida" | "Enviada" | "Validada" | "Pagada" | "Anulada" | "Vencida"</summary>
-        [Required]
-        [MaxLength(50)]
-        public string Estado { get; set; } = "Emitida";
+        public enum EstadoFactura { Emitida, Enviada, Validada, Pagada, Borrador, Anulada, Vencida, Pendiente, Cancelada }
+        public EstadoFactura Estado { get; set; } = EstadoFactura.Emitida;
 
         [MaxLength(2000)]
         public string? Observaciones { get; set; }
 
-        public DateTime FechaRegistro { get; set; } = DateTime.Now;
+        public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;
 
         // ==================== ENVÍO DIAN ====================
 
@@ -259,7 +267,7 @@ namespace NubeeAPI.Models
 
         [NotMapped]
         public bool EstaVencida =>
-            FechaVencimiento.HasValue && DateTime.Now > FechaVencimiento && Estado != "Pagada";
+            FechaVencimiento.HasValue && DateTime.Now > FechaVencimiento && Estado != EstadoFactura.Pagada;
 
         [NotMapped]
         public int? HorasRestantesEnvioDIAN
@@ -270,6 +278,44 @@ namespace NubeeAPI.Models
                 var horas = (FechaLimiteEnvioDIAN.Value - DateTime.Now).TotalHours;
                 return horas > 0 ? (int)Math.Ceiling(horas) : 0;
             }
+        }
+        // Agregar a Factura
+        public void RecalcularTotales()
+        {
+            if (DetalleFacturas == null || !DetalleFacturas.Any())
+                return;
+
+            Subtotal = DetalleFacturas.Sum(d => d.SubtotalLinea);
+
+            var todosImpuestos = DetalleFacturas
+                .Where(d => d.Impuestos != null)
+                .SelectMany(d => d.Impuestos)
+                .ToList();
+
+            TotalIVA = todosImpuestos
+                .Where(i => i.SnapshotCodigoDIAN == "01" ||
+                            i.TarifaImpuesto.ImpuestoConcepto.CodigoTributoDIAN == "01")
+                .Sum(i => i.ValorCalculado);
+
+            TotalINC = todosImpuestos
+                .Where(i => i.SnapshotCodigoDIAN == "02" ||
+                            i.TarifaImpuesto.ImpuestoConcepto.CodigoTributoDIAN == "02")
+                .Sum(i => i.ValorCalculado);
+
+            TotalICA = todosImpuestos
+                .Where(i => i.SnapshotCodigoDIAN == "06" ||
+                            i.TarifaImpuesto.ImpuestoConcepto.CodigoTributoDIAN == "06")
+                .Sum(i => i.ValorCalculado);
+
+            TotalRetenciones = todosImpuestos
+                .Where(i => i.Naturaleza == NaturalezaFiscal.Retenido
+                         || i.Naturaleza == NaturalezaFiscal.Autorretenido)
+                .Sum(i => i.ValorCalculado);
+
+            TotalDescuentos = DetalleFacturas.Sum(d => d.ValorDescuento);
+
+            TotalFactura = Subtotal + TotalIVA + TotalINC + TotalICA
+                         - TotalRetenciones - TotalDescuentos;
         }
 
 

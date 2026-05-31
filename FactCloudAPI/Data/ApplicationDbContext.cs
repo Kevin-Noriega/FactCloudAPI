@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using NubeeAPI.Data;
+using NubeeAPI.Data.Seeds;
 using NubeeAPI.Models;
 using NubeeAPI.Models.Cupones;
 using NubeeAPI.Models.Impuestos;
@@ -6,7 +9,7 @@ using NubeeAPI.Models.Sesiones;
 using NubeeAPI.Models.Suscripciones;
 using NubeeAPI.Models.Usuarios;
 using NubeeAPI.Models.Wompi;
-using Microsoft.EntityFrameworkCore;
+using static NubeeAPI.Models.Factura;
 
 namespace NubeeAPI.Data
 {
@@ -50,11 +53,27 @@ namespace NubeeAPI.Data
         public DbSet<Autoretencion> Autorretenciones { get; set; }
         public DbSet<DetalleFacturaImpuesto> DetalleFacturaImpuestos { get; set; }
         public DbSet<PerfilTributario> PerfilesTributarios { get; set; }
+        public DbSet<ImpuestoConcepto> ImpuestosConceptos { get; set; } = null!;
+        public DbSet<TarifaImpuesto> TarifasImpuestos { get; set; } = null!;
+        public DbSet<ConfiguracionImpuestoEmpresa> ConfiguracionesImpuestoEmpresa { get; set; } = null!;
+        public DbSet<MapeoContableTarifa> MapeosContablesTarifa { get; set; } = null!;
+        public DbSet<ReglaImpuesto> ReglasImpuesto { get; set; } = null!;
+        public DbSet<DocumentoLineaImpuesto> DocumentosLineasImpuesto { get; set; } = null!;
+        public DbSet<DocumentoResumenImpuesto> DocumentosResumenImpuesto { get; set; } = null!;
+
         public DbSet<AuditoriaAdmin> AuditoriaAdmin { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            // ── 🆕 Aplicar configuraciones del motor tributario ──────────────
+            modelBuilder.ApplyConfiguration(new ImpuestoConceptoConfiguration());
+            modelBuilder.ApplyConfiguration(new TarifaImpuestoConfiguration());
+            modelBuilder.ApplyConfiguration(new ConfiguracionImpuestoEmpresaConfiguration());
+            modelBuilder.ApplyConfiguration(new MapeoContableTarifaConfiguration());
+            modelBuilder.ApplyConfiguration(new ReglaImpuestoConfiguration());
+            modelBuilder.ApplyConfiguration(new DocumentoLineaImpuestoConfiguration());
+            modelBuilder.ApplyConfiguration(new DocumentoResumenImpuestoConfiguration());
 
             // ══════════════════════════════════════════════════════════════
             // PRODUCTO
@@ -359,9 +378,10 @@ namespace NubeeAPI.Data
                     .HasDefaultValue("10");
 
                 entity.Property(f => f.Estado)
+                     .HasConversion<string>()
                     .IsRequired()
                     .HasMaxLength(50)
-                    .HasDefaultValue("Emitida");
+                    .HasDefaultValue(EstadoFactura.Emitida);
 
                 entity.Property(f => f.RespuestaDIAN)
                     .HasMaxLength(1000);
@@ -418,27 +438,6 @@ namespace NubeeAPI.Data
                     .HasPrecision(18, 2);
 
                 entity.Property(d => d.SubtotalLinea)
-                    .HasPrecision(18, 2);
-
-                entity.Property(d => d.TarifaIVA)
-                    .HasPrecision(6, 4)
-                    .HasDefaultValue(0);
-
-                entity.Property(d => d.ValorIVA)
-                    .HasPrecision(18, 2);
-
-                entity.Property(d => d.TarifaINC)
-                    .HasPrecision(6, 4)
-                    .HasDefaultValue(0);
-
-                entity.Property(d => d.ValorINC)
-                    .HasPrecision(18, 2);
-
-                entity.Property(d => d.TarifaICA)
-                    .HasPrecision(6, 4)
-                    .HasDefaultValue(0);
-
-                entity.Property(d => d.ValorICA)
                     .HasPrecision(18, 2);
 
                 entity.Property(d => d.TotalLinea)
@@ -837,33 +836,7 @@ namespace NubeeAPI.Data
                 entity.Ignore(e => e.TarifaDisplay);
             });
 
-            // ══════════════════════════════════════════════════════════════
-            // ── NUEVO: DETALLE FACTURA IMPUESTO ───────────────────────────
-            // ══════════════════════════════════════════════════════════════
-            modelBuilder.Entity<DetalleFacturaImpuesto>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-
-                entity.HasIndex(e => new { e.DetalleFacturaId, e.ImpuestoId })
-                    .HasDatabaseName("IX_DetalleFacturaImpuesto_Detalle_Impuesto");
-
-                entity.Property(e => e.BaseGravable).HasColumnType("decimal(18,2)");
-                entity.Property(e => e.TarifaAplicada).HasColumnType("decimal(7,4)");
-                entity.Property(e => e.ValorImpuesto).HasColumnType("decimal(18,2)");
-                entity.Property(e => e.NaturalezaImpuesto)
-                    .HasMaxLength(15)
-                    .HasDefaultValue("Cargo");
-
-                entity.HasOne(e => e.DetalleFactura)
-                    .WithMany(d => d.Impuestos)
-                    .HasForeignKey(e => e.DetalleFacturaId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                entity.HasOne(e => e.Impuesto)
-                    .WithMany()
-                    .HasForeignKey(e => e.ImpuestoId)
-                    .OnDelete(DeleteBehavior.NoAction);
-            });
+           
 
             // ══════════════════════════════════════════════════════════════
             // AUDITORIA ADMIN
@@ -1001,7 +974,7 @@ namespace NubeeAPI.Data
             );
 
             // ── Cuentas PUC semilla (UsuarioId = 0 → plantilla sistema) ──
-            SeedPUC.Seed(modelBuilder);
+            SeedData.Seed(modelBuilder);
         }
     }
 }

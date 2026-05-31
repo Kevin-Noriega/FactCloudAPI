@@ -110,6 +110,8 @@ namespace NubeeAPI.Models.Impuestos
         public ICollection<Impuesto>? ImpuestosCreditoVentas { get; set; }
         public ICollection<Impuesto>? ImpuestosDebitoCompras { get; set; }
         public ICollection<Impuesto>? ImpuestosCreditoCompras { get; set; }
+        public ICollection<Impuesto>? ImpuestosDevolucionVentas { get; set; }
+        public ICollection<Impuesto>? ImpuestosDevolucionCompras { get; set; }
 
         // -- Propiedades calculadas (no mapeadas) ----------------
         [NotMapped]

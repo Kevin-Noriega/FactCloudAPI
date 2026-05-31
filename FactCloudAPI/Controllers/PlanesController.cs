@@ -80,6 +80,7 @@ namespace NubeeAPI.Controllers
                 facturasMensuales = plan.LimiteDocumentosAnuales,
                 limiteDocumentosAnuales = plan.LimiteDocumentosAnuales,
                 limiteUsuarios = plan.LimiteUsuarios,
+                incluyePOS = plan.IncluyePOS,
                 caracteristicas = plan.Features.Select(f => new { texto = f.Texto, tooltip = f.Tooltip }).ToList()
             });
         }

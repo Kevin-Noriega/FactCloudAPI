@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NubeeAPI.Data;
 
@@ -11,9 +12,11 @@ using NubeeAPI.Data;
 namespace NubeeAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260527180021_AddCodigoTributario")]
+    partial class AddCodigoTributario
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -20922,9 +20925,6 @@ namespace NubeeAPI.Migrations
                     b.Property<int>("DuracionMeses")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IncluyePOS")
-                        .HasColumnType("bit");
-
                     b.Property<int?>("LimiteDocumentosAnuales")
                         .HasColumnType("int");
 
@@ -20955,7 +20955,6 @@ namespace NubeeAPI.Migrations
                             DescuentoPorcentaje = 15,
                             Destacado = false,
                             DuracionMeses = 12,
-                            IncluyePOS = false,
                             LimiteDocumentosAnuales = 30,
                             LimiteUsuarios = 1,
                             Nombre = "Starter",
@@ -20971,7 +20970,6 @@ namespace NubeeAPI.Migrations
                             DescuentoPorcentaje = 10,
                             Destacado = false,
                             DuracionMeses = 12,
-                            IncluyePOS = false,
                             LimiteDocumentosAnuales = 140,
                             LimiteUsuarios = 1,
                             Nombre = "Básico",
@@ -20987,7 +20985,6 @@ namespace NubeeAPI.Migrations
                             DescuentoPorcentaje = 10,
                             Destacado = false,
                             DuracionMeses = 12,
-                            IncluyePOS = false,
                             LimiteDocumentosAnuales = 540,
                             LimiteUsuarios = 1,
                             Nombre = "Profesional",
@@ -21003,7 +21000,6 @@ namespace NubeeAPI.Migrations
                             DescuentoPorcentaje = 15,
                             Destacado = false,
                             DuracionMeses = 12,
-                            IncluyePOS = false,
                             LimiteDocumentosAnuales = 1550,
                             LimiteUsuarios = 1,
                             Nombre = "Empresarial",

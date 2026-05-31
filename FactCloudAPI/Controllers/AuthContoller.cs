@@ -20,7 +20,6 @@ public class AuthController : ControllerBase
         _context = context;
         _authService = authService; // ? Inyectar
     }
-
     [HttpPost("login")]
     [AllowAnonymous]
     public async Task<IActionResult> Login([FromBody] LoginDTO model)
@@ -34,27 +33,36 @@ public class AuthController : ControllerBase
 
         if (usuario == null)
         {
-            Console.WriteLine("? Usuario no encontrado");
+            Console.WriteLine("✗ Usuario no encontrado");
             return Unauthorized(new { message = "Credenciales incorrectas" });
         }
 
         if (!BCrypt.Net.BCrypt.Verify(model.Contrasena, usuario.ContrasenaHash))
         {
-            Console.WriteLine("? Contrase�a incorrecta");
+            Console.WriteLine("✗ Contraseña incorrecta");
             return Unauthorized(new { message = "Credenciales incorrectas" });
         }
 
-        Console.WriteLine($"? Usuario autenticado: {usuario.Correo}");
+        Console.WriteLine($"✓ Usuario autenticado: {usuario.Correo}");
 
         // 2. Verificar estado
         if (!usuario.Estado)
         {
-            Console.WriteLine("? Usuario desactivado");
-            var diasRestantes = (int)(usuario.FechaDesactivacion.Value.AddDays(30) - DateTime.Now).TotalDays;
+            Console.WriteLine("✗ Usuario desactivado");
+            var diasRestantes = (int)(usuario.FechaDesactivacion!.Value.AddDays(30) - DateTime.Now).TotalDays;
             return StatusCode(423, new { diasRestantes, mensaje = "Reactivar cuenta" });
         }
 
-        // 3. Generar DTO de respuesta
+        // 3. Buscar suscripción activa y plan
+        var suscripcion = await _context.SuscripcionesFacturacion
+            .Include(s => s.PlanFacturacion)
+            .Where(s => s.UsuarioId == usuario.Id && s.Activa)
+            .OrderByDescending(s => s.FechaInicio)
+            .FirstOrDefaultAsync();
+
+        var plan = suscripcion?.PlanFacturacion;
+
+        // 4. Generar DTO de respuesta
         var usuarioDto = new UsuarioLoginDto
         {
             Id = usuario.Id,
@@ -63,18 +71,34 @@ public class AuthController : ControllerBase
             Correo = usuario.Correo,
             Estado = usuario.Estado,
             Rol = usuario.Rol ?? "usuario",
-            FechaDesactivacion = usuario.FechaDesactivacion
+            FechaDesactivacion = usuario.FechaDesactivacion,
+
+            SuscripcionId = suscripcion?.Id ?? 0,
+            PlanNombre = plan?.Nombre ?? "Demo",
+            // Aquí puedes poner tu cálculo real de documentos restantes si ya lo tienes
+            DocumentosRestantes = 0,
+            FechaExpiracion = suscripcion?.FechaFin,
+
+            Plan = plan == null
+                ? null
+                : new PlanLoginDto
+                {
+                    Id = plan.Id,
+                    Codigo = plan.Codigo,
+                    Nombre = plan.Nombre,
+                    IncluyePOS = plan.IncluyePOS
+                }
         };
 
-        // 4. Generar access token
+        // 5. Generar access token
         var accessToken = _authService.GenerarAccessToken(usuario);
         var jwtId = new JwtSecurityTokenHandler()
             .ReadJwtToken(accessToken)
             .Claims.First(c => c.Type == JwtRegisteredClaimNames.Jti).Value;
 
-        Console.WriteLine($"? Access token generado - JTI: {jwtId}");
+        Console.WriteLine($"✓ Access token generado - JTI: {jwtId}");
 
-        // 5. Generar refresh token
+        // 6. Generar refresh token
         var refreshToken = _authService.GenerarRefreshToken();
         var refreshTokenEntity = new RefreshToken
         {
@@ -88,25 +112,26 @@ public class AuthController : ControllerBase
         _context.RefreshTokens.Add(refreshTokenEntity);
         await _context.SaveChangesAsync();
 
-        Console.WriteLine($"? Refresh token guardado en BD: {refreshToken.Substring(0, 30)}...");
+        Console.WriteLine($"✓ Refresh token guardado en BD: {refreshToken[..30]}...");
         Console.WriteLine($"   Expira: {refreshTokenEntity.FechaExpiracion}");
 
-        // 6. Enviar refresh token como cookie HttpOnly
+        // 7. Enviar refresh token como cookie HttpOnly
         Response.Cookies.Append("refreshToken", refreshToken, new CookieOptions
         {
             HttpOnly = true,
-            Secure = false,
-            SameSite = SameSiteMode.Lax,
+            Secure = true,
+            SameSite = SameSiteMode.None,
             Expires = DateTimeOffset.UtcNow.AddDays(7),
             Path = "/"
         });
 
-        Console.WriteLine("? Cookie enviada al cliente");
+        Console.WriteLine("✓ Cookie enviada al cliente");
         Console.WriteLine("=== LOGIN EXITOSO ===\n");
 
         return Ok(new { token = accessToken, usuario = usuarioDto });
     }
- 
+
+
 
     [HttpPost("refresh")]
     [AllowAnonymous]

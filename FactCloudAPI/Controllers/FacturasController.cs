@@ -1,14 +1,17 @@
-using NubeeAPI.Data;
-using NubeeAPI.Models;
-using NubeeAPI.Models.DTOs;
-using NubeeAPI.Services;
-using NubeeAPI.Utils;
-using Microsoft.AspNetCore.Authorization;
+Ôªøusing Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using NubeeAPI.Data;
+using NubeeAPI.DTOs.Factus;
+using NubeeAPI.Models;
+using NubeeAPI.Models.DTOs;
+using NubeeAPI.Services;
+using NubeeAPI.Services.Factus;
+using NubeeAPI.Utils;
 using System.Security.Claims;
 using System.Text;
+using static NubeeAPI.Models.Factura;
 
 namespace NubeeAPI.Controllers
 {
@@ -22,19 +25,21 @@ namespace NubeeAPI.Controllers
         private readonly IHubContext<NotificacionesHub> _hub;
         private readonly ILogger<FacturasController> _logger;
         private readonly ISuscripcionService _suscripcionService; // ? NUEVO
-
+        private readonly IFactusService _factusService;
         public FacturasController(
             ApplicationDbContext context,
             IEmailService emailService,
             IHubContext<NotificacionesHub> hub,
             ILogger<FacturasController> logger,
-            ISuscripcionService suscripcionService) // ? NUEVO
+            ISuscripcionService suscripcionService,
+             IFactusService factusService) // ? NUEVO
         {
             _context = context;
             _emailService = emailService;
             _hub = hub;
             _logger = logger;
-            _suscripcionService = suscripcionService; // ? NUEVO
+            _suscripcionService = suscripcionService;
+            _factusService = factusService;// ? NUEVO
         }
 
         // ==================== HELPERS PRIVADOS ====================
@@ -48,7 +53,7 @@ namespace NubeeAPI.Controllers
         private bool FacturaExists(int id) =>
             _context.Facturas.Any(e => e.Id == id);
 
-        // ==================== CRUD B¡SICO ====================
+        // ==================== CRUD B√ÅSICO ====================
 
         // GET: api/Facturas
         [HttpGet]
@@ -56,7 +61,7 @@ namespace NubeeAPI.Controllers
         {
             var usuarioId = ObtenerUsuarioId();
             if (usuarioId == null)
-                return Unauthorized(new { message = "Token inv·lido o sin claim de usuario" });
+                return Unauthorized(new { message = "Token inv√°lido o sin claim de usuario" });
 
 
             var facturas = await _context.Facturas
@@ -114,7 +119,7 @@ namespace NubeeAPI.Controllers
                 .Include(f => f.DetalleFacturas!)
                     .ThenInclude(d => d.Producto)
                 .Include(f => f.NotasDebito)
-                .FirstOrDefaultAsync(f => f.Id == id && f.UsuarioId == usuarioId); // ? Filtro por dueÒo
+                .FirstOrDefaultAsync(f => f.Id == id && f.UsuarioId == usuarioId); // ? Filtro por due√±o
 
             if (factura == null)
                 return NotFound(new { mensaje = "Factura no encontrada" });
@@ -147,22 +152,22 @@ namespace NubeeAPI.Controllers
                     codigo = "SIN_NEGOCIO"
                 });
 
-            // -- 2. Obtener resoluciÛn DIAN vigente --------------------------------
+            // -- 2. Obtener resoluci√≥n DIAN vigente --------------------------------
             var resolucion = usuario.Negocio.ResolucionActiva;
 
             if (resolucion == null)
                 return BadRequest(new
                 {
-                    mensaje = "No tienes una resoluciÛn DIAN activa. " +
-                              "Configura tu resoluciÛn en Ajustes ? FacturaciÛn electrÛnica.",
+                    mensaje = "No tienes una resoluci√≥n DIAN activa. " +
+                              "Configura tu resoluci√≥n en Ajustes ? Facturaci√≥n electr√≥nica.",
                     codigo = "SIN_RESOLUCION"
                 });
 
             if (!resolucion.EstaVigente)
                 return BadRequest(new
                 {
-                    mensaje = $"La resoluciÛn DIAN venciÛ el {resolucion.FechaFin:dd/MM/yyyy}. " +
-                               "Solicita una nueva resoluciÛn a la DIAN.",
+                    mensaje = $"La resoluci√≥n DIAN venci√≥ el {resolucion.FechaFin:dd/MM/yyyy}. " +
+                               "Solicita una nueva resoluci√≥n a la DIAN.",
                     codigo = "RESOLUCION_VENCIDA",
                     fechaVencimiento = resolucion.FechaFin
                 });
@@ -179,13 +184,13 @@ namespace NubeeAPI.Controllers
             factura.ClaveTecnica = resolucion.ClaveTecnica;
             factura.Prefijo ??= resolucion.Prefijo;
 
-            // -- 4. NumeraciÛn secuencial dentro del rango autorizado --------------
-            // ?? Se ordena por Id DESC para obtener el ˙ltimo consecutivo emitido.
-            // Se excluyen Borradores porque no consumen numeraciÛn.
+            // -- 4. Numeraci√≥n secuencial dentro del rango autorizado --------------
+            // ?? Se ordena por Id DESC para obtener el √∫ltimo consecutivo emitido.
+            // Se excluyen Borradores porque no consumen numeraci√≥n.
             var ultimoNumero = await _context.Facturas
                 .Where(f => f.UsuarioId == usuarioId.Value
                          && f.Prefijo == factura.Prefijo
-                         && f.Estado != "Borrador")
+                         && f.Estado != EstadoFactura.Borrador)
                 .OrderByDescending(f => f.Id)
                 .Select(f => f.NumeroFactura)
                 .FirstOrDefaultAsync();
@@ -197,25 +202,29 @@ namespace NubeeAPI.Controllers
             if (siguiente > resolucion.RangoHasta)
                 return BadRequest(new
                 {
-                    mensaje = $"Rango de numeraciÛn agotado (hasta {resolucion.RangoHasta}). " +
-                               "Solicita una nueva resoluciÛn a la DIAN.",
+                    mensaje = $"Rango de numeraci√≥n agotado (hasta {resolucion.RangoHasta}). " +
+                               "Solicita una nueva resoluci√≥n a la DIAN.",
                     codigo = "RANGO_AGOTADO",
                     rangoHasta = resolucion.RangoHasta
                 });
 
             factura.NumeroFactura = siguiente.ToString();
 
+
+           
+
             // -- 5. Manejar estado: Borrador vs Emitida ----------------------------
-            // "Borrador"  ? guardado sin numeraciÛn definitiva ni CUFE ni XML
+            // "Borrador"  ? guardado sin numeraci√≥n definitiva ni CUFE ni XML
             // "Pendiente" ? emitida, lista para enviar a la DIAN
-            bool esBorrador = factura.Estado == "Borrador";
+            bool esBorrador = factura.Estado == EstadoFactura.Borrador;
+
             if (!esBorrador)
-                factura.Estado = "Emitida";
+                factura.Estado = EstadoFactura.Emitida;
 
             // -- 6. Calcular fechas (hora UTC-0500, FechaVencimiento, plazo DIAN) --
             factura.CalcularFechas();
 
-            // -- 7. CUFE y QR ó solo facturas emitidas ----------------------------
+            // -- 7. CUFE y QR ‚Äî solo facturas emitidas ----------------------------
             if (!esBorrador)
             {
                 try
@@ -227,10 +236,10 @@ namespace NubeeAPI.Controllers
                 {
                     _logger.LogWarning(ex,
                         "No se pudo generar CUFE para factura {Numero}", factura.NumeroFactura);
-                    // No bloqueamos ó se puede regenerar con PUT /api/facturas/{id}/regenerar
+                    // No bloqueamos ‚Äî se puede regenerar con PUT /api/facturas/{id}/regenerar
                 }
 
-                // -- 8. XML UBL 2.1 ó solo facturas emitidas ----------------------
+                // -- 8. XML UBL 2.1 ‚Äî solo facturas emitidas ----------------------
                 try
                 {
                     var xml = XmlFacturaGenerator.GenerarXml(factura);
@@ -239,9 +248,9 @@ namespace NubeeAPI.Controllers
                 catch (Exception ex)
                 {
                     _logger.LogError(ex,
-                        "Error generando XML en emisiÛn de factura {Numero}", factura.NumeroFactura);
+                        "Error generando XML en emisi√≥n de factura {Numero}", factura.NumeroFactura);
                     factura.XmlBase64 = null;
-                    // ?? Factura queda sin XML ó registrar para revisiÛn manual
+                    // ?? Factura queda sin XML ‚Äî registrar para revisi√≥n manual
                 }
             }
 
@@ -249,7 +258,7 @@ namespace NubeeAPI.Controllers
             _context.Facturas.Add(factura);
             await _context.SaveChangesAsync();
 
-            // -- 10. NotificaciÛn en tiempo real via SignalR -----------------------
+            // -- 10. Notificaci√≥n en tiempo real via SignalR -----------------------
             if (!esBorrador)
             {
                 await _hub.Clients.All.SendAsync("FacturaCreada", new
@@ -258,7 +267,7 @@ namespace NubeeAPI.Controllers
                     numero = factura.NumeroFacturaCompleto,
                     total = factura.TotalFactura,
                     fecha = factura.FechaRegistro,
-                    ambiente = factura.TipoAmbiente == 2 ? "Pruebas" : "ProducciÛn"
+                    ambiente = factura.TipoAmbiente == 2 ? "Pruebas" : "Producci√≥n"
                 });
             }
 
@@ -274,7 +283,7 @@ namespace NubeeAPI.Controllers
                 factura.HorasRestantesEnvioDIAN,
                 xmlGenerado = !string.IsNullOrEmpty(factura.XmlBase64),
                 diasVigencia = resolucion.DiasRestantes,
-                ambiente = resolucion.TipoAmbiente == 2 ? "Pruebas" : "ProducciÛn"
+                ambiente = resolucion.TipoAmbiente == 2 ? "Pruebas" : "Producci√≥n"
             });
         }
     
@@ -348,11 +357,16 @@ namespace NubeeAPI.Controllers
             if (factura == null)
                 return NotFound(new { mensaje = "Factura no encontrada" });
 
+
+            // √¢≈ì‚Ä¶ No permitir eliminar facturas ya enviadas o validadas por la DIAN
+            if (factura.EnviadaDIAN || factura.Estado == EstadoFactura.Validada)
+
             // ? No permitir eliminar facturas ya enviadas o validadas por la DIAN
-            if (factura.EnviadaDIAN || factura.Estado == "Validada")
+            if (factura.EnviadaDIAN || factura.Estado == EstadoFactura.Validada)
+
                 return BadRequest(new
                 {
-                    mensaje = "No se puede eliminar una factura enviada o validada por la DIAN. Use una Nota CrÈdito."
+                    mensaje = "No se puede eliminar una factura enviada o validada por la DIAN. Use una Nota Cr√©dito."
                 });
 
             _context.Facturas.Remove(factura);
@@ -360,7 +374,7 @@ namespace NubeeAPI.Controllers
             return NoContent();
         }
 
-        // ==================== ENVÕO ====================
+        // ==================== ENV√çO ====================
 
         // POST: api/Facturas/5/enviar-cliente
         [HttpPost("{id}/enviar-cliente")]
@@ -399,12 +413,16 @@ namespace NubeeAPI.Controllers
         public async Task<IActionResult> EnviarADIAN(int id)
         {
             var usuarioId = ObtenerUsuarioId();
-            if (usuarioId == null)
-                return Unauthorized();
+            if (usuarioId == null) return Unauthorized();
 
+            // Cargar factura con relaciones que necesita el mapeo Factus
             var factura = await _context.Facturas
                 .Include(f => f.Cliente)
                 .Include(f => f.Usuario)
+                    .ThenInclude(u => u!.Negocio)
+                        .ThenInclude(n => n!.Resoluciones)
+                .Include(f => f.DetalleFacturas!)
+                    .ThenInclude(d => d.Producto)
                 .FirstOrDefaultAsync(f => f.Id == id && f.UsuarioId == usuarioId);
 
             if (factura == null)
@@ -416,51 +434,98 @@ namespace NubeeAPI.Controllers
             if (!factura.DentroPlazoEnvioDIAN)
                 return BadRequest(new
                 {
-                    mensaje = "Factura fuera del plazo de 48 horas para envÌo a la DIAN",
+                    mensaje = "Factura fuera del plazo de 48 horas para env√≠o a la DIAN",
                     horasVencida = factura.HorasRestantesEnvioDIAN
                 });
 
-            // ? Validar que el XML estÈ generado antes de enviar
-            if (string.IsNullOrEmpty(factura.XmlBase64))
+            // Obtener FactusRangoId desde la resoluci√≥n activa del negocio
+            var resolucion = factura.Usuario?.Negocio?.ResolucionActiva;
+
+            if (resolucion == null)
+                return BadRequest(new { mensaje = "No hay resoluci√≥n DIAN activa para este negocio." });
+
+            if (!resolucion.FactusRangoId.HasValue)
                 return BadRequest(new
                 {
-                    mensaje = "El XML de la factura no est· generado. Regenere la factura.",
-                    accion = $"PUT api/Facturas/{id}"
+                    mensaje = "Esta empresa no est√° habilitada en Factus. Complete el proceso de habilitaci√≥n.",
+                    codigo = "SIN_RANGO_FACTUS",
+                    accion = "POST api/Habilitacion/registrar-rango"
                 });
 
-            // ? Validar que el CUFE estÈ calculado
-            if (string.IsNullOrEmpty(factura.Cufe))
-                return BadRequest(new { mensaje = "El CUFE no est· calculado. Regenere la factura." });
+            // Propagar el ID del rango al objeto factura (campo NotMapped)
+            factura.FactusRangoId = resolucion.FactusRangoId.Value;
 
             try
             {
-                // TODO: AquÌ ir· el envÌo real al Web Service DIAN (SendBillAsync)
-                // cuando tengas el certificado digital. Por ahora se registra el intento.
+                // Llamada real a Factus ‚Üí DIAN
+                var respuesta = await _factusService.EnviarFacturaAsync(factura);
+
+                // Actualizar con datos oficiales que devuelve Factus
                 factura.EnviadaDIAN = true;
                 factura.FechaEnvioDIAN = DateTime.Now;
-                factura.Estado = "Enviada";
-                factura.RespuestaDIAN = factura.TipoAmbiente == 2
-                    ? "Ambiente de pruebas ó integraciÛn WS pendiente"
-                    : "Pendiente integraciÛn WS DIAN (SendBillAsync)";
+                factura.Estado = Factura.EstadoFactura.Enviada;
+                factura.Cufe = respuesta.Data?.Cufe ?? factura.Cufe;
+                factura.QRCode = respuesta.Data?.Qr ?? factura.QRCode;
+                factura.RespuestaDIAN = $"Validada Factus ‚Äî {respuesta.Data?.Status ?? "OK"}";
+                factura.XmlBase64 = null; // ya no se necesita el XML local
+
+                // Descargar PDF oficial y guardarlo en disco
+                try
+                {
+                    var pdfBytes = await _factusService.DescargarPdfAsync(factura.NumeroFactura);
+                    Directory.CreateDirectory("./PDF");
+                    await System.IO.File.WriteAllBytesAsync($"./PDF/factura_{id}.pdf", pdfBytes);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "No se pudo descargar PDF de Factus para factura {Id}", id);
+                    // No bloqueamos ‚Äî el PDF se puede re-descargar luego
+                }
 
                 await _context.SaveChangesAsync();
 
-                return Ok(new
+                // Notificaci√≥n SignalR al frontend
+                await _hub.Clients.All.SendAsync("FacturaValidadaDIAN", new
                 {
-                    mensaje = factura.TipoAmbiente == 2
-                        ? "Registrado en ambiente de pruebas"
-                        : "Factura enviada a la DIAN",
+                    id = factura.Id,
+                    numero = factura.NumeroFacturaCompleto,
                     cufe = factura.Cufe,
-                    fechaEnvio = factura.FechaEnvioDIAN,
-                    ambiente = factura.TipoAmbiente == 2 ? "Pruebas" : "ProducciÛn"
+                    estado = "Enviada"
+                });
+
+                return Ok(new FactusEnvioResultDto
+                {
+                    Exitoso = true,
+                    Mensaje = "‚úÖ Factura validada por la DIAN v√≠a Factus",
+                    Cufe = factura.Cufe,
+                    Qr = factura.QRCode,
+                    NumeroFactus = respuesta.Data?.Number,
+                    FechaEnvio = factura.FechaEnvioDIAN
+                });
+            }
+            catch (FactusException fex)
+            {
+                _logger.LogError("Factus rechaz√≥ factura {Id}: {Body}", id, fex.FactusBody);
+                return UnprocessableEntity(new FactusEnvioResultDto
+                {
+                    Exitoso = false,
+                    Mensaje = "Factus/DIAN rechaz√≥ la factura. Revisa los datos.",
+                    ErrorDetalle = fex.FactusBody
                 });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error al enviar factura {Id} a DIAN", id);
-                return BadRequest(new { mensaje = "Error al enviar a la DIAN", error = ex.Message });
+                _logger.LogError(ex, "Error enviando factura {Id} a Factus", id);
+                return StatusCode(500, new FactusEnvioResultDto
+                {
+                    Exitoso = false,
+                    Mensaje = "Error de comunicaci√≥n con Factus",
+                    ErrorDetalle = ex.Message
+                });
             }
         }
+
+
 
         // ==================== PAGO ====================
 
@@ -469,7 +534,7 @@ namespace NubeeAPI.Controllers
         public async Task<IActionResult> RegistrarPago(int id, [FromBody] FacturaPagoDto pago)
         {
             if (pago == null)
-                return BadRequest(new { mensaje = "Datos de pago inv·lidos" });
+                return BadRequest(new { mensaje = "Datos de pago inv√°lidos" });
 
             var usuarioId = ObtenerUsuarioId();
             if (usuarioId == null)
@@ -484,14 +549,24 @@ namespace NubeeAPI.Controllers
             if (factura == null)
                 return NotFound(new { mensaje = "Factura no encontrada" });
 
-            if (factura.Estado == "Pagada")
-                return BadRequest(new { mensaje = "Esta factura ya est· pagada" });
 
-            // ? Aplicar cambios de pago
-            factura.Estado = pago.Estado ?? factura.Estado;
-            // ? CÛdigos DIAN: "10"=Efectivo, "42"=Transferencia, "48"=Tarjeta crÈdito, "ZZZ"=Otro
+            if (factura.Estado == EstadoFactura.Pagada)
+                return BadRequest(new { mensaje = "Esta factura ya est√É¬° pagada" });
+
+            // ‚úî Aplicar cambios de pago (conversi√≥n segura del string a enum)
+            if (!string.IsNullOrEmpty(pago.Estado) &&
+                  Enum.TryParse<EstadoFactura>(pago.Estado, out var nuevoEstado))
+            {
+                factura.Estado = nuevoEstado;
+            }
+            // √¢≈ì‚Ä¶ C√É¬≥digos DIAN: "10"=Efectivo, "42"=Transferencia, "48"=Tarjeta cr√É¬©dito, "ZZZ"=Otro
+
+            if (factura.Estado == EstadoFactura.Pagada)
+                return BadRequest(new { mensaje = "Esta factura ya est√° pagada" });
+
+            // ? Aplicar cambios de pago en otros campos
             factura.MedioPago = pago.MedioPago ?? factura.MedioPago;
-            // ? CÛdigos DIAN: "1"=Contado, "2"=CrÈdito
+            // ? C√≥digos DIAN: "1"=Contado, "2"=Cr√©dito
             factura.FormaPago = pago.FormaPago ?? factura.FormaPago;
             factura.Observaciones = pago.Observaciones ?? factura.Observaciones;
 
@@ -532,13 +607,13 @@ namespace NubeeAPI.Controllers
                 factura.TotalFactura,
                 factura.MontoPagado,
                 factura.FechaPago,
-                // ? Descriptores legibles del cÛdigo DIAN
+                // ? Descriptores legibles del c√≥digo DIAN
                 medioPagoDescripcion = factura.MedioPago switch
                 {
                     "10" => "Efectivo",
                     "42" => "Transferencia bancaria",
-                    "47" => "DÈbito bancario",
-                    "48" => "Tarjeta crÈdito",
+                    "47" => "D√©bito bancario",
+                    "48" => "Tarjeta cr√©dito",
                     "ZZZ" => "Otro",
                     _ => factura.MedioPago
                 },
@@ -577,7 +652,7 @@ namespace NubeeAPI.Controllers
             }
             catch
             {
-                return BadRequest(new { mensaje = "El XML almacenado est· corrupto. Regenere la factura." });
+                return BadRequest(new { mensaje = "El XML almacenado est√° corrupto. Regenere la factura." });
             }
         }
 
@@ -598,7 +673,7 @@ namespace NubeeAPI.Controllers
 
             var path = $"./PDF/factura_{id}.pdf";
             if (!System.IO.File.Exists(path))
-                return NotFound(new { mensaje = "PDF no encontrado. GenÈrelo primero." });
+                return NotFound(new { mensaje = "PDF no encontrado. Gen√©relo primero." });
 
             var stream = new FileStream(path, FileMode.Open, FileAccess.Read);
             return File(stream, "application/pdf", $"Factura_{factura.NumeroFacturaCompleto}.pdf");
@@ -629,12 +704,12 @@ namespace NubeeAPI.Controllers
             return Ok(new
             {
                 totalFacturas = facturas.Count,
-                facturasPagadas = facturas.Count(f => f.Estado == "Pagada"),
-                facturasPendientes = facturas.Count(f => f.Estado is "Emitida" or "Enviada"),
+                facturasPagadas = facturas.Count(f => f.Estado == EstadoFactura.Pagada),
+                facturasPendientes = facturas.Count(f => f.Estado is EstadoFactura.Emitida or EstadoFactura.Enviada),
                 facturasVencidas = facturas.Count(f => f.EstaVencida),
                 totalVentas = facturas.Sum(f => f.TotalFactura),
-                totalVentasPagadas = facturas.Where(f => f.Estado == "Pagada").Sum(f => f.TotalFactura),
-                totalVentasPendientes = facturas.Where(f => f.Estado != "Pagada").Sum(f => f.TotalFactura),
+                totalVentasPagadas = facturas.Where(f => f.Estado == EstadoFactura.Pagada).Sum(f => f.TotalFactura),
+                totalVentasPendientes = facturas.Where(f => f.Estado != EstadoFactura.Pagada).Sum(f => f.TotalFactura),
                 totalIVA = facturas.Sum(f => f.TotalIVA),
                 totalINC = facturas.Sum(f => f.TotalINC),  // ? ya no nullable
                 totalICA = facturas.Sum(f => f.TotalICA),  // ? nuevo campo
@@ -695,8 +770,9 @@ namespace NubeeAPI.Controllers
             var productos = await _context.DetalleFacturas
                 .Include(d => d.Producto)
                 .Include(d => d.Factura)
-                .Where(d => d.Factura.UsuarioId == usuarioId)
-                .GroupBy(d => new { d.ProductoId, d.Producto.Nombre })
+                // Evitar desreferencias nulas: filtrar registros sin factura o sin producto
+                .Where(d => d.Factura != null && d.Producto != null && d.Factura.UsuarioId == usuarioId)
+                .GroupBy(d => new { d.ProductoId, Nombre = d.Producto!.Nombre })
                 .Select(g => new
                 {
                     productoId = g.Key.ProductoId,

@@ -45,6 +45,13 @@ namespace NubeeAPI.Models
         [MaxLength(200)]
         public string? ClaveTecnica { get; set; }
 
+        /// <summary>
+        /// ID del rango de numeración registrado en Factus.
+        /// Se obtiene al llamar POST /v2/numbering-ranges en el proceso de habilitación.
+        /// </summary>
+        public int? FactusRangoId { get; set; }
+
+
         /// <summary>1 = Producción, 2 = Habilitación/Pruebas</summary>
         [Required, Range(1, 2)]
         public int TipoAmbiente { get; set; } = 2;
