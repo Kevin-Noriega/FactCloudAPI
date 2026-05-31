@@ -42,7 +42,7 @@ namespace NubeeAPI.Controllers
                     destacado = p.Destacado,
                     descuentoActivo = p.DescuentoActivo,
                     descuentoPorcentaje = p.DescuentoPorcentaje,
-                    caracteristicas = p.Features.Select(f => f.Texto).ToList()
+                    caracteristicas = p.Features.Select(f => new { texto = f.Texto, tooltip = f.Tooltip }).ToList()
                 })
                 .ToListAsync();
 
@@ -64,11 +64,11 @@ namespace NubeeAPI.Controllers
                 .FirstOrDefaultAsync();
 
             if (suscripcion == null)
-                return NotFound("No se encontró suscripción activa");
+                return NotFound("No se encontrï¿½ suscripciï¿½n activa");
 
             var plan = suscripcion.PlanFacturacion;
             if (plan == null)
-                return NotFound("El plan de la suscripción no existe");
+                return NotFound("El plan de la suscripciï¿½n no existe");
 
             return Ok(new
             {
@@ -80,7 +80,8 @@ namespace NubeeAPI.Controllers
                 facturasMensuales = plan.LimiteDocumentosAnuales,
                 limiteDocumentosAnuales = plan.LimiteDocumentosAnuales,
                 limiteUsuarios = plan.LimiteUsuarios,
-                caracteristicas = plan.Features.Select(f => f.Texto).ToList()
+                incluyePOS = plan.IncluyePOS,
+                caracteristicas = plan.Features.Select(f => new { texto = f.Texto, tooltip = f.Tooltip }).ToList()
             });
         }
 
@@ -94,7 +95,7 @@ namespace NubeeAPI.Controllers
 
             var id = int.Parse(userId);
 
-            // ? Buscar directamente la suscripción activa, sin pasar por SuscripcionActual
+            // ? Buscar directamente la suscripciï¿½n activa, sin pasar por SuscripcionActual
             var suscripcion = await _context.SuscripcionesFacturacion
                 .Include(s => s.PlanFacturacion)
                 .Where(s => s.UsuarioId == id && s.Activa)
@@ -102,17 +103,17 @@ namespace NubeeAPI.Controllers
                 .FirstOrDefaultAsync();
 
             if (suscripcion == null)
-                return NotFound("No se encontró suscripción activa");
+                return NotFound("No se encontrï¿½ suscripciï¿½n activa");
 
             if (suscripcion.PlanFacturacion == null)
-                return NotFound("El plan de la suscripción no existe");
+                return NotFound("El plan de la suscripciï¿½n no existe");
 
             var plan = suscripcion.PlanFacturacion;
             var fechaInicio = suscripcion.FechaInicio;
 
             // -- Contar documentos reales desde las tablas ------------------
             // Se suma cada tipo de documento creado desde el inicio
-            // de la suscripción activa para el usuario autenticado.
+            // de la suscripciï¿½n activa para el usuario autenticado.
             var facturas = await _context.Facturas
                 .Where(f => f.UsuarioId == id && f.FechaEmision >= fechaInicio)
                 .CountAsync();
@@ -177,7 +178,7 @@ namespace NubeeAPI.Controllers
             if (planNuevo == null)
                 return NotFound("Plan no encontrado");
 
-            // Desactivar suscripción activa actual
+            // Desactivar suscripciï¿½n activa actual
             var suscripcionActiva = await _context.SuscripcionesFacturacion
                 .Where(s => s.UsuarioId == id && s.Activa)
                 .FirstOrDefaultAsync();
@@ -188,7 +189,7 @@ namespace NubeeAPI.Controllers
                 suscripcionActiva.FechaFin = DateTime.Now;
             }
 
-            // Crear nueva suscripción
+            // Crear nueva suscripciï¿½n
             var nuevaSuscripcion = new SuscripcionFacturacion
             {
                 UsuarioId = id,

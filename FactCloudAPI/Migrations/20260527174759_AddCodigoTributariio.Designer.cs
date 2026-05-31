@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NubeeAPI.Data;
 
@@ -11,9 +12,11 @@ using NubeeAPI.Data;
 namespace NubeeAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260527174759_AddCodigoTributariio")]
+    partial class AddCodigoTributariio
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -91,10 +94,6 @@ namespace NubeeAPI.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("CodigoMunicipio")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
                     b.Property<string>("CodigoPostal")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
@@ -103,10 +102,6 @@ namespace NubeeAPI.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("CodigoTributo")
-                        .HasMaxLength(5)
-                        .HasColumnType("nvarchar(5)");
 
                     b.Property<string>("Correo")
                         .IsRequired()
@@ -728,9 +723,6 @@ namespace NubeeAPI.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)")
                         .HasDefaultValue("Emitida");
-
-                    b.Property<int>("FactusRangoId")
-                        .HasColumnType("int");
 
                     b.Property<DateTime>("FechaEmision")
                         .HasColumnType("datetime2");
@@ -20922,9 +20914,6 @@ namespace NubeeAPI.Migrations
                     b.Property<int>("DuracionMeses")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IncluyePOS")
-                        .HasColumnType("bit");
-
                     b.Property<int?>("LimiteDocumentosAnuales")
                         .HasColumnType("int");
 
@@ -20955,7 +20944,6 @@ namespace NubeeAPI.Migrations
                             DescuentoPorcentaje = 15,
                             Destacado = false,
                             DuracionMeses = 12,
-                            IncluyePOS = false,
                             LimiteDocumentosAnuales = 30,
                             LimiteUsuarios = 1,
                             Nombre = "Starter",
@@ -20971,7 +20959,6 @@ namespace NubeeAPI.Migrations
                             DescuentoPorcentaje = 10,
                             Destacado = false,
                             DuracionMeses = 12,
-                            IncluyePOS = false,
                             LimiteDocumentosAnuales = 140,
                             LimiteUsuarios = 1,
                             Nombre = "Básico",
@@ -20987,7 +20974,6 @@ namespace NubeeAPI.Migrations
                             DescuentoPorcentaje = 10,
                             Destacado = false,
                             DuracionMeses = 12,
-                            IncluyePOS = false,
                             LimiteDocumentosAnuales = 540,
                             LimiteUsuarios = 1,
                             Nombre = "Profesional",
@@ -21003,7 +20989,6 @@ namespace NubeeAPI.Migrations
                             DescuentoPorcentaje = 15,
                             Destacado = false,
                             DuracionMeses = 12,
-                            IncluyePOS = false,
                             LimiteDocumentosAnuales = 1550,
                             LimiteUsuarios = 1,
                             Nombre = "Empresarial",

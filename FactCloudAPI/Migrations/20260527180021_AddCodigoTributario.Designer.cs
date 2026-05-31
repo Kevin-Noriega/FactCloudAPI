@@ -12,8 +12,8 @@ using NubeeAPI.Data;
 namespace NubeeAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260524231452_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20260527180021_AddCodigoTributario")]
+    partial class AddCodigoTributario
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,40 @@ namespace NubeeAPI.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("NubeeAPI.Models.AuditoriaAdmin", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Accion")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("AdminId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Detalle")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("FechaHora")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AdminId");
+
+                    b.HasIndex("FechaHora");
+
+                    b.ToTable("AuditoriaAdmin");
+                });
 
             modelBuilder.Entity("NubeeAPI.Models.Cliente", b =>
                 {
@@ -60,6 +94,10 @@ namespace NubeeAPI.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<string>("CodigoMunicipio")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
                     b.Property<string>("CodigoPostal")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
@@ -68,6 +106,10 @@ namespace NubeeAPI.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("CodigoTributo")
+                        .HasMaxLength(5)
+                        .HasColumnType("nvarchar(5)");
 
                     b.Property<string>("Correo")
                         .IsRequired()
@@ -689,6 +731,9 @@ namespace NubeeAPI.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)")
                         .HasDefaultValue("Emitida");
+
+                    b.Property<int>("FactusRangoId")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("FechaEmision")
                         .HasColumnType("datetime2");
@@ -20872,7 +20917,6 @@ namespace NubeeAPI.Migrations
                         .HasColumnType("bit");
 
                     b.Property<int?>("DescuentoPorcentaje")
-                        .HasPrecision(5, 2)
                         .HasColumnType("int");
 
                     b.Property<bool>("Destacado")
@@ -21671,6 +21715,11 @@ namespace NubeeAPI.Migrations
                     b.Property<string>("NumeroIdentificacion")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Rol")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
                     b.Property<string>("Telefono")
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
@@ -21922,6 +21971,17 @@ namespace NubeeAPI.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Transacciones");
+                });
+
+            modelBuilder.Entity("NubeeAPI.Models.AuditoriaAdmin", b =>
+                {
+                    b.HasOne("NubeeAPI.Models.Usuario", "Admin")
+                        .WithMany()
+                        .HasForeignKey("AdminId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Admin");
                 });
 
             modelBuilder.Entity("NubeeAPI.Models.Cliente", b =>

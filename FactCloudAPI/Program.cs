@@ -25,15 +25,14 @@ var builder = WebApplication.CreateBuilder(args);
 // ===== CORS =====
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReact", policy =>
-    {
+    options.AddPolicy("AllowReact", policy =>    {
         policy.SetIsOriginAllowed(origin =>
         origin.StartsWith("http://localhost") ||
         origin.StartsWith("https://localhost"))
         .AllowCredentials()
         .AllowAnyHeader()
-        .AllowAnyMethod()
-        .AllowCredentials();
+        .AllowAnyMethod();
+        
     });
 });
 
@@ -111,6 +110,7 @@ options.UseSqlServer(conn, sqlServerOptions =>
 // ===== Servicios =====
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ISuscripcionService, SuscripcionService>();
+builder.Services.AddSingleton<NubeeAPI.Services.ConfiguracionService>();
 
 // ===== JWT Config (robusto para diseño) =====
 // Obtenemos configuraciones pero no lanzamos excepción en diseño
@@ -218,19 +218,48 @@ app.UseAuthentication(); // 3. Autenticación (lee el token)
 app.UseAuthorization(); // 4. Autorización (verifica permisos)
 app.MapHub<NotificacionesHub>("/api/notificacionesHub").AllowAnonymous();
 
-// ===== Auto-creación de tablas (Garantiza que ResolucionesDIAN exista) =====
+// ===== Auto-creación de tablas y migraciones incrementales =====
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
     try
     {
         var context = services.GetRequiredService<ApplicationDbContext>();
-        context.Database.EnsureCreated(); // Esto creará las tablas si no existen
+        context.Database.EnsureCreated();
+
+        // Columna Rol en Usuarios (EnsureCreated no aplica cambios a tablas existentes)
+        context.Database.ExecuteSqlRaw(@"
+            IF NOT EXISTS (
+                SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_NAME = 'Usuarios' AND COLUMN_NAME = 'Rol'
+            )
+            BEGIN
+                ALTER TABLE Usuarios
+                    ADD Rol NVARCHAR(30) NOT NULL
+                    CONSTRAINT DF_Usuarios_Rol DEFAULT 'usuario';
+            END");
+
+        context.Database.ExecuteSqlRaw(@"
+            IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'AuditoriaAdmin')
+            BEGIN
+                CREATE TABLE AuditoriaAdmin (
+                    Id        INT IDENTITY(1,1) PRIMARY KEY,
+                    AdminId   INT NOT NULL,
+                    Accion    NVARCHAR(50) NOT NULL,
+                    Detalle   NVARCHAR(500) NULL,
+                    FechaHora DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+                    CONSTRAINT FK_AuditoriaAdmin_Usuarios FOREIGN KEY (AdminId) REFERENCES Usuarios(Id)
+                );
+                CREATE INDEX IX_AuditoriaAdmin_FechaHora ON AuditoriaAdmin(FechaHora DESC);
+                CREATE INDEX IX_AuditoriaAdmin_AdminId   ON AuditoriaAdmin(AdminId);
+            END");
+
+        logger.LogInformation("Base de datos lista.");
     }
     catch (Exception ex)
     {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Ocurrió un error al crear la base de datos.");
+        logger.LogError(ex, "Error al inicializar la base de datos.");
     }
 }
 

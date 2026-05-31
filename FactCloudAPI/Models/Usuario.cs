@@ -37,6 +37,10 @@ namespace NubeeAPI.Models
         public DateTime FechaRegistro { get; set; } = DateTime.UtcNow;
         public DateTime? FechaDesactivacion { get; set; }
 
+        /// <summary>Rol del usuario: "usuario" | "admin" | "superadmin"</summary>
+        [MaxLength(30)]
+        public string Rol { get; set; } = "usuario";
+
         //  1 usuario → 1 negocio
         public Negocio Negocio { get; set; }
 

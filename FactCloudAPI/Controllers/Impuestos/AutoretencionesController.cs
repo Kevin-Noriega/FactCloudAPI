@@ -49,7 +49,8 @@ namespace NubeeAPI.Controllers.Impuestos
             var ar = await _db.Autorretenciones
                 .Include(a => a.CuentaDebito)
                 .Include(a => a.CuentaCredito)
-                .FirstOrDefaultAsync(a => a.Id == id && a.UsuarioId == usuarioId);
+                .FirstOrDefaultAsync(a => a.Id == id
+                               && (a.UsuarioId == null || a.UsuarioId == usuarioId));
 
             if (ar == null) return NotFound();
             return Ok(MapToDto(ar));
@@ -113,7 +114,8 @@ namespace NubeeAPI.Controllers.Impuestos
             var ar = await _db.Autorretenciones
                 .Include(a => a.CuentaDebito)
                 .Include(a => a.CuentaCredito)
-                .FirstOrDefaultAsync(a => a.Id == id && a.UsuarioId == usuarioId);
+                .FirstOrDefaultAsync(a => a.Id == id
+                              && (a.UsuarioId == null || a.UsuarioId == usuarioId));
 
             if (ar == null) return NotFound();
 
@@ -134,7 +136,8 @@ namespace NubeeAPI.Controllers.Impuestos
         {
             var usuarioId = GetUsuarioId();
             var ar = await _db.Autorretenciones
-                .FirstOrDefaultAsync(a => a.Id == id && a.UsuarioId == usuarioId);
+                .FirstOrDefaultAsync(a => a.Id == id
+                           && (a.UsuarioId == null || a.UsuarioId == usuarioId));
 
             if (ar == null) return NotFound();
 

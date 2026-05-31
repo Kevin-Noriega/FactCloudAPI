@@ -1,4 +1,4 @@
-using NubeeAPI.Data;
+Ôªøusing NubeeAPI.Data;
 using NubeeAPI.DTOs.Usuarios;
 using NubeeAPI.Models.Sesiones;
 using NubeeAPI.Services.Seguridad;
@@ -30,41 +30,41 @@ namespace NubeeAPI.Controllers
             _seguridadService = seguridadService;
         }
 
-        // CAMBIAR CONTRASE—A
-        [HttpPost("cambiar-contraseÒa")]
-        public async Task<ActionResult> CambiarContraseÒa([FromBody] CambiarContraseÒaDto dto)
+        // CAMBIAR CONTRASE√ëA
+        [HttpPost("cambiar-contrase√±a")]
+        public async Task<ActionResult> CambiarContrase√±a([FromBody] CambiarContrase√±aDto dto)
         {
             try
             {
-                var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
                 var usuario = await _context.Usuarios.FindAsync(usuarioId);
 
                 if (usuario == null)
                     return NotFound(new { error = "Usuario no encontrado" });
 
-                // Verificar contraseÒa actual
-                if (!BCrypt.Net.BCrypt.Verify(dto.ContraseÒaActual, usuario.ContrasenaHash))
-                    return BadRequest(new { error = "La contraseÒa actual es incorrecta" });
+                // Verificar contrase√±a actual
+                if (!BCrypt.Net.BCrypt.Verify(dto.Contrase√±aActual, usuario.ContrasenaHash))
+                    return BadRequest(new { error = "La contrase√±a actual es incorrecta" });
 
-                // Validar nueva contraseÒa
-                if (dto.NuevaContraseÒa != dto.ConfirmarContraseÒa)
-                    return BadRequest(new { error = "Las contraseÒas no coinciden" });
+                // Validar nueva contrase√±a
+                if (dto.NuevaContrase√±a != dto.ConfirmarContrase√±a)
+                    return BadRequest(new { error = "Las contrase√±as no coinciden" });
 
-                if (dto.NuevaContraseÒa.Length < 6)
-                    return BadRequest(new { error = "La contraseÒa debe tener al menos 6 caracteres" });
+                if (dto.NuevaContrase√±a.Length < 6)
+                    return BadRequest(new { error = "La contrase√±a debe tener al menos 6 caracteres" });
 
                 // Verificar que no sea igual a la actual
-                if (BCrypt.Net.BCrypt.Verify(dto.NuevaContraseÒa, usuario.ContrasenaHash))
-                    return BadRequest(new { error = "La nueva contraseÒa debe ser diferente a la actual" });
+                if (BCrypt.Net.BCrypt.Verify(dto.NuevaContrase√±a, usuario.ContrasenaHash))
+                    return BadRequest(new { error = "La nueva contrase√±a debe ser diferente a la actual" });
 
-                // Actualizar contraseÒa
-                usuario.ContrasenaHash = BCrypt.Net.BCrypt.HashPassword(dto.NuevaContraseÒa);
+                // Actualizar contrase√±a
+                usuario.ContrasenaHash = BCrypt.Net.BCrypt.HashPassword(dto.NuevaContrase√±a);
                 await _context.SaveChangesAsync();
 
                 // Registrar cambio en historial
-                await _seguridadService.RegistrarSesion(usuarioId, "Cambio de contraseÒa", true);
+                await _seguridadService.RegistrarSesion(usuarioId, "Cambio de contrase√±a", true);
 
-                return Ok(new { mensaje = "ContraseÒa actualizada correctamente" });
+                return Ok(new { mensaje = "Contrase√±a actualizada correctamente" });
             }
             catch (Exception ex)
             {
@@ -80,7 +80,7 @@ namespace NubeeAPI.Controllers
         {
             try
             {
-                var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
                 var total = await _context.HistorialSesiones
                     .Where(h => h.UsuarioId == usuarioId)
@@ -120,26 +120,26 @@ namespace NubeeAPI.Controllers
             }
         }
 
-        //  CERRAR SESI”N ESPECÕFICA
+        //  CERRAR SESI√ìN ESPEC√çFICA
         [HttpDelete("sesiones/{sesionId}")]
         public async Task<ActionResult> CerrarSesion(int sesionId)
         {
             try
             {
-                var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
                 var sesion = await _context.HistorialSesiones
                     .FirstOrDefaultAsync(h => h.Id == sesionId && h.UsuarioId == usuarioId);
 
                 if (sesion == null)
-                    return NotFound(new { error = "SesiÛn no encontrada" });
+                    return NotFound(new { error = "Sesi√≥n no encontrada" });
 
                 if (sesion.SesionActual)
-                    return BadRequest(new { error = "No puedes cerrar la sesiÛn actual desde aquÌ" });
+                    return BadRequest(new { error = "No puedes cerrar la sesi√≥n actual desde aqu√≠" });
 
                 _context.HistorialSesiones.Remove(sesion);
                 await _context.SaveChangesAsync();
 
-                return Ok(new { mensaje = "SesiÛn cerrada correctamente" });
+                return Ok(new { mensaje = "Sesi√≥n cerrada correctamente" });
             }
             catch (Exception ex)
             {
@@ -153,7 +153,7 @@ namespace NubeeAPI.Controllers
         {
             try
             {
-                var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                var usuarioId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
                 var sesionesAEliminar = await _context.HistorialSesiones
                     .Where(h => h.UsuarioId == usuarioId && !h.SesionActual)
@@ -179,4 +179,5 @@ namespace NubeeAPI.Controllers
     }
 
 }
+
 

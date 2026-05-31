@@ -57,7 +57,7 @@ namespace NubeeAPI.Models
         /// ID del rango Factus copiado desde ResolucionDIAN al momento de emitir.
         /// Necesario para el payload de Factus.
         /// </summary>
-        [NotMapped]
+        
         public int FactusRangoId { get; set; }
 
 
@@ -193,7 +193,7 @@ namespace NubeeAPI.Models
         // ==================== ESTADO Y OBSERVACIONES ====================
 
         /// <summary>Estados: "Emitida" | "Enviada" | "Validada" | "Pagada" | "Anulada" | "Vencida"</summary>
-        public enum EstadoFactura { Emitida, Enviada, Validada, Pagada, Borrador, Anulada, Vencida }
+        public enum EstadoFactura { Emitida, Enviada, Validada, Pagada, Borrador, Anulada, Vencida, Pendiente, Cancelada }
         public EstadoFactura Estado { get; set; } = EstadoFactura.Emitida;
 
         [MaxLength(2000)]

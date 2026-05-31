@@ -1,4 +1,5 @@
 ﻿using NubeeAPI.Models;
+using NubeeAPI.Models.Impuestos;
 using NubeeAPI.Models.Usuarios;
 using System.Net.Http.Headers;
 using System.Text.Json;
@@ -120,14 +121,14 @@ namespace NubeeAPI.Services.Factus
         public async Task<byte[]> DescargarPdfAsync(string numeroFactura)
         {
             await AgregarAuthHeaderAsync();
-            return await _http.GetByteArrayAsync($"/v2/bills/download-pdf/{numeroFactura}");
+            return await _http.GetByteArrayAsync($"/v2/bills/{numeroFactura}/download-pdf");
         }
 
         // ── Descargar XML ─────────────────────────────────────────────────
         public async Task<string> DescargarXmlAsync(string numeroFactura)
         {
             await AgregarAuthHeaderAsync();
-            return await _http.GetStringAsync($"/v2/bills/download-xml/{numeroFactura}");
+             return await _http.GetStringAsync($"/v2/bills/{numeroFactura}/download-xml");
         }
 
         // ── Consultar estado ──────────────────────────────────────────────
@@ -143,73 +144,145 @@ namespace NubeeAPI.Services.Factus
         {
             var cliente = f.Cliente!;
 
-            // Teléfono: primero TelefonoFacturacion, luego el primero de la colección
+            // ── Teléfono ──────────────────────────────────────────────────────────
             var telefono = cliente.TelefonoFacturacion
-                        ?? cliente.Telefonos.FirstOrDefault()?.Numero
+                        ?? cliente.Telefonos?.FirstOrDefault()?.Numero
                         ?? "";
 
-            // Para Factus: empresa = razón social si es Jurídica
-            bool esJuridica = cliente.TipoPersona.Contains("ur", StringComparison.OrdinalIgnoreCase);
-            var nombreEmpresa = esJuridica
-                ? (cliente.NombreComercial ?? cliente.Nombre)
-                : "";
-            var nombres = esJuridica
-                ? (cliente.NombreComercial ?? cliente.Nombre)
-                : $"{cliente.Nombre} {cliente.Apellido}".Trim();
+            // ── Tipo de persona ───────────────────────────────────────────────────
+            bool esJuridica = cliente.TipoPersona?.Contains("ur", StringComparison.OrdinalIgnoreCase) == true;
 
-            // Código DIAN tipo identificación
-            var tipoDocId = cliente.TipoIdentificacion?.ToUpper() switch
+            // ── Identificación: código DIAN ───────────────────────────────────────
+            var tipoDocId = (cliente.TipoIdentificacion ?? "").ToUpper() switch
             {
                 "CC" => 13,
                 "NIT" => 31,
                 "CE" => 22,
                 "PASAPORTE" => 91,
                 "TI" => 12,
+                "PEP" => 47,
+                "CÉDULA EXTRANJERA" or "DIE" => 22,
                 _ => 13
             };
 
+            // ── Nombres ───────────────────────────────────────────────────────────
+            var company = esJuridica ? (cliente.NombreComercial ?? cliente.Nombre ?? "") : "";
+            var tradeName = cliente.NombreComercial ?? cliente.Nombre ?? "";
+            var names = esJuridica
+                ? (cliente.NombreComercial ?? cliente.Nombre ?? "")
+                : $"{cliente.Nombre} {cliente.Apellido}".Trim();
+
+            // ── Municipio: usa el código guardado en el cliente ───────────────────
+            // 🔴 FIX: ya no hardcodeado. Si el cliente no tiene municipio, usa 11001 (Bogotá) como fallback
+            var municipioCodigo = !string.IsNullOrEmpty(cliente.CodigoMunicipio)
+                ? cliente.CodigoMunicipio
+                : "11001"; // Bogotá D.C. como fallback — nunca debe quedar vacío
+
+            // ── Ítems ─────────────────────────────────────────────────────────────
+            var items = f.DetalleFacturas!.Select((d, i) =>
+            {
+                var ivaLinea = d.Impuestos?
+                    .FirstOrDefault(imp =>
+                        imp.SnapshotCodigoDIAN == "01" ||
+                        imp.TarifaImpuesto?.ImpuestoConcepto?.CodigoTributoDIAN == "01")
+                    ?.TarifaUtilizada ?? 0m;
+
+                var incLinea = d.Impuestos?
+                    .FirstOrDefault(imp =>
+                        imp.SnapshotCodigoDIAN == "04" ||
+                        imp.TarifaImpuesto?.ImpuestoConcepto?.CodigoTributoDIAN == "04")
+                    ?.TarifaUtilizada ?? 0m;
+
+                var retenciones = d.Impuestos?
+                    .Where(imp =>
+                        imp.Naturaleza == NaturalezaFiscal.Retenido ||
+                        imp.Naturaleza == NaturalezaFiscal.Autorretenido)
+                    .Select(imp => new
+                    {
+                        code = imp.SnapshotCodigoDIAN ?? imp.TarifaImpuesto?.ImpuestoConcepto?.CodigoTributoDIAN,
+                        rate = imp.TarifaUtilizada
+                    })
+                    .ToList();
+
+                var unidadMedidaCodigo = int.TryParse(d.Producto?.UnidadMedida, out int umCodigo)
+                    ? umCodigo
+                    : 94;
+
+                bool isExcluded = ivaLinea == 0 && incLinea == 0;
+
+                var itemObj = new Dictionary<string, object>
+                {
+                    ["code_reference"] = d.Producto?.CodigoInterno ?? $"P{i + 1}",
+                    ["name"] = d.Producto?.Nombre ?? d.Descripcion ?? $"Ítem {i + 1}",
+                    ["quantity"] = d.Cantidad,
+                    ["discount_rate"] = d.PorcentajeDescuento,
+                    ["price"] = d.PrecioUnitario,
+                    ["unit_measure_code"] = unidadMedidaCodigo,
+                    ["standard_code"] = 999,
+                    ["is_excluded"] = isExcluded
+                };
+
+                if (!isExcluded)
+                {
+                    var taxes = new List<object>();
+                    if (ivaLinea > 0)
+                        taxes.Add(new { code = "01", rate = ivaLinea });
+                    if (incLinea > 0)
+                        taxes.Add(new { code = "04", rate = incLinea });
+
+                    itemObj["taxes"] = taxes;
+                }
+
+                if (retenciones.Any())
+                    itemObj["withholding_taxes"] = retenciones;
+
+                return itemObj;
+            }).ToList();
+
+            // ── Payload principal ─────────────────────────────────────────────────
             return new
             {
+                // 🔴 FIX: campos obligatorios que faltaban
+                reference_code = f.NumeroFactura,       // tu referencia interna única
+                document = "01",                   // 01 = Factura de Venta
                 numbering_range_id = f.FactusRangoId,
-                reference_code = f.NumeroFactura,
-                observation = f.Observaciones ?? "",
-                payment_method_code = f.MedioPago,
-                payment_due_date = (f.FechaVencimiento ?? f.FechaEmision).ToString("yyyy-MM-dd"),
+                operation_type = f.TipoOperacion,        // "10" = estándar, "09" = mandatos
+                send_email = false,                  // manejar envío de email desde tu sistema
 
+                // 🔴 FIX: payment_details como array (estructura correcta de Factus V2)
+                payment_details = new[]
+                {
+            new
+            {
+                payment_form        = f.FormaPago,     // "1" contado | "2" crédito
+                payment_method_code = f.MedioPago,     // "10", "42", "48", etc.
+                amount              = f.TotalFactura,
+                due_date            = (f.FechaVencimiento ?? f.FechaEmision)
+                                        .ToString("yyyy-MM-dd")
+            }
+        },
+
+                cash_rounding_amount = 0.00m,
+                observation = f.Observaciones ?? "",
+
+                // ── Cliente ───────────────────────────────────────────────────────
                 customer = new
                 {
+                    identification_document_code = tipoDocId,
                     identification = cliente.NumeroIdentificacion,
                     dv = cliente.DigitoVerificacion?.ToString() ?? "",
-                    company = nombreEmpresa,
-                    trade_name = cliente.NombreComercial ?? cliente.Nombre ?? "",
-                    names = nombres,
+                    company = company,
+                    trade_name = tradeName,
+                    names = names,
                     address = cliente.Direccion ?? "",
                     email = cliente.Correo ?? "",
                     phone = telefono,
-                    identification_document = tipoDocId,
-                    municipality_id = 980   // ← temporal, ver Opción 2
+                    legal_organization_code = esJuridica ? 1 : 2,  // 1=Jurídica, 2=Natural
+                    tribute_code = cliente.CodigoTributo ?? "ZZ", // ZZ = No responsable IVA
+                    municipality_code = municipioCodigo        // 🔴 FIX: dinámico, no hardcodeado
                 },
 
-                items = f.DetalleFacturas!.Select((d, i) =>
-                {
-                    var ivaLinea = d.Impuestos?
-                        .FirstOrDefault(imp => imp.SnapshotCodigoDIAN == "01")
-                        ?.TarifaImpuesto?.Tarifa ?? 0m;
-
-                    return new
-                    {
-                        code_reference = d.Producto?.CodigoInterno ?? $"P{i + 1}",
-                        name = d.Producto?.Nombre ?? d.Descripcion ?? $"Ítem {i + 1}",
-                        quantity = d.Cantidad,
-                        discount_rate = d.PorcentajeDescuento,
-                        price = d.PrecioUnitario,
-                        tax_rate = ivaLinea.ToString("0.00"),
-                        unit_measure_id = d.Producto?.UnidadMedida,
-                        standard_code_id = 1,
-                        is_excluded = ivaLinea == 0 ? 1 : 0,
-                        tribute_id = ivaLinea > 0 ? 1 : 22
-                    };
-                }).ToList()
+                items
             };
         }
     }
