@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NubeeAPI.Data;
 
@@ -11,9 +12,11 @@ using NubeeAPI.Data;
 namespace NubeeAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260607024016_PosCajaEtiquetasImpresion")]
+    partial class PosCajaEtiquetasImpresion
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21725,121 +21728,6 @@ namespace NubeeAPI.Migrations
                     b.ToTable("MovimientosCajaPos");
                 });
 
-            modelBuilder.Entity("NubeeAPI.Models.Pos.PosVenta", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ClienteNombre")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<decimal>("Credito")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Efectivo")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Estado")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasDefaultValue("Registrada");
-
-                    b.Property<DateTime>("Fecha")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal>("Impuestos")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("NumeroVenta")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Otros")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("PagosLinea")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Subtotal")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Tarjeta")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Total")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int?>("TurnoId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TurnoId");
-
-                    b.HasIndex("UsuarioId", "Fecha");
-
-                    b.ToTable("PosVentas");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.Pos.PosVentaDetalle", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Cantidad")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("decimal(12,2)");
-
-                    b.Property<decimal>("Descuento")
-                        .HasPrecision(6, 2)
-                        .HasColumnType("decimal(6,2)");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<int>("PosVentaId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("PrecioUnitario")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int?>("ProductoId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("TotalLinea")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PosVentaId");
-
-                    b.ToTable("PosVentaDetalles");
-                });
-
             modelBuilder.Entity("NubeeAPI.Models.Pos.TurnoPos", b =>
                 {
                     b.Property<int>("Id")
@@ -23207,35 +23095,6 @@ namespace NubeeAPI.Migrations
                     b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("NubeeAPI.Models.Pos.PosVenta", b =>
-                {
-                    b.HasOne("NubeeAPI.Models.Pos.TurnoPos", "Turno")
-                        .WithMany()
-                        .HasForeignKey("TurnoId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("NubeeAPI.Models.Usuario", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Turno");
-
-                    b.Navigation("Usuario");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.Pos.PosVentaDetalle", b =>
-                {
-                    b.HasOne("NubeeAPI.Models.Pos.PosVenta", "PosVenta")
-                        .WithMany("Detalles")
-                        .HasForeignKey("PosVentaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("PosVenta");
-                });
-
             modelBuilder.Entity("NubeeAPI.Models.Pos.TurnoPos", b =>
                 {
                     b.HasOne("NubeeAPI.Models.Usuario", "Usuario")
@@ -23443,11 +23302,6 @@ namespace NubeeAPI.Migrations
                     b.Navigation("Features");
 
                     b.Navigation("Suscripciones");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.Pos.PosVenta", b =>
-                {
-                    b.Navigation("Detalles");
                 });
 
             modelBuilder.Entity("NubeeAPI.Models.Producto", b =>

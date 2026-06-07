@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NubeeAPI.Data;
 
@@ -11,9 +12,11 @@ using NubeeAPI.Data;
 namespace NubeeAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260606185022_Baseline")]
+    partial class Baseline
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21069,19 +21072,7 @@ namespace NubeeAPI.Migrations
                     b.Property<int>("DuracionMeses")
                         .HasColumnType("int");
 
-                    b.Property<bool>("IncluyeContabilidad")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IncluyeInventario")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IncluyeNomina")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("IncluyePOS")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IncluyeSucursales")
                         .HasColumnType("bit");
 
                     b.Property<int?>("LimiteDocumentosAnuales")
@@ -21099,11 +21090,6 @@ namespace NubeeAPI.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("Tipo")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
                     b.HasKey("Id");
 
                     b.ToTable("PlanesFacturacion");
@@ -21119,16 +21105,11 @@ namespace NubeeAPI.Migrations
                             DescuentoPorcentaje = 15,
                             Destacado = false,
                             DuracionMeses = 12,
-                            IncluyeContabilidad = false,
-                            IncluyeInventario = false,
-                            IncluyeNomina = false,
                             IncluyePOS = false,
-                            IncluyeSucursales = false,
                             LimiteDocumentosAnuales = 30,
                             LimiteUsuarios = 1,
                             Nombre = "Starter",
-                            PrecioAnual = 135000m,
-                            Tipo = "FACTURACION"
+                            PrecioAnual = 135000m
                         },
                         new
                         {
@@ -21140,16 +21121,11 @@ namespace NubeeAPI.Migrations
                             DescuentoPorcentaje = 10,
                             Destacado = false,
                             DuracionMeses = 12,
-                            IncluyeContabilidad = false,
-                            IncluyeInventario = true,
-                            IncluyeNomina = false,
                             IncluyePOS = false,
-                            IncluyeSucursales = false,
                             LimiteDocumentosAnuales = 140,
-                            LimiteUsuarios = 2,
+                            LimiteUsuarios = 1,
                             Nombre = "Básico",
-                            PrecioAnual = 300000m,
-                            Tipo = "FACTURACION"
+                            PrecioAnual = 300000m
                         },
                         new
                         {
@@ -21159,18 +21135,13 @@ namespace NubeeAPI.Migrations
                             Descripcion = "Perfecto para PYMES establecidas",
                             DescuentoActivo = true,
                             DescuentoPorcentaje = 10,
-                            Destacado = true,
+                            Destacado = false,
                             DuracionMeses = 12,
-                            IncluyeContabilidad = false,
-                            IncluyeInventario = true,
-                            IncluyeNomina = false,
                             IncluyePOS = false,
-                            IncluyeSucursales = false,
                             LimiteDocumentosAnuales = 540,
-                            LimiteUsuarios = 5,
+                            LimiteUsuarios = 1,
                             Nombre = "Profesional",
-                            PrecioAnual = 770000m,
-                            Tipo = "FACTURACION"
+                            PrecioAnual = 770000m
                         },
                         new
                         {
@@ -21182,76 +21153,11 @@ namespace NubeeAPI.Migrations
                             DescuentoPorcentaje = 15,
                             Destacado = false,
                             DuracionMeses = 12,
-                            IncluyeContabilidad = true,
-                            IncluyeInventario = true,
-                            IncluyeNomina = true,
                             IncluyePOS = false,
-                            IncluyeSucursales = true,
                             LimiteDocumentosAnuales = 1550,
-                            LimiteUsuarios = 15,
-                            Nombre = "Empresarial",
-                            PrecioAnual = 1300000m,
-                            Tipo = "FACTURACION"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Activo = true,
-                            Codigo = "POS_ESENCIAL",
-                            Descripcion = "Punto de venta para empezar a vender desde el mostrador",
-                            DescuentoActivo = false,
-                            Destacado = true,
-                            DuracionMeses = 12,
-                            IncluyeContabilidad = false,
-                            IncluyeInventario = true,
-                            IncluyeNomina = false,
-                            IncluyePOS = true,
-                            IncluyeSucursales = false,
-                            LimiteDocumentosAnuales = 240,
                             LimiteUsuarios = 1,
-                            Nombre = "Sistema POS Esencial",
-                            PrecioAnual = 345000m,
-                            Tipo = "POS"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            Activo = true,
-                            Codigo = "POS_INICIO",
-                            Descripcion = "Para negocios con mayor volumen de ventas",
-                            DescuentoActivo = true,
-                            DescuentoPorcentaje = 10,
-                            Destacado = false,
-                            DuracionMeses = 12,
-                            IncluyeContabilidad = false,
-                            IncluyeInventario = true,
-                            IncluyeNomina = false,
-                            IncluyePOS = true,
-                            IncluyeSucursales = false,
-                            LimiteUsuarios = 2,
-                            Nombre = "Sistema POS Inicio",
-                            PrecioAnual = 585900m,
-                            Tipo = "POS"
-                        },
-                        new
-                        {
-                            Id = 7,
-                            Activo = true,
-                            Codigo = "POS_AVANZADO",
-                            Descripcion = "Operación profesional con inventario y reportes avanzados",
-                            DescuentoActivo = true,
-                            DescuentoPorcentaje = 15,
-                            Destacado = false,
-                            DuracionMeses = 12,
-                            IncluyeContabilidad = false,
-                            IncluyeInventario = true,
-                            IncluyeNomina = false,
-                            IncluyePOS = true,
-                            IncluyeSucursales = true,
-                            LimiteUsuarios = 5,
-                            Nombre = "Sistema POS Avanzado",
-                            PrecioAnual = 899900m,
-                            Tipo = "POS"
+                            Nombre = "Empresarial",
+                            PrecioAnual = 1300000m
                         });
                 });
 
@@ -21298,15 +21204,15 @@ namespace NubeeAPI.Migrations
                         {
                             Id = 3,
                             PlanFacturacionId = 1,
-                            Texto = "Facturación electrónica DIAN",
+                            Texto = "Funciones básicas",
                             Tooltip = "Creación de facturas, gestión de clientes y productos. Reportes simples incluidos."
                         },
                         new
                         {
                             Id = 4,
                             PlanFacturacionId = 2,
-                            Texto = "2 Usuarios",
-                            Tooltip = "Hasta dos usuarios para tu negocio."
+                            Texto = "1 Usuario",
+                            Tooltip = "Cuenta individual perfecta para emprendedores y negocios unipersonales."
                         },
                         new
                         {
@@ -21319,22 +21225,15 @@ namespace NubeeAPI.Migrations
                         {
                             Id = 6,
                             PlanFacturacionId = 2,
-                            Texto = "Facturación electrónica DIAN",
+                            Texto = "Funciones básicas",
                             Tooltip = "Creación de facturas, gestión de clientes, productos, notas débito y crédito."
-                        },
-                        new
-                        {
-                            Id = 45,
-                            PlanFacturacionId = 2,
-                            Texto = "Control de inventario",
-                            Tooltip = "Administra existencias y stock de tus productos."
                         },
                         new
                         {
                             Id = 7,
                             PlanFacturacionId = 3,
-                            Texto = "5 Usuarios",
-                            Tooltip = "Hasta cinco usuarios con acceso al sistema."
+                            Texto = "1 Usuario",
+                            Tooltip = "Cuenta individual con acceso completo a todas las funcionalidades."
                         },
                         new
                         {
@@ -21359,13 +21258,6 @@ namespace NubeeAPI.Migrations
                         },
                         new
                         {
-                            Id = 46,
-                            PlanFacturacionId = 3,
-                            Texto = "Control de inventario",
-                            Tooltip = "Descuento automático de stock y control de existencias."
-                        },
-                        new
-                        {
                             Id = 11,
                             PlanFacturacionId = 3,
                             Texto = "Gestión avanzada de clientes y productos",
@@ -21382,8 +21274,8 @@ namespace NubeeAPI.Migrations
                         {
                             Id = 13,
                             PlanFacturacionId = 4,
-                            Texto = "15 Usuarios",
-                            Tooltip = "Hasta quince usuarios para equipos grandes."
+                            Texto = "1 Usuario",
+                            Tooltip = "Acceso completo al sistema con control total de la facturación empresarial."
                         },
                         new
                         {
@@ -21408,34 +21300,6 @@ namespace NubeeAPI.Migrations
                         },
                         new
                         {
-                            Id = 47,
-                            PlanFacturacionId = 4,
-                            Texto = "Control de inventario",
-                            Tooltip = "Inventario por bodega y existencias en tiempo real."
-                        },
-                        new
-                        {
-                            Id = 48,
-                            PlanFacturacionId = 4,
-                            Texto = "Nómina electrónica",
-                            Tooltip = "Liquidación y emisión de nómina electrónica ante la DIAN."
-                        },
-                        new
-                        {
-                            Id = 49,
-                            PlanFacturacionId = 4,
-                            Texto = "Contabilidad integrada",
-                            Tooltip = "Causación contable automática de tus documentos."
-                        },
-                        new
-                        {
-                            Id = 50,
-                            PlanFacturacionId = 4,
-                            Texto = "Multi-sucursal",
-                            Tooltip = "Administra varias sucursales desde una sola cuenta."
-                        },
-                        new
-                        {
                             Id = 17,
                             PlanFacturacionId = 4,
                             Texto = "Gestión completa de clientes y productos",
@@ -21454,118 +21318,6 @@ namespace NubeeAPI.Migrations
                             PlanFacturacionId = 4,
                             Texto = "Soporte prioritario",
                             Tooltip = "Atención prioritaria para resolución de dudas y soporte técnico."
-                        },
-                        new
-                        {
-                            Id = 20,
-                            PlanFacturacionId = 5,
-                            Texto = "Cumplimiento normativo DIAN",
-                            Tooltip = "Documentos POS válidos ante la DIAN."
-                        },
-                        new
-                        {
-                            Id = 21,
-                            PlanFacturacionId = 5,
-                            Texto = "240 Facturas electrónicas anuales desde POS",
-                            Tooltip = "Hasta 240 documentos electrónicos al año desde el punto de venta."
-                        },
-                        new
-                        {
-                            Id = 22,
-                            PlanFacturacionId = 5,
-                            Texto = "1 Caja registradora",
-                            Tooltip = "Una terminal de venta para atender en mostrador."
-                        },
-                        new
-                        {
-                            Id = 23,
-                            PlanFacturacionId = 5,
-                            Texto = "Control de inventario",
-                            Tooltip = "Descuento automático de stock por cada venta."
-                        },
-                        new
-                        {
-                            Id = 24,
-                            PlanFacturacionId = 5,
-                            Texto = "Reportes de ventas diarios",
-                            Tooltip = "Total de ventas del día y productos más vendidos."
-                        },
-                        new
-                        {
-                            Id = 25,
-                            PlanFacturacionId = 6,
-                            Texto = "Cumplimiento normativo DIAN",
-                            Tooltip = "Documentos POS válidos ante la DIAN."
-                        },
-                        new
-                        {
-                            Id = 26,
-                            PlanFacturacionId = 6,
-                            Texto = "Facturas electrónicas desde POS ilimitadas",
-                            Tooltip = "Sin límite de documentos electrónicos desde el POS."
-                        },
-                        new
-                        {
-                            Id = 27,
-                            PlanFacturacionId = 6,
-                            Texto = "2 Cajas registradoras",
-                            Tooltip = "Atiende en dos terminales simultáneas."
-                        },
-                        new
-                        {
-                            Id = 28,
-                            PlanFacturacionId = 6,
-                            Texto = "Inventario con alertas de stock mínimo",
-                            Tooltip = "Recibe avisos cuando un producto esté por agotarse."
-                        },
-                        new
-                        {
-                            Id = 29,
-                            PlanFacturacionId = 6,
-                            Texto = "Cierre de caja por turno",
-                            Tooltip = "Controla el dinero por turno con apertura y cierre de caja."
-                        },
-                        new
-                        {
-                            Id = 31,
-                            PlanFacturacionId = 7,
-                            Texto = "Cumplimiento normativo DIAN",
-                            Tooltip = "Documentos POS válidos ante la DIAN."
-                        },
-                        new
-                        {
-                            Id = 32,
-                            PlanFacturacionId = 7,
-                            Texto = "Facturas electrónicas desde POS ilimitadas",
-                            Tooltip = "Sin límite de documentos electrónicos desde el POS."
-                        },
-                        new
-                        {
-                            Id = 33,
-                            PlanFacturacionId = 7,
-                            Texto = "Cajas registradoras ilimitadas",
-                            Tooltip = "Sin límite en el número de terminales de venta."
-                        },
-                        new
-                        {
-                            Id = 34,
-                            PlanFacturacionId = 7,
-                            Texto = "Inventario avanzado por bodega",
-                            Tooltip = "Controla existencias en varias bodegas o ubicaciones."
-                        },
-                        new
-                        {
-                            Id = 35,
-                            PlanFacturacionId = 7,
-                            Texto = "Arqueo y reportes avanzados",
-                            Tooltip = "Cuadre de caja detallado y reportes exportables."
-                        },
-                        new
-                        {
-                            Id = 36,
-                            PlanFacturacionId = 7,
-                            Texto = "Soporte prioritario 24/7",
-                            Tooltip = "Atención preferencial todos los días a cualquier hora."
                         });
                 });
 
@@ -21601,320 +21353,6 @@ namespace NubeeAPI.Migrations
                     b.HasIndex("UsuarioId", "AddonId");
 
                     b.ToTable("UsuariosAddons");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.Pos.ConfiguracionImpresionPos", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Copias")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("ImpresionSimple")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("ImpresoraDefecto")
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.Property<int>("MargenDerecho")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MargenInferior")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MargenIzquierdo")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MargenSuperior")
-                        .HasColumnType("int");
-
-                    b.Property<string>("MetodoImpresion")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasDefaultValue("navegador");
-
-                    b.Property<string>("TamanoPapel")
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UsuarioId")
-                        .IsUnique();
-
-                    b.ToTable("ConfiguracionesImpresionPos");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.Pos.EtiquetaPos", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Activa")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<DateTime>("FechaCreacion")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UsuarioId");
-
-                    b.ToTable("EtiquetasPos");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.Pos.MovimientoCajaPos", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Descripcion")
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
-
-                    b.Property<DateTime>("Fecha")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal>("Monto")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("NumeroComprobante")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<string>("Tipo")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UsuarioId", "Fecha");
-
-                    b.ToTable("MovimientosCajaPos");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.Pos.PosVenta", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ClienteNombre")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<decimal>("Credito")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Efectivo")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Estado")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasDefaultValue("Registrada");
-
-                    b.Property<DateTime>("Fecha")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal>("Impuestos")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("NumeroVenta")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Otros")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("PagosLinea")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Subtotal")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Tarjeta")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Total")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int?>("TurnoId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TurnoId");
-
-                    b.HasIndex("UsuarioId", "Fecha");
-
-                    b.ToTable("PosVentas");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.Pos.PosVentaDetalle", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Cantidad")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("decimal(12,2)");
-
-                    b.Property<decimal>("Descuento")
-                        .HasPrecision(6, 2)
-                        .HasColumnType("decimal(6,2)");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<int>("PosVentaId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("PrecioUnitario")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int?>("ProductoId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("TotalLinea")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PosVentaId");
-
-                    b.ToTable("PosVentaDetalles");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.Pos.TurnoPos", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("BaseInicial")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("CerradoPorNombre")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<decimal?>("Diferencia")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Estado")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasDefaultValue("Abierto");
-
-                    b.Property<DateTime>("FechaApertura")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("FechaCierre")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("NumeroTurno")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Observaciones")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<decimal?>("TotalEfectivoReal")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("TotalEsperado")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("TotalOtros")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("TotalPagosLinea")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("TotalTarjeta")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("VendedorNombre")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UsuarioId");
-
-                    b.HasIndex("UsuarioId", "Estado");
-
-                    b.ToTable("TurnosPos");
                 });
 
             modelBuilder.Entity("NubeeAPI.Models.Producto", b =>
@@ -23174,79 +22612,6 @@ namespace NubeeAPI.Migrations
                     b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("NubeeAPI.Models.Pos.ConfiguracionImpresionPos", b =>
-                {
-                    b.HasOne("NubeeAPI.Models.Usuario", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Usuario");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.Pos.EtiquetaPos", b =>
-                {
-                    b.HasOne("NubeeAPI.Models.Usuario", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Usuario");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.Pos.MovimientoCajaPos", b =>
-                {
-                    b.HasOne("NubeeAPI.Models.Usuario", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Usuario");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.Pos.PosVenta", b =>
-                {
-                    b.HasOne("NubeeAPI.Models.Pos.TurnoPos", "Turno")
-                        .WithMany()
-                        .HasForeignKey("TurnoId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("NubeeAPI.Models.Usuario", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Turno");
-
-                    b.Navigation("Usuario");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.Pos.PosVentaDetalle", b =>
-                {
-                    b.HasOne("NubeeAPI.Models.Pos.PosVenta", "PosVenta")
-                        .WithMany("Detalles")
-                        .HasForeignKey("PosVentaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("PosVenta");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.Pos.TurnoPos", b =>
-                {
-                    b.HasOne("NubeeAPI.Models.Usuario", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Usuario");
-                });
-
             modelBuilder.Entity("NubeeAPI.Models.Producto", b =>
                 {
                     b.HasOne("NubeeAPI.Models.Usuario", "Usuario")
@@ -23443,11 +22808,6 @@ namespace NubeeAPI.Migrations
                     b.Navigation("Features");
 
                     b.Navigation("Suscripciones");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.Pos.PosVenta", b =>
-                {
-                    b.Navigation("Detalles");
                 });
 
             modelBuilder.Entity("NubeeAPI.Models.Producto", b =>

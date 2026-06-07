@@ -53,14 +53,50 @@ public class AuthController : ControllerBase
             return StatusCode(423, new { diasRestantes, mensaje = "Reactivar cuenta" });
         }
 
-        // 3. Buscar suscripción activa y plan
-        var suscripcion = await _context.SuscripcionesFacturacion
+        // 3. Buscar suscripciones activas y plan
+        var suscripcionesActivas = await _context.SuscripcionesFacturacion
             .Include(s => s.PlanFacturacion)
             .Where(s => s.UsuarioId == usuario.Id && s.Activa)
             .OrderByDescending(s => s.FechaInicio)
-            .FirstOrDefaultAsync();
+            .ToListAsync();
+
+        var ahora = DateTime.Now;
+
+        // Suscripciones vigentes: sin fecha de fin (ilimitada) o con fecha de fin futura.
+        var suscripcionesVigentes = suscripcionesActivas
+            .Where(s => s.FechaFin == null || s.FechaFin > ahora)
+            .ToList();
+
+        // Acceso solo con una suscripción vigente. Se bloquea tanto al que se le venció
+        // el plan como al que nunca tuvo uno. Los administradores quedan exentos.
+        var esAdmin = string.Equals(usuario.Rol, "admin", StringComparison.OrdinalIgnoreCase);
+        if (!esAdmin && !suscripcionesVigentes.Any())
+        {
+            var habiaSuscripciones = suscripcionesActivas.Any();
+            var fechaExpiracion = habiaSuscripciones ? suscripcionesActivas.Max(s => s.FechaFin) : null;
+            Console.WriteLine(habiaSuscripciones
+                ? $"✗ Plan vencido (venció: {fechaExpiracion})"
+                : "✗ Sin plan activo");
+            return StatusCode(402, new
+            {
+                codigo = habiaSuscripciones ? "PLAN_VENCIDO" : "SIN_PLAN",
+                fechaExpiracion,
+                message = habiaSuscripciones
+                    ? "Tu plan ha vencido. Renueva tu suscripción para continuar."
+                    : "No tienes un plan activo. Adquiere un plan para continuar."
+            });
+        }
+
+        // Plan principal: la suscripción de facturación (el POS es un add-on aparte).
+        var suscripcion = suscripcionesVigentes
+            .FirstOrDefault(s => s.PlanFacturacion != null && s.PlanFacturacion.Tipo != "POS")
+            ?? suscripcionesVigentes.FirstOrDefault();
 
         var plan = suscripcion?.PlanFacturacion;
+
+        // POS: el usuario tiene acceso si contrató cualquier módulo/plan con POS vigente.
+        var tienePos = suscripcionesVigentes
+            .Any(s => s.PlanFacturacion != null && s.PlanFacturacion.IncluyePOS);
 
         // 4. Generar DTO de respuesta
         var usuarioDto = new UsuarioLoginDto
@@ -78,6 +114,7 @@ public class AuthController : ControllerBase
             // Aquí puedes poner tu cálculo real de documentos restantes si ya lo tienes
             DocumentosRestantes = 0,
             FechaExpiracion = suscripcion?.FechaFin,
+            TienePos = tienePos,
 
             Plan = plan == null
                 ? null
@@ -209,6 +246,34 @@ public class AuthController : ControllerBase
             return Unauthorized(new { message = "Usuario desactivado" });
         }
 
+        // Plan vencido: mismas reglas que en /login. Si el usuario tuvo suscripciones
+        // activas pero todas expiraron, se corta la sesión (no se renueva el token).
+        var suscripcionesRefresh = await _context.SuscripcionesFacturacion
+            .Where(s => s.UsuarioId == storedToken.UsuarioId && s.Activa)
+            .ToListAsync();
+
+        var ahoraRefresh = DateTime.Now;
+        var tieneVigenteRefresh = suscripcionesRefresh
+            .Any(s => s.FechaFin == null || s.FechaFin > ahoraRefresh);
+
+        var esAdminRefresh = string.Equals(storedToken.Usuario.Rol, "admin", StringComparison.OrdinalIgnoreCase);
+        if (!esAdminRefresh && !tieneVigenteRefresh)
+        {
+            var habiaSuscripciones = suscripcionesRefresh.Any();
+            var fechaExpiracion = habiaSuscripciones ? suscripcionesRefresh.Max(s => s.FechaFin) : null;
+            Console.WriteLine(habiaSuscripciones
+                ? $"✗ Plan vencido en refresh (venció: {fechaExpiracion})"
+                : "✗ Sin plan activo en refresh");
+            return StatusCode(402, new
+            {
+                codigo = habiaSuscripciones ? "PLAN_VENCIDO" : "SIN_PLAN",
+                fechaExpiracion,
+                message = habiaSuscripciones
+                    ? "Tu plan ha vencido. Renueva tu suscripción para continuar."
+                    : "No tienes un plan activo. Adquiere un plan para continuar."
+            });
+        }
+
         Console.WriteLine("? Todas las validaciones OK - Generando nuevos tokens");
 
         // Marcar token actual como usado
@@ -237,12 +302,14 @@ public class AuthController : ControllerBase
 
         Console.WriteLine($"? Nuevo token guardado en BD: {nuevoRefreshToken.Substring(0, 30)}...");
 
-        // Enviar cookie con el nuevo refresh token
+        // Enviar cookie con el nuevo refresh token.
+        // ⚠️ Debe coincidir con la cookie de /login (Secure + SameSite=None) para que
+        //    el navegador la reenvíe en peticiones cross-site (front:5173 → api:7149).
         Response.Cookies.Append("refreshToken", nuevoRefreshToken, new CookieOptions
         {
             HttpOnly = true,
-            Secure = false,
-            SameSite = SameSiteMode.Lax,
+            Secure = true,
+            SameSite = SameSiteMode.None,
             Expires = DateTimeOffset.UtcNow.AddDays(7),
             Path = "/"
         });

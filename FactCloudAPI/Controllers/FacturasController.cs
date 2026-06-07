@@ -26,13 +26,15 @@ namespace NubeeAPI.Controllers
         private readonly ILogger<FacturasController> _logger;
         private readonly ISuscripcionService _suscripcionService; // ? NUEVO
         private readonly IFactusService _factusService;
+        private readonly FluentValidation.IValidator<Factura> _facturaValidator;
         public FacturasController(
             ApplicationDbContext context,
             IEmailService emailService,
             IHubContext<NotificacionesHub> hub,
             ILogger<FacturasController> logger,
             ISuscripcionService suscripcionService,
-             IFactusService factusService) // ? NUEVO
+             IFactusService factusService,
+             FluentValidation.IValidator<Factura> facturaValidator) // ? NUEVO
         {
             _context = context;
             _emailService = emailService;
@@ -40,6 +42,7 @@ namespace NubeeAPI.Controllers
             _logger = logger;
             _suscripcionService = suscripcionService;
             _factusService = factusService;// ? NUEVO
+            _facturaValidator = facturaValidator;
         }
 
         // ==================== HELPERS PRIVADOS ====================
@@ -52,6 +55,30 @@ namespace NubeeAPI.Controllers
 
         private bool FacturaExists(int id) =>
             _context.Facturas.Any(e => e.Id == id);
+
+        /// <summary>
+        /// Detecta conflictos transitorios de numeración bajo concurrencia
+        /// (deadlock o fallo de serialización en la transacción SERIALIZABLE),
+        /// que ameritan reintentar recalculando el consecutivo.
+        /// </summary>
+        private static bool EsConflictoNumeracion(Exception ex)
+        {
+            for (var e = ex; e != null; e = e.InnerException)
+            {
+                if (e is DbUpdateException) return true;
+
+                // SqlException sin referenciar el paquete: 1205 = deadlock; 1205/3960 = serialización
+                var numberProp = e.GetType().GetProperty("Number");
+                if (numberProp?.GetValue(e) is int n && (n == 1205 || n == 3960))
+                    return true;
+
+                var msg = e.Message;
+                if (msg.Contains("deadlock", StringComparison.OrdinalIgnoreCase) ||
+                    msg.Contains("serializ", StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
+        }
 
         // ==================== CRUD BÁSICO ====================
 
@@ -184,35 +211,6 @@ namespace NubeeAPI.Controllers
             factura.ClaveTecnica = resolucion.ClaveTecnica;
             factura.Prefijo ??= resolucion.Prefijo;
 
-            // -- 4. Numeración secuencial dentro del rango autorizado --------------
-            // ?? Se ordena por Id DESC para obtener el último consecutivo emitido.
-            // Se excluyen Borradores porque no consumen numeración.
-            var ultimoNumero = await _context.Facturas
-                .Where(f => f.UsuarioId == usuarioId.Value
-                         && f.Prefijo == factura.Prefijo
-                         && f.Estado != EstadoFactura.Borrador)
-                .OrderByDescending(f => f.Id)
-                .Select(f => f.NumeroFactura)
-                .FirstOrDefaultAsync();
-
-            long siguiente = resolucion.RangoDesde;
-            if (!string.IsNullOrEmpty(ultimoNumero) && long.TryParse(ultimoNumero, out long ultimo))
-                siguiente = ultimo + 1;
-
-            if (siguiente > resolucion.RangoHasta)
-                return BadRequest(new
-                {
-                    mensaje = $"Rango de numeración agotado (hasta {resolucion.RangoHasta}). " +
-                               "Solicita una nueva resolución a la DIAN.",
-                    codigo = "RANGO_AGOTADO",
-                    rangoHasta = resolucion.RangoHasta
-                });
-
-            factura.NumeroFactura = siguiente.ToString();
-
-
-           
-
             // -- 5. Manejar estado: Borrador vs Emitida ----------------------------
             // "Borrador"  ? guardado sin numeración definitiva ni CUFE ni XML
             // "Pendiente" ? emitida, lista para enviar a la DIAN
@@ -224,39 +222,85 @@ namespace NubeeAPI.Controllers
             // -- 6. Calcular fechas (hora UTC-0500, FechaVencimiento, plazo DIAN) --
             factura.CalcularFechas();
 
-            // -- 7. CUFE y QR — solo facturas emitidas ----------------------------
-            if (!esBorrador)
+            // -- 4/7/8/9. Numeración + CUFE/XML + persistencia, transaccional ------
+            // La numeración secuencial se hace dentro de una transacción SERIALIZABLE
+            // para que dos creaciones simultáneas NO tomen el mismo consecutivo.
+            // Si dos transacciones chocan (deadlock/serialización), se reintenta
+            // recalculando el número.
+            const int maxIntentosNumeracion = 4;
+            for (int intento = 1; ; intento++)
             {
+                await using var tx = await _context.Database
+                    .BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
                 try
                 {
-                    factura.Cufe = CufeService.GenerarCUFE(factura);
-                    factura.GenerarQRCode();
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex,
-                        "No se pudo generar CUFE para factura {Numero}", factura.NumeroFactura);
-                    // No bloqueamos — se puede regenerar con PUT /api/facturas/{id}/regenerar
-                }
+                    // Último consecutivo emitido (excluye borradores, que no consumen numeración)
+                    var ultimoNumero = await _context.Facturas
+                        .Where(f => f.UsuarioId == usuarioId.Value
+                                 && f.Prefijo == factura.Prefijo
+                                 && f.Estado != EstadoFactura.Borrador)
+                        .OrderByDescending(f => f.Id)
+                        .Select(f => f.NumeroFactura)
+                        .FirstOrDefaultAsync();
 
-                // -- 8. XML UBL 2.1 — solo facturas emitidas ----------------------
-                try
-                {
-                    var xml = XmlFacturaGenerator.GenerarXml(factura);
-                    factura.XmlBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(xml));
+                    long siguiente = resolucion.RangoDesde;
+                    if (!string.IsNullOrEmpty(ultimoNumero) && long.TryParse(ultimoNumero, out long ultimo))
+                        siguiente = ultimo + 1;
+
+                    if (siguiente > resolucion.RangoHasta)
+                        return BadRequest(new
+                        {
+                            mensaje = $"Rango de numeración agotado (hasta {resolucion.RangoHasta}). " +
+                                       "Solicita una nueva resolución a la DIAN.",
+                            codigo = "RANGO_AGOTADO",
+                            rangoHasta = resolucion.RangoHasta
+                        });
+
+                    factura.NumeroFactura = siguiente.ToString();
+
+                    // CUFE/QR/XML — solo facturas emitidas (dependen del número)
+                    if (!esBorrador)
+                    {
+                        try
+                        {
+                            factura.Cufe = CufeService.GenerarCUFE(factura);
+                            factura.GenerarQRCode();
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex,
+                                "No se pudo generar CUFE para factura {Numero}", factura.NumeroFactura);
+                        }
+
+                        try
+                        {
+                            var xml = XmlFacturaGenerator.GenerarXml(factura);
+                            factura.XmlBase64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(xml));
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex,
+                                "Error generando XML en emisión de factura {Numero}", factura.NumeroFactura);
+                            factura.XmlBase64 = null;
+                        }
+                    }
+
+                    _context.Facturas.Add(factura);
+                    await _context.SaveChangesAsync();
+                    await tx.CommitAsync();
+                    break; // éxito
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (intento < maxIntentosNumeracion && EsConflictoNumeracion(ex))
                 {
-                    _logger.LogError(ex,
-                        "Error generando XML en emisión de factura {Numero}", factura.NumeroFactura);
-                    factura.XmlBase64 = null;
-                    // ?? Factura queda sin XML — registrar para revisión manual
+                    await tx.RollbackAsync();
+                    // Limpiar el tracking del intento fallido para reintentar con estado limpio
+                    _context.ChangeTracker.Clear();
+                    _logger.LogWarning(ex,
+                        "Conflicto de numeración creando factura (intento {Intento}/{Max}); reintentando",
+                        intento, maxIntentosNumeracion);
+                    await Task.Delay(50 * intento);
                 }
             }
-
-            // -- 9. Persistir ------------------------------------------------------
-            _context.Facturas.Add(factura);
-            await _context.SaveChangesAsync();
 
             // -- 10. Notificación en tiempo real via SignalR -----------------------
             if (!esBorrador)
@@ -423,6 +467,7 @@ namespace NubeeAPI.Controllers
                         .ThenInclude(n => n!.Resoluciones)
                 .Include(f => f.DetalleFacturas!)
                     .ThenInclude(d => d.Producto)
+                .Include(f => f.FormasPago)
                 .FirstOrDefaultAsync(f => f.Id == id && f.UsuarioId == usuarioId);
 
             if (factura == null)
@@ -455,32 +500,85 @@ namespace NubeeAPI.Controllers
             // Propagar el ID del rango al objeto factura (campo NotMapped)
             factura.FactusRangoId = resolucion.FactusRangoId.Value;
 
+            // Validar que la factura esté lista para Factus ANTES de gastar una llamada
+            var validacion = await _facturaValidator.ValidateAsync(factura);
+            if (!validacion.IsValid)
+            {
+                return UnprocessableEntity(new FactusEnvioResultDto
+                {
+                    Exitoso = false,
+                    Mensaje = "La factura no cumple los requisitos para enviarse a la DIAN.",
+                    ErrorDetalle = string.Join(" | ", validacion.Errors.Select(e => e.ErrorMessage))
+                });
+            }
+
             try
             {
                 // Llamada real a Factus → DIAN
                 var respuesta = await _factusService.EnviarFacturaAsync(factura);
 
+                // Factus anida la factura bajo data.bill; con fallback a data.* por compatibilidad
+                var datos = respuesta.Data;
+                var numeroFactus = datos?.Bill?.Number ?? datos?.Number;        // ej. SETP990001103
+                var cufeFactus = datos?.Bill?.Cufe ?? datos?.Cufe;
+                var qrFactus = datos?.Bill?.Qr ?? datos?.Qr;
+                var statusFactus = datos?.Bill?.Status ?? datos?.Status ?? "OK";
+
                 // Actualizar con datos oficiales que devuelve Factus
                 factura.EnviadaDIAN = true;
                 factura.FechaEnvioDIAN = DateTime.Now;
                 factura.Estado = Factura.EstadoFactura.Enviada;
-                factura.Cufe = respuesta.Data?.Cufe ?? factura.Cufe;
-                factura.QRCode = respuesta.Data?.Qr ?? factura.QRCode;
-                factura.RespuestaDIAN = $"Validada Factus — {respuesta.Data?.Status ?? "OK"}";
+                factura.Cufe = cufeFactus ?? factura.Cufe;
+                factura.QRCode = qrFactus ?? factura.QRCode;
+                // Guardamos el número oficial Factus para futuras descargas PDF/XML/consultas
+                factura.NumeroFactus = numeroFactus ?? factura.NumeroFactus;
+                factura.RespuestaDIAN =
+                    $"Validada Factus — {statusFactus}" +
+                    (string.IsNullOrEmpty(numeroFactus) ? "" : $" — N°Factus: {numeroFactus}");
                 factura.XmlBase64 = null; // ya no se necesita el XML local
 
-                // Descargar PDF oficial y guardarlo en disco
-                try
+                // Descargar PDF oficial y guardarlo en disco — usando el número OFICIAL Factus,
+                // NO el consecutivo local (que Factus no conoce).
+                if (!string.IsNullOrEmpty(numeroFactus))
                 {
-                    var pdfBytes = await _factusService.DescargarPdfAsync(factura.NumeroFactura);
-                    Directory.CreateDirectory("./PDF");
-                    await System.IO.File.WriteAllBytesAsync($"./PDF/factura_{id}.pdf", pdfBytes);
+                    try
+                    {
+                        var pdfBytes = await _factusService.DescargarPdfAsync(numeroFactus);
+                        Directory.CreateDirectory("./PDF");
+                        await System.IO.File.WriteAllBytesAsync($"./PDF/factura_{id}.pdf", pdfBytes);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "No se pudo descargar PDF de Factus para factura {Id} (N°Factus {Num})", id, numeroFactus);
+                        // No bloqueamos — el PDF se puede re-descargar luego
+                    }
+
+                    // Guardar el XML oficial firmado como evidencia en disco
+                    try
+                    {
+                        var xmlOficial = await _factusService.DescargarXmlAsync(numeroFactus);
+                        Directory.CreateDirectory("./XML");
+                        await System.IO.File.WriteAllTextAsync($"./XML/factura_{id}.xml", xmlOficial, Encoding.UTF8);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "No se pudo guardar XML de Factus para factura {Id} (N°Factus {Num})", id, numeroFactus);
+                        // No bloqueamos — el XML se puede re-descargar luego
+                    }
                 }
-                catch (Exception ex)
+                else
                 {
-                    _logger.LogWarning(ex, "No se pudo descargar PDF de Factus para factura {Id}", id);
-                    // No bloqueamos — el PDF se puede re-descargar luego
+                    _logger.LogWarning("Factus no devolvió número oficial para la factura {Id}; se omite descarga de PDF/XML", id);
                 }
+
+                // Auditoría del envío a la DIAN
+                _context.AuditoriaAdmin.Add(new AuditoriaAdmin
+                {
+                    AdminId = usuarioId.Value,
+                    Accion = "FACTURA_ENVIADA_DIAN",
+                    Detalle = $"Factura {factura.NumeroFacturaCompleto} (Id {id}) validada vía Factus. " +
+                              $"N°Factus: {numeroFactus ?? "—"} | CUFE: {factura.Cufe ?? "—"}"
+                });
 
                 await _context.SaveChangesAsync();
 
@@ -499,7 +597,7 @@ namespace NubeeAPI.Controllers
                     Mensaje = "✅ Factura validada por la DIAN vía Factus",
                     Cufe = factura.Cufe,
                     Qr = factura.QRCode,
-                    NumeroFactus = respuesta.Data?.Number,
+                    NumeroFactus = numeroFactus,
                     FechaEnvio = factura.FechaEnvioDIAN
                 });
             }
@@ -511,6 +609,17 @@ namespace NubeeAPI.Controllers
                     Exitoso = false,
                     Mensaje = "Factus/DIAN rechazó la factura. Revisa los datos.",
                     ErrorDetalle = fex.FactusBody
+                });
+            }
+            catch (Polly.CircuitBreaker.BrokenCircuitException)
+            {
+                // El circuit breaker está abierto: Factus viene fallando de forma sostenida.
+                _logger.LogWarning("Circuito Factus abierto; se rechaza el envío de la factura {Id} sin llamar a Factus", id);
+                Response.Headers.RetryAfter = "15";
+                return StatusCode(503, new FactusEnvioResultDto
+                {
+                    Exitoso = false,
+                    Mensaje = "Factus no está disponible en este momento. Reintenta en unos segundos."
                 });
             }
             catch (Exception ex)
@@ -638,6 +747,30 @@ namespace NubeeAPI.Controllers
             if (factura == null)
                 return NotFound(new { mensaje = "Factura no encontrada" });
 
+            // Si ya fue validada por Factus, el XML oficial (firmado) se obtiene del disco (evidencia)
+            // o, si no está, se re-descarga desde Factus.
+            if (string.IsNullOrEmpty(factura.XmlBase64) && !string.IsNullOrEmpty(factura.NumeroFactus))
+            {
+                var xmlPath = $"./XML/factura_{id}.xml";
+                if (System.IO.File.Exists(xmlPath))
+                {
+                    var bytesDisco = await System.IO.File.ReadAllBytesAsync(xmlPath);
+                    return File(bytesDisco, "application/xml", $"Factura_{factura.NumeroFacturaCompleto}.xml");
+                }
+
+                try
+                {
+                    var xmlFactus = await _factusService.DescargarXmlAsync(factura.NumeroFactus);
+                    var bytesFactus = Encoding.UTF8.GetBytes(xmlFactus);
+                    return File(bytesFactus, "application/xml", $"Factura_{factura.NumeroFacturaCompleto}.xml");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "No se pudo obtener XML de Factus para factura {Id} (N°Factus {Num})", id, factura.NumeroFactus);
+                    return BadRequest(new { mensaje = "No se pudo obtener el XML oficial desde Factus. Intente más tarde." });
+                }
+            }
+
             if (string.IsNullOrEmpty(factura.XmlBase64))
                 return BadRequest(new
                 {
@@ -672,11 +805,27 @@ namespace NubeeAPI.Controllers
                 return NotFound(new { mensaje = "Factura no encontrada" });
 
             var path = $"./PDF/factura_{id}.pdf";
-            if (!System.IO.File.Exists(path))
-                return NotFound(new { mensaje = "PDF no encontrado. Genérelo primero." });
 
-            var stream = new FileStream(path, FileMode.Open, FileAccess.Read);
-            return File(stream, "application/pdf", $"Factura_{factura.NumeroFacturaCompleto}.pdf");
+            // Si no está en disco pero ya fue validada por Factus, re-descargarla con el número oficial.
+            if (!System.IO.File.Exists(path) && !string.IsNullOrEmpty(factura.NumeroFactus))
+            {
+                try
+                {
+                    var pdfBytes = await _factusService.DescargarPdfAsync(factura.NumeroFactus);
+                    Directory.CreateDirectory("./PDF");
+                    await System.IO.File.WriteAllBytesAsync(path, pdfBytes);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "No se pudo re-descargar PDF de Factus para factura {Id} (N°Factus {Num})", id, factura.NumeroFactus);
+                }
+            }
+
+            if (!System.IO.File.Exists(path))
+                return NotFound(new { mensaje = "PDF no disponible. Envíe la factura a la DIAN primero." });
+
+            var bytes = await System.IO.File.ReadAllBytesAsync(path);
+            return File(bytes, "application/pdf", $"Factura_{factura.NumeroFacturaCompleto}.pdf");
         }
 
         // ==================== REPORTES ====================
