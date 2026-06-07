@@ -1,8 +1,8 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace NubeeAPI.DTOs
+namespace NubeeAPI.DTOs.Impuestos
 {
-    // --- READ ----------------------------------------------------------------
+    // ── READ: lista plana ────────────────────────────────────────────────
     public class CuentaContableDto
     {
         public int Id { get; set; }
@@ -23,12 +23,28 @@ namespace NubeeAPI.DTOs
         public bool Activa { get; set; }
     }
 
-    // --- CREATE --------------------------------------------------------------
+    // ── READ: árbol jerárquico ────────────────────────────────────────────
+    public class CuentaContableArbolDto : CuentaContableDto
+    {
+        public List<CuentaContableArbolDto> Hijos { get; set; } = new();
+    }
+
+   
+
+    // ── CREATE ────────────────────────────────────────────────────────────
     public class CrearCuentaContableDto
     {
-        [Required(ErrorMessage = "El c�digo PUC es obligatorio")]
+        /// <summary>
+        /// Código PUC:
+        /// 1 dígito  → Clase     (ej: "1")
+        /// 2 dígitos → Grupo     (ej: "11")
+        /// 4 dígitos → Cuenta    (ej: "1105")
+        /// 6 dígitos → Subcuenta (ej: "110505")
+        /// 8+ dígitos → Auxiliar (ej: "11050501")
+        /// </summary>
+        [Required(ErrorMessage = "El código PUC es obligatorio")]
         [MaxLength(12)]
-        [RegularExpression(@"^\d+$", ErrorMessage = "El c�digo PUC solo debe contener d�gitos")]
+        [RegularExpression(@"^\d+$", ErrorMessage = "El código PUC solo debe contener dígitos")]
         public string Codigo { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "El nombre de la cuenta es obligatorio")]
@@ -38,22 +54,22 @@ namespace NubeeAPI.DTOs
         [MaxLength(1000)]
         public string? Descripcion { get; set; }
 
-        /// <summary>Si omite, se calcula autom�ticamente seg�n longitud del C�digo.</summary>
+        /// <summary>Si se omite, se calcula automáticamente según la longitud del código.</summary>
         public int? Nivel { get; set; }
 
         [MaxLength(12)]
         public string? CodigoPadre { get; set; }
 
-        /// <summary>Si omite, se infiere del primer d�gito del C�digo.</summary>
+        /// <summary>Si se omite, se infiere del primer dígito del código.</summary>
         public int? ClasePUC { get; set; }
 
-        [Required]
         [MaxLength(1)]
-        [RegularExpression("^[DC]$", ErrorMessage = "Naturaleza debe ser 'D' (D�bito) o 'C' (Cr�dito)")]
-        public string Naturaleza { get; set; } = "D";
+        [RegularExpression("^[DC]$", ErrorMessage = "Naturaleza debe ser 'D' (Débito) o 'C' (Crédito)")]
+        public string? Naturaleza { get; set; }
 
         [MaxLength(2)]
-        public string TipoAjuste { get; set; } = "N";
+        [RegularExpression("^(M|NM|N)$", ErrorMessage = "TipoAjuste debe ser 'M', 'NM' o 'N'")]
+        public string? TipoAjuste { get; set; }
 
         public bool PermiteMovimiento { get; set; } = true;
         public bool RequiereTercero { get; set; } = false;
@@ -61,21 +77,21 @@ namespace NubeeAPI.DTOs
         public bool RequiereDocumento { get; set; } = false;
     }
 
-    // --- UPDATE --------------------------------------------------------------
+    // ── UPDATE: parcial ───────────────────────────────────────────────────
     public class ActualizarCuentaContableDto
     {
-        [Required]
         [MaxLength(200)]
-        public string Nombre { get; set; } = string.Empty;
+        public string? Nombre { get; set; }
 
         [MaxLength(1000)]
         public string? Descripcion { get; set; }
 
         [MaxLength(1)]
-        [RegularExpression("^[DC]$")]
+        [RegularExpression("^[DC]$", ErrorMessage = "Naturaleza debe ser 'D' (Débito) o 'C' (Crédito)")]
         public string? Naturaleza { get; set; }
 
         [MaxLength(2)]
+        [RegularExpression("^(M|NM|N)$", ErrorMessage = "TipoAjuste debe ser 'M', 'NM' o 'N'")]
         public string? TipoAjuste { get; set; }
 
         public bool? PermiteMovimiento { get; set; }

@@ -422,7 +422,7 @@ namespace NubeeAPI.Data.Seeds
                     Nombre = "Impoconsumo 8%",
                     TipoImpuesto = "Impoconsumo",
                     Tarifa = 8.00m,
-                    CodigoTributoDIAN = "02",
+                    CodigoTributoDIAN = "04",  // INC = 04 (estándar DIAN/Factus/CUFE)
                     CuentaCreditoVentasId = 10401,  // 24950101 – Impuesto al consumo en ventas
                     CuentaDebitoComprasId = 10403,  // 24950103 – Impuesto al consumo en compras
                     CuentaDevolucionVentasId = 10402,  // 24950102 – Impuesto al consumo devol ventas
@@ -438,7 +438,7 @@ namespace NubeeAPI.Data.Seeds
                     Nombre = "Impoconsumo por valor",
                     TipoImpuesto = "Impoconsumo",
                     Tarifa = 0.00m,
-                    CodigoTributoDIAN = "02",
+                    CodigoTributoDIAN = "04",  // INC = 04 (estándar DIAN/Factus/CUFE)
                     CuentaCreditoVentasId = 10401,
                     CuentaDebitoComprasId = 10403,
                     CuentaDevolucionVentasId = 10402,

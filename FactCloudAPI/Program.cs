@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using NubeeAPI.Data;
+using NubeeAPI.Validators;
 using NubeeAPI.Services;
 using NubeeAPI.Services.AuthLogin;
 using NubeeAPI.Services.Clientes;
@@ -13,6 +14,10 @@ using NubeeAPI.Services.Seguridad;
 using NubeeAPI.Services.Usuarios;
 using NubeeAPI.Services.Wompi;
 using NubeeAPI.Utils.Exceptions;
+using Microsoft.Extensions.Http.Resilience;
+using Polly;
+using Serilog;
+using Serilog.Events;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Headers;
 using System.Text;
@@ -20,19 +25,36 @@ using System.Text.Json.Serialization;
 
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
+// ===== Serilog: logging estructurado (consola + archivo rotativo diario) =====
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File(
+        path: "Logs/factcloud-.log",
+        rollingInterval: RollingInterval.Day,
+        retainedFileCountLimit: 14,
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {SourceContext} {Message:lj}{NewLine}{Exception}")
+    .CreateLogger();
+
 var builder = WebApplication.CreateBuilder(args);
+
+// Reemplaza el logging por defecto por Serilog
+builder.Host.UseSerilog();
 
 // ===== CORS =====
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReact", policy =>    {
+    options.AddPolicy("AllowReact", policy => {
         policy.SetIsOriginAllowed(origin =>
         origin.StartsWith("http://localhost") ||
         origin.StartsWith("https://localhost"))
         .AllowCredentials()
         .AllowAnyHeader()
         .AllowAnyMethod();
-        
+
     });
 });
 
@@ -44,12 +66,45 @@ builder.Services.AddControllers()
     options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
 
+// ===== FluentValidation =====
+builder.Services.AddScoped<
+    FluentValidation.IValidator<NubeeAPI.Models.Factura>,
+    NubeeAPI.Validators.FacturaFactusValidator>();
+
+// ===== Opciones de Factus (Options pattern + validación al arrancar) =====
+builder.Services.AddOptions<NubeeAPI.Configuration.FactusOptions>()
+    .Bind(builder.Configuration.GetSection(NubeeAPI.Configuration.FactusOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
 // ===== HttpClient para Factus =====
+// Resiliencia con Polly: timeout por intento + circuit breaker.
+// ⚠️ NO se agrega RETRY aquí a propósito: FactusService ya reintenta de forma
+//    "method-aware" (sólo GET; el POST /v2/bills/validate NUNCA se reintenta para
+//    no emitir una factura duplicada ante la DIAN). Un retry a nivel handler
+//    reintentaría también el POST y causaría doble emisión.
 builder.Services.AddHttpClient("Factus", client =>
 {
     client.BaseAddress = new Uri(builder.Configuration["Factus:BaseUrl"] ?? "https://api-sandbox.factus.com.co");
     client.DefaultRequestHeaders.Accept.Add(
-    new MediaTypeWithQualityHeaderValue("application/json"));
+        new MediaTypeWithQualityHeaderValue("application/json"));
+    // Sin tope agresivo: el timeout por intento lo gobierna Polly más abajo.
+    client.Timeout = TimeSpan.FromSeconds(100);
+})
+.AddResilienceHandler("factus-pipeline", pipeline =>
+{
+    // Timeout por intento individual
+    pipeline.AddTimeout(TimeSpan.FromSeconds(30));
+
+    // Circuit breaker: si Factus falla de forma sostenida, abrir el circuito
+    // y dejar de golpear durante un tiempo (protege a Factus y libera hilos).
+    pipeline.AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
+    {
+        FailureRatio = 0.5,                              // 50% de fallos…
+        SamplingDuration = TimeSpan.FromSeconds(30),     // …en una ventana de 30s
+        MinimumThroughput = 5,                           // con al menos 5 llamadas
+        BreakDuration = TimeSpan.FromSeconds(15)         // abre el circuito 15s
+    });
 });
 
 // ===== Swagger =====
@@ -163,6 +218,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 var app = builder.Build();
 
+// ===== Logging de peticiones HTTP (Serilog) =====
+app.UseSerilogRequestLogging();
+
 // ===== Manejo global de excepciones =====
 app.UseExceptionHandler(errorApp =>
 {
@@ -238,6 +296,39 @@ using (var scope = app.Services.CreateScope())
                 ALTER TABLE Usuarios
                     ADD Rol NVARCHAR(30) NOT NULL
                     CONSTRAINT DF_Usuarios_Rol DEFAULT 'usuario';
+            END");
+
+        // Columna NumeroFactus en Facturas (número oficial devuelto por Factus)
+        context.Database.ExecuteSqlRaw(@"
+            IF NOT EXISTS (
+                SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_NAME = 'Facturas' AND COLUMN_NAME = 'NumeroFactus'
+            )
+            BEGIN
+                ALTER TABLE Facturas ADD NumeroFactus NVARCHAR(40) NULL;
+            END");
+
+        // Corrige el código DIAN del Impoconsumo (INC) en datos ya sembrados:
+        // estándar DIAN/Factus/CUFE = 04 (antes quedó como 02). Idempotente.
+        context.Database.ExecuteSqlRaw(@"
+            UPDATE Impuestos
+               SET CodigoTributoDIAN = '04'
+             WHERE TipoImpuesto = 'Impoconsumo'
+               AND CodigoTributoDIAN = '02';");
+
+        // Tabla de desglose de formas de pago de factura (payment_details Factus)
+        context.Database.ExecuteSqlRaw(@"
+            IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'FacturasFormasPago')
+            BEGIN
+                CREATE TABLE FacturasFormasPago (
+                    Id                INT IDENTITY(1,1) PRIMARY KEY,
+                    FacturaId         INT NOT NULL,
+                    MetodoPagoCodigo  NVARCHAR(10) NOT NULL,
+                    Valor             DECIMAL(18,2) NOT NULL,
+                    CONSTRAINT FK_FacturasFormasPago_Facturas FOREIGN KEY (FacturaId)
+                        REFERENCES Facturas(Id) ON DELETE CASCADE
+                );
+                CREATE INDEX IX_FacturasFormasPago_FacturaId ON FacturasFormasPago(FacturaId);
             END");
 
         context.Database.ExecuteSqlRaw(@"

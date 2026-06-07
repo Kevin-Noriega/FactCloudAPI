@@ -26,16 +26,16 @@ namespace NubeeAPI.Models
         // ==================== RESOLUCIÓN DIAN ====================
 
         /// <summary>Número resolución DIAN (14 dígitos exactos) → sts:InvoiceAuthorization</summary>
-        
+
         [StringLength(14, MinimumLength = 14, ErrorMessage = "La autorización DIAN debe tener exactamente 14 dígitos")]
-        public string? NumeroAutorizacion { get; set; } 
+        public string? NumeroAutorizacion { get; set; }
 
         /// <summary>Fecha inicio vigencia resolución → sts:StartDate</summary>
-      
+
         public DateTime? FechaInicioAutorizacion { get; set; }
 
         /// <summary>Fecha fin vigencia resolución → sts:EndDate</summary>
-      
+
         public DateTime? FechaFinAutorizacion { get; set; }
 
         /// <summary>Número inicial del rango autorizado → sts:From</summary>
@@ -57,7 +57,7 @@ namespace NubeeAPI.Models
         /// ID del rango Factus copiado desde ResolucionDIAN al momento de emitir.
         /// Necesario para el payload de Factus.
         /// </summary>
-        
+
         public int FactusRangoId { get; set; }
 
 
@@ -211,6 +211,14 @@ namespace NubeeAPI.Models
         [MaxLength(1000)]
         public string? RespuestaDIAN { get; set; }
 
+        /// <summary>
+        /// Número OFICIAL que devuelve Factus al validar (ej. "SETP990001103").
+        /// Es el identificador con el que Factus conoce la factura: necesario para
+        /// re-descargar PDF/XML y consultar estado. Distinto del consecutivo local (NumeroFactura).
+        /// </summary>
+        [MaxLength(40)]
+        public string? NumeroFactus { get; set; }
+
         // ==================== ENVÍO CLIENTE ====================
 
         // Envío a cliente
@@ -227,6 +235,9 @@ namespace NubeeAPI.Models
         // Detalles de factura
         public ICollection<DetalleFactura>? DetalleFacturas { get; set; }
         public ICollection<NotaDebito> NotasDebito { get; set; } = new List<NotaDebito>();
+
+        /// <summary>Desglose de formas de pago (varios medios) → payment_details en Factus.</summary>
+        public ICollection<FacturaFormaPago> FormasPago { get; set; } = new List<FacturaFormaPago>();
 
         // ==================== MÉTODOS ====================
 
@@ -292,19 +303,21 @@ namespace NubeeAPI.Models
                 .SelectMany(d => d.Impuestos)
                 .ToList();
 
+            // Códigos DIAN estándar: IVA=01, INC=04, ICA=03 (coherente con MapearFactura/CUFE)
             TotalIVA = todosImpuestos
                 .Where(i => i.SnapshotCodigoDIAN == "01" ||
-                            i.TarifaImpuesto.ImpuestoConcepto.CodigoTributoDIAN == "01")
+                            i.TarifaImpuesto?.ImpuestoConcepto?.CodigoTributoDIAN == "01")
                 .Sum(i => i.ValorCalculado);
 
             TotalINC = todosImpuestos
-                .Where(i => i.SnapshotCodigoDIAN == "02" ||
-                            i.TarifaImpuesto.ImpuestoConcepto.CodigoTributoDIAN == "02")
+                .Where(i => i.Naturaleza == NaturalezaFiscal.Trasladado &&
+                           (i.SnapshotCodigoDIAN == "04" ||
+                            i.TarifaImpuesto?.ImpuestoConcepto?.CodigoTributoDIAN == "04"))
                 .Sum(i => i.ValorCalculado);
 
             TotalICA = todosImpuestos
-                .Where(i => i.SnapshotCodigoDIAN == "06" ||
-                            i.TarifaImpuesto.ImpuestoConcepto.CodigoTributoDIAN == "06")
+                .Where(i => i.SnapshotCodigoDIAN == "03" ||
+                            i.TarifaImpuesto?.ImpuestoConcepto?.CodigoTributoDIAN == "03")
                 .Sum(i => i.ValorCalculado);
 
             TotalRetenciones = todosImpuestos

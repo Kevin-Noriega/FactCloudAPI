@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NubeeAPI.Data;
 
@@ -11,9 +12,11 @@ using NubeeAPI.Data;
 namespace NubeeAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260531213716_Addinpuetsos")]
+    partial class Addinpuetsos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -791,10 +794,6 @@ namespace NubeeAPI.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<string>("NumeroFactus")
-                        .HasMaxLength(40)
-                        .HasColumnType("nvarchar(40)");
-
                     b.Property<string>("Observaciones")
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
@@ -897,32 +896,6 @@ namespace NubeeAPI.Migrations
                     b.HasIndex("UsuarioId", "FechaEmision");
 
                     b.ToTable("Facturas");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.FacturaFormaPago", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("FacturaId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("MetodoPagoCodigo")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<decimal>("Valor")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("FacturaId");
-
-                    b.ToTable("FacturasFormasPago");
                 });
 
             modelBuilder.Entity("NubeeAPI.Models.FormaPagoNotaCredito", b =>
@@ -19983,6 +19956,9 @@ namespace NubeeAPI.Migrations
 
                     b.HasIndex("CuentaDevolucionVentasId");
 
+                    b.HasIndex("TipoImpuesto", "UsuarioId")
+                        .HasDatabaseName("IX_Impuesto_Tipo_Tenant");
+
                     b.HasIndex("UsuarioId", "Codigo")
                         .IsUnique()
                         .HasDatabaseName("IX_Impuesto_Usuario_Codigo")
@@ -20523,7 +20499,7 @@ namespace NubeeAPI.Migrations
                         {
                             Id = 16,
                             Codigo = 16,
-                            CodigoTributoDIAN = "04",
+                            CodigoTributoDIAN = "02",
                             CuentaCreditoVentasId = 10401,
                             CuentaDebitoComprasId = 10403,
                             CuentaDevolucionComprasId = 10404,
@@ -20545,7 +20521,7 @@ namespace NubeeAPI.Migrations
                         {
                             Id = 17,
                             Codigo = 17,
-                            CodigoTributoDIAN = "04",
+                            CodigoTributoDIAN = "02",
                             CuentaCreditoVentasId = 10401,
                             CuentaDebitoComprasId = 10403,
                             CuentaDevolucionComprasId = 10404,
@@ -22390,17 +22366,6 @@ namespace NubeeAPI.Migrations
                     b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("NubeeAPI.Models.FacturaFormaPago", b =>
-                {
-                    b.HasOne("NubeeAPI.Models.Factura", "Factura")
-                        .WithMany("FormasPago")
-                        .HasForeignKey("FacturaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Factura");
-                });
-
             modelBuilder.Entity("NubeeAPI.Models.FormaPagoNotaCredito", b =>
                 {
                     b.HasOne("NubeeAPI.Models.NotaCredito", "NotaCredito")
@@ -22865,8 +22830,6 @@ namespace NubeeAPI.Migrations
             modelBuilder.Entity("NubeeAPI.Models.Factura", b =>
                 {
                     b.Navigation("DetalleFacturas");
-
-                    b.Navigation("FormasPago");
 
                     b.Navigation("NotasDebito");
                 });

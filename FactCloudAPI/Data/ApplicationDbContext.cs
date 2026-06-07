@@ -24,6 +24,7 @@ namespace NubeeAPI.Data
         public DbSet<Producto> Productos { get; set; }
         public DbSet<Factura> Facturas { get; set; }
         public DbSet<DetalleFactura> DetalleFacturas { get; set; }
+        public DbSet<FacturaFormaPago> FacturasFormasPago { get; set; }
         public DbSet<NotaDebito> NotasDebito { get; set; }
         public DbSet<DetalleNotaDebito> DetalleNotaDebito { get; set; }
         public DbSet<FormaPagoNotaDebito> FormasPagoNotaDebito { get; set; }
@@ -385,6 +386,14 @@ namespace NubeeAPI.Data
 
                 entity.Property(f => f.RespuestaDIAN)
                     .HasMaxLength(1000);
+
+                entity.Property(f => f.NumeroFactus)
+                    .HasMaxLength(40);
+
+                entity.HasMany(f => f.FormasPago)
+                    .WithOne(fp => fp.Factura)
+                    .HasForeignKey(fp => fp.FacturaId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
                 entity.HasIndex(f => f.UsuarioId);
                 entity.HasIndex(f => new { f.UsuarioId, f.FechaEmision });
@@ -836,7 +845,7 @@ namespace NubeeAPI.Data
                 entity.Ignore(e => e.TarifaDisplay);
             });
 
-           
+
 
             // ══════════════════════════════════════════════════════════════
             // AUDITORIA ADMIN
