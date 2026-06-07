@@ -17,6 +17,14 @@ namespace NubeeAPI.Models.Planes
         [MaxLength(100)]
         public string Nombre { get; set; } = null!;
 
+        /// <summary>
+        /// Categoría del plan: "FACTURACION" (suscripción base) | "POS" (módulo POS
+        /// que se vende por separado y se contrata sobre cualquier plan de facturación).
+        /// </summary>
+        [Required]
+        [MaxLength(20)]
+        public string Tipo { get; set; } = "FACTURACION";
+
         [MaxLength(500)]
         public string? Descripcion { get; set; }
 
@@ -24,9 +32,18 @@ namespace NubeeAPI.Models.Planes
         public decimal PrecioAnual { get; set; }
 
         public bool Destacado { get; set; } = false;
-        public bool IncluyePOS { get; set; } = false;
 
-        //Descuento en porcentaje 
+        // ── Módulos/capacidades habilitados por el plan (esquema tipo SaaS) ──
+        // Cada plan de facturación define qué funcionalidades incluye. El POS NO
+        // se incluye en los planes de facturación: es un producto aparte (Tipo="POS")
+        // que la empresa contrata adicionalmente. IncluyePOS marca los planes POS.
+        public bool IncluyePOS { get; set; } = false;
+        public bool IncluyeInventario { get; set; } = false;
+        public bool IncluyeNomina { get; set; } = false;
+        public bool IncluyeContabilidad { get; set; } = false;
+        public bool IncluyeSucursales { get; set; } = false;
+
+        //Descuento en porcentaje
         public int? DescuentoPorcentaje { get; set; }
         public bool DescuentoActivo { get; set; } = false;
 

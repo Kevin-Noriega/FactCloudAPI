@@ -834,6 +834,13 @@ namespace NubeeAPI.Controllers
         // PLANES — CRUD completo
         // ════════════════════════════════════════════════════════════
 
+        /// <summary>Valida y normaliza el tipo de plan: solo "FACTURACION" o "POS".</summary>
+        private static string NormalizarTipo(string? tipo)
+        {
+            var t = (tipo ?? "").Trim().ToUpperInvariant();
+            return t == "POS" ? "POS" : "FACTURACION";
+        }
+
         /// <summary>GET /api/Admin/planes — Lista todos los planes (activos e inactivos).</summary>
         [HttpGet("planes")]
         public async Task<ActionResult> GetPlanes()
@@ -846,6 +853,7 @@ namespace NubeeAPI.Controllers
                     id = p.Id,
                     codigo = p.Codigo,
                     nombre = p.Nombre,
+                    tipo = p.Tipo,
                     descripcion = p.Descripcion,
                     precioAnual = p.PrecioAnual,
                     precioMensual = p.PrecioMensualFinal,
@@ -853,10 +861,14 @@ namespace NubeeAPI.Controllers
                     limiteDocumentosAnuales = p.LimiteDocumentosAnuales,
                     limiteUsuarios = p.LimiteUsuarios,
                     destacado = p.Destacado,
+                    incluyePOS = p.IncluyePOS,
+                    incluyeInventario = p.IncluyeInventario,
+                    incluyeNomina = p.IncluyeNomina,
+                    incluyeContabilidad = p.IncluyeContabilidad,
+                    incluyeSucursales = p.IncluyeSucursales,
                     descuentoActivo = p.DescuentoActivo,
                     descuentoPorcentaje = p.DescuentoPorcentaje,
                     activo = p.Activo,
-                    incluyePOS = p.IncluyePOS,
                     caracteristicas = p.Features.Select(f => new { f.Id, f.Texto, f.Tooltip }).ToList()
                 })
                 .ToListAsync();
@@ -874,6 +886,7 @@ namespace NubeeAPI.Controllers
             {
                 Codigo = dto.Codigo.ToUpper().Trim(),
                 Nombre = dto.Nombre.Trim(),
+                Tipo = NormalizarTipo(dto.Tipo),
                 Descripcion = dto.Descripcion,
                 PrecioAnual = dto.PrecioAnual,
                 LimiteDocumentosAnuales = dto.LimiteDocumentosAnuales,
@@ -883,6 +896,10 @@ namespace NubeeAPI.Controllers
                 DescuentoPorcentaje = dto.DescuentoPorcentaje,
                 Activo = dto.Activo,
                 IncluyePOS = dto.IncluyePOS,
+                IncluyeInventario = dto.IncluyeInventario,
+                IncluyeNomina = dto.IncluyeNomina,
+                IncluyeContabilidad = dto.IncluyeContabilidad,
+                IncluyeSucursales = dto.IncluyeSucursales,
                 Features = dto.Caracteristicas.Select(t => new PlanFeature { Texto = t }).ToList()
             };
 
@@ -909,6 +926,7 @@ namespace NubeeAPI.Controllers
 
             plan.Codigo = dto.Codigo.ToUpper().Trim();
             plan.Nombre = dto.Nombre.Trim();
+            plan.Tipo = NormalizarTipo(dto.Tipo);
             plan.Descripcion = dto.Descripcion;
             plan.PrecioAnual = dto.PrecioAnual;
             plan.LimiteDocumentosAnuales = dto.LimiteDocumentosAnuales;
@@ -917,6 +935,10 @@ namespace NubeeAPI.Controllers
             plan.DescuentoActivo = dto.DescuentoActivo;
             plan.DescuentoPorcentaje = dto.DescuentoPorcentaje;
             plan.IncluyePOS = dto.IncluyePOS;
+            plan.IncluyeInventario = dto.IncluyeInventario;
+            plan.IncluyeNomina = dto.IncluyeNomina;
+            plan.IncluyeContabilidad = dto.IncluyeContabilidad;
+            plan.IncluyeSucursales = dto.IncluyeSucursales;
             plan.Activo = dto.Activo;
 
             // Reemplazar características
@@ -1139,6 +1161,7 @@ namespace NubeeAPI.Controllers
     {
         public string Codigo { get; set; } = string.Empty;
         public string Nombre { get; set; } = string.Empty;
+        public string Tipo { get; set; } = "FACTURACION";
         public string? Descripcion { get; set; }
         public decimal PrecioAnual { get; set; }
         public int? LimiteDocumentosAnuales { get; set; }
@@ -1148,6 +1171,10 @@ namespace NubeeAPI.Controllers
         public int? DescuentoPorcentaje { get; set; }
         public bool Activo { get; set; } = true;
         public bool IncluyePOS { get; set; } = false;
+        public bool IncluyeInventario { get; set; } = false;
+        public bool IncluyeNomina { get; set; } = false;
+        public bool IncluyeContabilidad { get; set; } = false;
+        public bool IncluyeSucursales { get; set; } = false;
         public List<string> Caracteristicas { get; set; } = new();
     }
 

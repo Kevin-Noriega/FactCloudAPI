@@ -34,12 +34,19 @@ namespace NubeeAPI.Controllers
                 {
                     id = p.Id,
                     nombre = p.Nombre,
+                    tipo = p.Tipo,
                     descripcion = p.Descripcion,
                     precioMensual = p.PrecioMensualFinal,
                     precioAnual = p.PrecioAnualFinal,
                     limiteDocumentosAnuales = p.LimiteDocumentosAnuales,
                     limiteUsuarios = p.LimiteUsuarios,
                     destacado = p.Destacado,
+                    // Capacidades/módulos habilitados por el plan
+                    incluyePOS = p.IncluyePOS,
+                    incluyeInventario = p.IncluyeInventario,
+                    incluyeNomina = p.IncluyeNomina,
+                    incluyeContabilidad = p.IncluyeContabilidad,
+                    incluyeSucursales = p.IncluyeSucursales,
                     descuentoActivo = p.DescuentoActivo,
                     descuentoPorcentaje = p.DescuentoPorcentaje,
                     caracteristicas = p.Features.Select(f => new { texto = f.Texto, tooltip = f.Tooltip }).ToList()
