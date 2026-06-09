@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NubeeAPI.Data;
 
@@ -11,9 +12,11 @@ using NubeeAPI.Data;
 namespace NubeeAPI.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260606212128_PlanesYSistemaPOS")]
+    partial class PlanesYSistemaPOS
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -19868,6 +19871,12 @@ namespace NubeeAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("AplicaIVAExcluido")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("AplicaIVAExento")
+                        .HasColumnType("bit");
+
                     b.Property<decimal?>("BaseMinimaCompras")
                         .HasColumnType("decimal(18,2)");
 
@@ -19877,17 +19886,15 @@ namespace NubeeAPI.Migrations
                     b.Property<int>("Codigo")
                         .HasColumnType("int");
 
-                    b.Property<string>("CodigoFormatoExogena")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                    b.Property<string>("CodigoConceptoExogena")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CodigoTributoDIAN")
                         .HasMaxLength(2)
                         .HasColumnType("nvarchar(2)");
 
                     b.Property<string>("ConceptoRetencionDIAN")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("CuentaContableId")
                         .HasColumnType("int");
@@ -19918,12 +19925,6 @@ namespace NubeeAPI.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
 
-                    b.Property<bool>("EsBienExcluido")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("EsBienExento")
-                        .HasColumnType("bit");
-
                     b.Property<DateTime>("FechaCreacion")
                         .HasColumnType("datetime2");
 
@@ -19941,16 +19942,6 @@ namespace NubeeAPI.Migrations
                     b.Property<decimal>("Tarifa")
                         .HasColumnType("decimal(7,4)");
 
-                    b.Property<string>("TipoBaseMinimaCompras")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
-                    b.Property<string>("TipoBaseMinimaVentas")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
-
                     b.Property<string>("TipoImpuesto")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -19958,12 +19949,6 @@ namespace NubeeAPI.Migrations
 
                     b.Property<int?>("UsuarioId")
                         .HasColumnType("int");
-
-                    b.Property<DateTime>("VigenteDesde")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("VigenteHasta")
-                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -20003,17 +19988,12 @@ namespace NubeeAPI.Migrations
                             CuentaDevolucionComprasId = 10367,
                             CuentaDevolucionVentasId = 10375,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "IVA 19%",
                             PorValor = false,
                             Tarifa = 19.00m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "IVA",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "IVA"
                         },
                         new
                         {
@@ -20027,17 +20007,12 @@ namespace NubeeAPI.Migrations
                             CuentaDevolucionComprasId = 10369,
                             CuentaDevolucionVentasId = 10376,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "IVA 5%",
                             PorValor = false,
                             Tarifa = 5.00m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "IVA",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "IVA"
                         },
                         new
                         {
@@ -20051,17 +20026,12 @@ namespace NubeeAPI.Migrations
                             CuentaDevolucionComprasId = 10367,
                             CuentaDevolucionVentasId = 10375,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "IVA 0%",
                             PorValor = false,
                             Tarifa = 0.00m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "IVA",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "IVA"
                         },
                         new
                         {
@@ -20075,17 +20045,12 @@ namespace NubeeAPI.Migrations
                             CuentaDevolucionComprasId = 10371,
                             CuentaDevolucionVentasId = 10377,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "IVA 16%",
                             PorValor = false,
                             Tarifa = 16.00m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "IVA",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "IVA"
                         },
                         new
                         {
@@ -20097,17 +20062,12 @@ namespace NubeeAPI.Migrations
                             CuentaCreditoComprasId = 10249,
                             CuentaDebitoVentasId = 10077,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Retefuente 11%",
                             PorValor = false,
                             Tarifa = 11.00m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "Retefuente",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "Retefuente"
                         },
                         new
                         {
@@ -20119,17 +20079,12 @@ namespace NubeeAPI.Migrations
                             CuentaCreditoComprasId = 10281,
                             CuentaDebitoVentasId = 10075,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Retefuente 10%",
                             PorValor = false,
                             Tarifa = 10.00m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "Retefuente",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "Retefuente"
                         },
                         new
                         {
@@ -20141,17 +20096,12 @@ namespace NubeeAPI.Migrations
                             CuentaCreditoComprasId = 10265,
                             CuentaDebitoVentasId = 10073,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Retefuente 6%",
                             PorValor = false,
                             Tarifa = 6.00m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "Retefuente",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "Retefuente"
                         },
                         new
                         {
@@ -20163,17 +20113,12 @@ namespace NubeeAPI.Migrations
                             CuentaCreditoComprasId = 10267,
                             CuentaDebitoVentasId = 10071,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Retefuente 4%",
                             PorValor = false,
                             Tarifa = 4.00m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "Retefuente",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "Retefuente"
                         },
                         new
                         {
@@ -20185,17 +20130,12 @@ namespace NubeeAPI.Migrations
                             CuentaCreditoComprasId = 10281,
                             CuentaDebitoVentasId = 10069,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Retefuente 2.5%",
                             PorValor = false,
                             Tarifa = 2.50m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "Retefuente",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "Retefuente"
                         },
                         new
                         {
@@ -20207,17 +20147,12 @@ namespace NubeeAPI.Migrations
                             CuentaCreditoComprasId = 10253,
                             CuentaDebitoVentasId = 10081,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Retefuente 3.5%",
                             PorValor = false,
                             Tarifa = 3.50m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "Retefuente",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "Retefuente"
                         },
                         new
                         {
@@ -20229,17 +20164,12 @@ namespace NubeeAPI.Migrations
                             CuentaCreditoComprasId = 10251,
                             CuentaDebitoVentasId = 10079,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Retefuente 7%",
                             PorValor = false,
                             Tarifa = 7.00m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "Retefuente",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "Retefuente"
                         },
                         new
                         {
@@ -20251,17 +20181,12 @@ namespace NubeeAPI.Migrations
                             CuentaCreditoComprasId = 10255,
                             CuentaDebitoVentasId = 10083,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Retefuente 2%",
                             PorValor = false,
                             Tarifa = 2.00m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "Retefuente",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "Retefuente"
                         },
                         new
                         {
@@ -20273,17 +20198,12 @@ namespace NubeeAPI.Migrations
                             CuentaCreditoComprasId = 10257,
                             CuentaDebitoVentasId = 10085,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Retefuente 1%",
                             PorValor = false,
                             Tarifa = 1.00m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "Retefuente",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "Retefuente"
                         },
                         new
                         {
@@ -20295,17 +20215,12 @@ namespace NubeeAPI.Migrations
                             CuentaCreditoComprasId = 10281,
                             CuentaDebitoVentasId = 10069,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Retefuente 1.5%",
                             PorValor = false,
                             Tarifa = 1.50m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "Retefuente",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "Retefuente"
                         },
                         new
                         {
@@ -20317,17 +20232,12 @@ namespace NubeeAPI.Migrations
                             CuentaCreditoComprasId = 10281,
                             CuentaDebitoVentasId = 10069,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Retefuente 0.10%",
                             PorValor = false,
                             Tarifa = 0.10m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "Retefuente",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "Retefuente"
                         },
                         new
                         {
@@ -20339,17 +20249,12 @@ namespace NubeeAPI.Migrations
                             CuentaCreditoComprasId = 10281,
                             CuentaDebitoVentasId = 10069,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Retefuente 0.50%",
                             PorValor = false,
                             Tarifa = 0.50m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "Retefuente",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "Retefuente"
                         },
                         new
                         {
@@ -20361,17 +20266,12 @@ namespace NubeeAPI.Migrations
                             CuentaCreditoComprasId = 10281,
                             CuentaDebitoVentasId = 10069,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Retefuente 20%",
                             PorValor = false,
                             Tarifa = 20.00m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "Retefuente",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "Retefuente"
                         },
                         new
                         {
@@ -20383,17 +20283,12 @@ namespace NubeeAPI.Migrations
                             CuentaCreditoComprasId = 10305,
                             CuentaDebitoVentasId = 10095,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "ReteICA 11.04",
                             PorValor = false,
                             Tarifa = 11.04m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "ReteICA",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "ReteICA"
                         },
                         new
                         {
@@ -20405,17 +20300,12 @@ namespace NubeeAPI.Migrations
                             CuentaCreditoComprasId = 10307,
                             CuentaDebitoVentasId = 10097,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "ReteICA 13.8",
                             PorValor = false,
                             Tarifa = 13.80m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "ReteICA",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "ReteICA"
                         },
                         new
                         {
@@ -20427,17 +20317,12 @@ namespace NubeeAPI.Migrations
                             CuentaCreditoComprasId = 10309,
                             CuentaDebitoVentasId = 10099,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "ReteICA 9.66",
                             PorValor = false,
                             Tarifa = 9.66m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "ReteICA",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "ReteICA"
                         },
                         new
                         {
@@ -20449,17 +20334,12 @@ namespace NubeeAPI.Migrations
                             CuentaCreditoComprasId = 10311,
                             CuentaDebitoVentasId = 10101,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "ReteICA 8",
                             PorValor = false,
                             Tarifa = 8.00m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "ReteICA",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "ReteICA"
                         },
                         new
                         {
@@ -20471,17 +20351,12 @@ namespace NubeeAPI.Migrations
                             CuentaCreditoComprasId = 10313,
                             CuentaDebitoVentasId = 10103,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "ReteICA 7",
                             PorValor = false,
                             Tarifa = 7.00m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "ReteICA",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "ReteICA"
                         },
                         new
                         {
@@ -20493,17 +20368,12 @@ namespace NubeeAPI.Migrations
                             CuentaCreditoComprasId = 10315,
                             CuentaDebitoVentasId = 10105,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "ReteICA 6.9",
                             PorValor = false,
                             Tarifa = 6.90m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "ReteICA",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "ReteICA"
                         },
                         new
                         {
@@ -20515,17 +20385,12 @@ namespace NubeeAPI.Migrations
                             CuentaCreditoComprasId = 10317,
                             CuentaDebitoVentasId = 10107,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "ReteICA 4.14",
                             PorValor = false,
                             Tarifa = 4.14m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "ReteICA",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "ReteICA"
                         },
                         new
                         {
@@ -20537,17 +20402,12 @@ namespace NubeeAPI.Migrations
                             CuentaCreditoComprasId = 10294,
                             CuentaDebitoVentasId = 10089,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "ReteIVA 15%",
                             PorValor = false,
                             Tarifa = 15.00m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "ReteIVA",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "ReteIVA"
                         },
                         new
                         {
@@ -20559,17 +20419,12 @@ namespace NubeeAPI.Migrations
                             CuentaCreditoComprasId = 10296,
                             CuentaDebitoVentasId = 10091,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "ReteIVA 100%",
                             PorValor = false,
                             Tarifa = 100.00m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "ReteIVA",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "ReteIVA"
                         },
                         new
                         {
@@ -20583,17 +20438,12 @@ namespace NubeeAPI.Migrations
                             CuentaDevolucionComprasId = 10404,
                             CuentaDevolucionVentasId = 10402,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Impoconsumo 8%",
                             PorValor = false,
                             Tarifa = 8.00m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "Impoconsumo",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "Impoconsumo"
                         },
                         new
                         {
@@ -20607,17 +20457,12 @@ namespace NubeeAPI.Migrations
                             CuentaDevolucionComprasId = 10404,
                             CuentaDevolucionVentasId = 10402,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Impoconsumo por valor",
                             PorValor = false,
                             Tarifa = 0.00m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "Impoconsumo",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "Impoconsumo"
                         },
                         new
                         {
@@ -20631,17 +20476,12 @@ namespace NubeeAPI.Migrations
                             CuentaDevolucionComprasId = 10634,
                             CuentaDevolucionVentasId = 10389,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "AdValorem 20%",
                             PorValor = false,
                             Tarifa = 20.00m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "Ad-Valorem",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "Ad-Valorem"
                         },
                         new
                         {
@@ -20655,17 +20495,12 @@ namespace NubeeAPI.Migrations
                             CuentaDevolucionComprasId = 10635,
                             CuentaDevolucionVentasId = 10390,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "AdValorem 25%",
                             PorValor = false,
                             Tarifa = 25.00m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "Ad-Valorem",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "Ad-Valorem"
                         },
                         new
                         {
@@ -20679,17 +20514,12 @@ namespace NubeeAPI.Migrations
                             CuentaDevolucionComprasId = 10394,
                             CuentaDevolucionVentasId = 10392,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Comestibles ultraprocesados 15%",
                             PorValor = false,
                             Tarifa = 15.00m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "Comestibles ultraprocesados",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "Comestibles ultraprocesados"
                         },
                         new
                         {
@@ -20703,17 +20533,12 @@ namespace NubeeAPI.Migrations
                             CuentaDevolucionComprasId = 10398,
                             CuentaDevolucionVentasId = 10396,
                             EnUso = true,
-                            EsBienExcluido = false,
-                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Comestibles ultraprocesados 20%",
                             PorValor = false,
                             Tarifa = 20.00m,
-                            TipoBaseMinimaCompras = "Pesos",
-                            TipoBaseMinimaVentas = "Pesos",
-                            TipoImpuesto = "Comestibles ultraprocesados",
-                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            TipoImpuesto = "Comestibles ultraprocesados"
                         });
                 });
 
@@ -21779,320 +21604,6 @@ namespace NubeeAPI.Migrations
                     b.HasIndex("UsuarioId", "AddonId");
 
                     b.ToTable("UsuariosAddons");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.Pos.ConfiguracionImpresionPos", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Copias")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("ImpresionSimple")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("ImpresoraDefecto")
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
-                    b.Property<int>("MargenDerecho")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MargenInferior")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MargenIzquierdo")
-                        .HasColumnType("int");
-
-                    b.Property<int>("MargenSuperior")
-                        .HasColumnType("int");
-
-                    b.Property<string>("MetodoImpresion")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasDefaultValue("navegador");
-
-                    b.Property<string>("TamanoPapel")
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UsuarioId")
-                        .IsUnique();
-
-                    b.ToTable("ConfiguracionesImpresionPos");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.Pos.EtiquetaPos", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Activa")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<DateTime>("FechaCreacion")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UsuarioId");
-
-                    b.ToTable("EtiquetasPos");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.Pos.MovimientoCajaPos", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Descripcion")
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
-
-                    b.Property<DateTime>("Fecha")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal>("Monto")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("NumeroComprobante")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
-
-                    b.Property<string>("Tipo")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UsuarioId", "Fecha");
-
-                    b.ToTable("MovimientosCajaPos");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.Pos.PosVenta", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ClienteNombre")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<decimal>("Credito")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Efectivo")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Estado")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasDefaultValue("Registrada");
-
-                    b.Property<DateTime>("Fecha")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal>("Impuestos")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("NumeroVenta")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Otros")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("PagosLinea")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Subtotal")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Tarjeta")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Total")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int?>("TurnoId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("TurnoId");
-
-                    b.HasIndex("UsuarioId", "Fecha");
-
-                    b.ToTable("PosVentas");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.Pos.PosVentaDetalle", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("Cantidad")
-                        .HasPrecision(12, 2)
-                        .HasColumnType("decimal(12,2)");
-
-                    b.Property<decimal>("Descuento")
-                        .HasPrecision(6, 2)
-                        .HasColumnType("decimal(6,2)");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<int>("PosVentaId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("PrecioUnitario")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int?>("ProductoId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("TotalLinea")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PosVentaId");
-
-                    b.ToTable("PosVentaDetalles");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.Pos.TurnoPos", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<decimal>("BaseInicial")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("CerradoPorNombre")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<decimal?>("Diferencia")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Estado")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasDefaultValue("Abierto");
-
-                    b.Property<DateTime>("FechaApertura")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("FechaCierre")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("NumeroTurno")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Observaciones")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<decimal?>("TotalEfectivoReal")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("TotalEsperado")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("TotalOtros")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("TotalPagosLinea")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal?>("TotalTarjeta")
-                        .HasPrecision(18, 2)
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("VendedorNombre")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UsuarioId");
-
-                    b.HasIndex("UsuarioId", "Estado");
-
-                    b.ToTable("TurnosPos");
                 });
 
             modelBuilder.Entity("NubeeAPI.Models.Producto", b =>
@@ -23352,79 +22863,6 @@ namespace NubeeAPI.Migrations
                     b.Navigation("Usuario");
                 });
 
-            modelBuilder.Entity("NubeeAPI.Models.Pos.ConfiguracionImpresionPos", b =>
-                {
-                    b.HasOne("NubeeAPI.Models.Usuario", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Usuario");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.Pos.EtiquetaPos", b =>
-                {
-                    b.HasOne("NubeeAPI.Models.Usuario", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Usuario");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.Pos.MovimientoCajaPos", b =>
-                {
-                    b.HasOne("NubeeAPI.Models.Usuario", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Usuario");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.Pos.PosVenta", b =>
-                {
-                    b.HasOne("NubeeAPI.Models.Pos.TurnoPos", "Turno")
-                        .WithMany()
-                        .HasForeignKey("TurnoId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("NubeeAPI.Models.Usuario", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Turno");
-
-                    b.Navigation("Usuario");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.Pos.PosVentaDetalle", b =>
-                {
-                    b.HasOne("NubeeAPI.Models.Pos.PosVenta", "PosVenta")
-                        .WithMany("Detalles")
-                        .HasForeignKey("PosVentaId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("PosVenta");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.Pos.TurnoPos", b =>
-                {
-                    b.HasOne("NubeeAPI.Models.Usuario", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Usuario");
-                });
-
             modelBuilder.Entity("NubeeAPI.Models.Producto", b =>
                 {
                     b.HasOne("NubeeAPI.Models.Usuario", "Usuario")
@@ -23621,11 +23059,6 @@ namespace NubeeAPI.Migrations
                     b.Navigation("Features");
 
                     b.Navigation("Suscripciones");
-                });
-
-            modelBuilder.Entity("NubeeAPI.Models.Pos.PosVenta", b =>
-                {
-                    b.Navigation("Detalles");
                 });
 
             modelBuilder.Entity("NubeeAPI.Models.Producto", b =>

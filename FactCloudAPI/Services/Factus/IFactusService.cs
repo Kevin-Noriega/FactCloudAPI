@@ -1,4 +1,4 @@
-﻿using NubeeAPI.Models;
+using NubeeAPI.Models;
 using NubeeAPI.Models.Usuarios;
 
 namespace NubeeAPI.Services.Factus

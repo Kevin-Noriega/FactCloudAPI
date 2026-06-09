@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Options;
 using NubeeAPI.Configuration;
 using NubeeAPI.Models;
 using NubeeAPI.Models.Impuestos;

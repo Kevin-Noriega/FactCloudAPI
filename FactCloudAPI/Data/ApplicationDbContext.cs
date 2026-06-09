@@ -5,6 +5,7 @@ using NubeeAPI.Models;
 using NubeeAPI.Models.Cupones;
 using NubeeAPI.Models.Impuestos;
 using NubeeAPI.Models.Planes;
+using NubeeAPI.Models.Pos;
 using NubeeAPI.Models.Sesiones;
 using NubeeAPI.Models.Suscripciones;
 using NubeeAPI.Models.Usuarios;
@@ -63,6 +64,14 @@ namespace NubeeAPI.Data
         public DbSet<DocumentoResumenImpuesto> DocumentosResumenImpuesto { get; set; } = null!;
 
         public DbSet<AuditoriaAdmin> AuditoriaAdmin { get; set; }
+
+        // ── POS ────────────────────────────────────────────────────────────
+        public DbSet<TurnoPos> TurnosPos { get; set; }
+        public DbSet<MovimientoCajaPos> MovimientosCajaPos { get; set; }
+        public DbSet<EtiquetaPos> EtiquetasPos { get; set; }
+        public DbSet<ConfiguracionImpresionPos> ConfiguracionesImpresionPos { get; set; }
+        public DbSet<PosVenta> PosVentas { get; set; }
+        public DbSet<PosVentaDetalle> PosVentaDetalles { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -848,6 +857,109 @@ namespace NubeeAPI.Data
 
 
             // ══════════════════════════════════════════════════════════════
+            // POS — TURNO
+            // ══════════════════════════════════════════════════════════════
+            modelBuilder.Entity<TurnoPos>(entity =>
+            {
+                entity.HasKey(t => t.Id);
+
+                entity.HasOne(t => t.Usuario)
+                    .WithMany()
+                    .HasForeignKey(t => t.UsuarioId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.Property(t => t.VendedorNombre).HasMaxLength(200);
+                entity.Property(t => t.CerradoPorNombre).HasMaxLength(200);
+                entity.Property(t => t.Observaciones).HasMaxLength(500);
+                entity.Property(t => t.Estado).HasMaxLength(20).HasDefaultValue("Abierto");
+
+                entity.Property(t => t.BaseInicial).HasPrecision(18, 2);
+                entity.Property(t => t.TotalEfectivoReal).HasPrecision(18, 2);
+                entity.Property(t => t.TotalTarjeta).HasPrecision(18, 2);
+                entity.Property(t => t.TotalPagosLinea).HasPrecision(18, 2);
+                entity.Property(t => t.TotalOtros).HasPrecision(18, 2);
+                entity.Property(t => t.TotalEsperado).HasPrecision(18, 2);
+                entity.Property(t => t.Diferencia).HasPrecision(18, 2);
+
+                entity.HasIndex(t => t.UsuarioId);
+                entity.HasIndex(t => new { t.UsuarioId, t.Estado });
+            });
+
+            modelBuilder.Entity<MovimientoCajaPos>(entity =>
+            {
+                entity.HasKey(m => m.Id);
+                entity.HasOne(m => m.Usuario)
+                    .WithMany()
+                    .HasForeignKey(m => m.UsuarioId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.Property(m => m.Tipo).HasMaxLength(20);
+                entity.Property(m => m.Descripcion).HasMaxLength(300);
+                entity.Property(m => m.NumeroComprobante).HasMaxLength(30);
+                entity.Property(m => m.Monto).HasPrecision(18, 2);
+                entity.HasIndex(m => new { m.UsuarioId, m.Fecha });
+            });
+
+            modelBuilder.Entity<EtiquetaPos>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.HasOne(e => e.Usuario)
+                    .WithMany()
+                    .HasForeignKey(e => e.UsuarioId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.Property(e => e.Nombre).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Activa).HasDefaultValue(true);
+                entity.HasIndex(e => e.UsuarioId);
+            });
+
+            modelBuilder.Entity<ConfiguracionImpresionPos>(entity =>
+            {
+                entity.HasKey(c => c.Id);
+                entity.HasOne(c => c.Usuario)
+                    .WithMany()
+                    .HasForeignKey(c => c.UsuarioId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.Property(c => c.MetodoImpresion).HasMaxLength(20).HasDefaultValue("navegador");
+                entity.Property(c => c.ImpresoraDefecto).HasMaxLength(150);
+                entity.Property(c => c.TamanoPapel).HasMaxLength(30);
+                entity.HasIndex(c => c.UsuarioId).IsUnique();
+            });
+
+            modelBuilder.Entity<PosVenta>(entity =>
+            {
+                entity.HasKey(v => v.Id);
+                // Restrict en Usuario para evitar múltiples rutas de cascada
+                // (Usuario→PosVenta y Usuario→Turno→PosVenta).
+                entity.HasOne(v => v.Usuario)
+                    .WithMany()
+                    .HasForeignKey(v => v.UsuarioId)
+                    .OnDelete(DeleteBehavior.Restrict);
+                entity.HasOne(v => v.Turno)
+                    .WithMany()
+                    .HasForeignKey(v => v.TurnoId)
+                    .OnDelete(DeleteBehavior.SetNull);
+                entity.Property(v => v.ClienteNombre).HasMaxLength(200);
+                entity.Property(v => v.Estado).HasMaxLength(20).HasDefaultValue("Registrada");
+                foreach (var prop in new[] { "Subtotal", "Impuestos", "Total", "Efectivo", "Tarjeta", "PagosLinea", "Otros", "Credito" })
+                    entity.Property(prop).HasPrecision(18, 2);
+                entity.HasIndex(v => new { v.UsuarioId, v.Fecha });
+                entity.HasIndex(v => v.TurnoId);
+            });
+
+            modelBuilder.Entity<PosVentaDetalle>(entity =>
+            {
+                entity.HasKey(d => d.Id);
+                entity.HasOne(d => d.PosVenta)
+                    .WithMany(v => v.Detalles)
+                    .HasForeignKey(d => d.PosVentaId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.Property(d => d.Nombre).HasMaxLength(500);
+                entity.Property(d => d.Cantidad).HasPrecision(12, 2);
+                entity.Property(d => d.PrecioUnitario).HasPrecision(18, 2);
+                entity.Property(d => d.Descuento).HasPrecision(6, 2);
+                entity.Property(d => d.TotalLinea).HasPrecision(18, 2);
+            });
+
+            // ══════════════════════════════════════════════════════════════
             // AUDITORIA ADMIN
             // ══════════════════════════════════════════════════════════════
             modelBuilder.Entity<AuditoriaAdmin>(entity =>
@@ -868,11 +980,14 @@ namespace NubeeAPI.Data
 
             // ── Planes de facturación ─────────────────────────────────────
             modelBuilder.Entity<PlanFacturacion>().HasData(
+                // ═══ Planes de FACTURACIÓN (suscripción base) ═══════════════
+                // El POS NO se incluye aquí: se contrata aparte (planes Tipo="POS").
                 new PlanFacturacion
                 {
                     Id = 1,
                     Codigo = "STARTER",
                     Nombre = "Starter",
+                    Tipo = "FACTURACION",
                     Descripcion = "Ideal para emprendedores iniciando",
                     PrecioAnual = 135000,
                     DescuentoActivo = true,
@@ -880,6 +995,11 @@ namespace NubeeAPI.Data
                     LimiteDocumentosAnuales = 30,
                     LimiteUsuarios = 1,
                     Destacado = false,
+                    IncluyePOS = false,
+                    IncluyeInventario = false,
+                    IncluyeNomina = false,
+                    IncluyeContabilidad = false,
+                    IncluyeSucursales = false,
                     Activo = true
                 },
                 new PlanFacturacion
@@ -887,13 +1007,19 @@ namespace NubeeAPI.Data
                     Id = 2,
                     Codigo = "BASICO",
                     Nombre = "Básico",
+                    Tipo = "FACTURACION",
                     Descripcion = "Para pequeños negocios en crecimiento",
                     PrecioAnual = 300000,
                     DescuentoActivo = true,
                     DescuentoPorcentaje = 10,
                     LimiteDocumentosAnuales = 140,
-                    LimiteUsuarios = 1,
+                    LimiteUsuarios = 2,
                     Destacado = false,
+                    IncluyePOS = false,
+                    IncluyeInventario = true,
+                    IncluyeNomina = false,
+                    IncluyeContabilidad = false,
+                    IncluyeSucursales = false,
                     Activo = true
                 },
                 new PlanFacturacion
@@ -901,13 +1027,19 @@ namespace NubeeAPI.Data
                     Id = 3,
                     Codigo = "PROFESIONAL",
                     Nombre = "Profesional",
+                    Tipo = "FACTURACION",
                     Descripcion = "Perfecto para PYMES establecidas",
                     PrecioAnual = 770000,
                     DescuentoActivo = true,
                     DescuentoPorcentaje = 10,
                     LimiteDocumentosAnuales = 540,
-                    LimiteUsuarios = 1,
-                    Destacado = false,
+                    LimiteUsuarios = 5,
+                    Destacado = true,
+                    IncluyePOS = false,
+                    IncluyeInventario = true,
+                    IncluyeNomina = false,
+                    IncluyeContabilidad = false,
+                    IncluyeSucursales = false,
                     Activo = true
                 },
                 new PlanFacturacion
@@ -915,13 +1047,82 @@ namespace NubeeAPI.Data
                     Id = 4,
                     Codigo = "EMPRESARIAL",
                     Nombre = "Empresarial",
+                    Tipo = "FACTURACION",
                     Descripcion = "Solución completa para empresas grandes",
                     PrecioAnual = 1300000,
                     DescuentoActivo = true,
                     DescuentoPorcentaje = 15,
                     LimiteDocumentosAnuales = 1550,
-                    LimiteUsuarios = 1,
+                    LimiteUsuarios = 15,
                     Destacado = false,
+                    IncluyePOS = false,
+                    IncluyeInventario = true,
+                    IncluyeNomina = true,
+                    IncluyeContabilidad = true,
+                    IncluyeSucursales = true,
+                    Activo = true
+                },
+
+                // ═══ Sistema POS (módulo que se vende por separado) ═════════
+                // Se contrata sobre cualquier plan de facturación. IncluyePOS=true.
+                new PlanFacturacion
+                {
+                    Id = 5,
+                    Codigo = "POS_ESENCIAL",
+                    Nombre = "Sistema POS Esencial",
+                    Tipo = "POS",
+                    Descripcion = "Punto de venta para empezar a vender desde el mostrador",
+                    PrecioAnual = 345000,
+                    DescuentoActivo = false,
+                    DescuentoPorcentaje = null,
+                    LimiteDocumentosAnuales = 240,
+                    LimiteUsuarios = 1,
+                    Destacado = true,
+                    IncluyePOS = true,
+                    IncluyeInventario = true,
+                    IncluyeNomina = false,
+                    IncluyeContabilidad = false,
+                    IncluyeSucursales = false,
+                    Activo = true
+                },
+                new PlanFacturacion
+                {
+                    Id = 6,
+                    Codigo = "POS_INICIO",
+                    Nombre = "Sistema POS Inicio",
+                    Tipo = "POS",
+                    Descripcion = "Para negocios con mayor volumen de ventas",
+                    PrecioAnual = 585900,
+                    DescuentoActivo = true,
+                    DescuentoPorcentaje = 10,
+                    LimiteDocumentosAnuales = null,
+                    LimiteUsuarios = 2,
+                    Destacado = false,
+                    IncluyePOS = true,
+                    IncluyeInventario = true,
+                    IncluyeNomina = false,
+                    IncluyeContabilidad = false,
+                    IncluyeSucursales = false,
+                    Activo = true
+                },
+                new PlanFacturacion
+                {
+                    Id = 7,
+                    Codigo = "POS_AVANZADO",
+                    Nombre = "Sistema POS Avanzado",
+                    Tipo = "POS",
+                    Descripcion = "Operación profesional con inventario y reportes avanzados",
+                    PrecioAnual = 899900,
+                    DescuentoActivo = true,
+                    DescuentoPorcentaje = 15,
+                    LimiteDocumentosAnuales = null,
+                    LimiteUsuarios = 5,
+                    Destacado = false,
+                    IncluyePOS = true,
+                    IncluyeInventario = true,
+                    IncluyeNomina = false,
+                    IncluyeContabilidad = false,
+                    IncluyeSucursales = true,
                     Activo = true
                 }
             );
@@ -947,25 +1148,62 @@ namespace NubeeAPI.Data
             });
 
             modelBuilder.Entity<PlanFeature>().HasData(
+                // ═══ FACTURACIÓN ═══
+                // ── Starter (1) ──
                 new PlanFeature { Id = 1, PlanFacturacionId = 1, Texto = "1 Usuario", Tooltip = "Cuenta individual para emprendedores que están empezando." },
                 new PlanFeature { Id = 2, PlanFacturacionId = 1, Texto = "30 Documentos anuales", Tooltip = "Emite hasta 30 facturas electrónicas al año." },
-                new PlanFeature { Id = 3, PlanFacturacionId = 1, Texto = "Funciones básicas", Tooltip = "Creación de facturas, gestión de clientes y productos. Reportes simples incluidos." },
-                new PlanFeature { Id = 4, PlanFacturacionId = 2, Texto = "1 Usuario", Tooltip = "Cuenta individual perfecta para emprendedores y negocios unipersonales." },
+                new PlanFeature { Id = 3, PlanFacturacionId = 1, Texto = "Facturación electrónica DIAN", Tooltip = "Creación de facturas, gestión de clientes y productos. Reportes simples incluidos." },
+
+                // ── Básico (2): + inventario ──
+                new PlanFeature { Id = 4, PlanFacturacionId = 2, Texto = "2 Usuarios", Tooltip = "Hasta dos usuarios para tu negocio." },
                 new PlanFeature { Id = 5, PlanFacturacionId = 2, Texto = "140 Documentos electrónicos al año", Tooltip = "Perfecto para negocios que emiten hasta 8 documentos diarios." },
-                new PlanFeature { Id = 6, PlanFacturacionId = 2, Texto = "Funciones básicas", Tooltip = "Creación de facturas, gestión de clientes, productos, notas débito y crédito." },
-                new PlanFeature { Id = 7, PlanFacturacionId = 3, Texto = "1 Usuario", Tooltip = "Cuenta individual con acceso completo a todas las funcionalidades." },
+                new PlanFeature { Id = 6, PlanFacturacionId = 2, Texto = "Facturación electrónica DIAN", Tooltip = "Creación de facturas, gestión de clientes, productos, notas débito y crédito." },
+                new PlanFeature { Id = 45, PlanFacturacionId = 2, Texto = "Control de inventario", Tooltip = "Administra existencias y stock de tus productos." },
+
+                // ── Profesional (3): + inventario (POS se contrata aparte) ──
+                new PlanFeature { Id = 7, PlanFacturacionId = 3, Texto = "5 Usuarios", Tooltip = "Hasta cinco usuarios con acceso al sistema." },
                 new PlanFeature { Id = 8, PlanFacturacionId = 3, Texto = "540 Documentos electrónicos al año", Tooltip = "Ideal para PYMES que facturan de forma constante durante todo el año." },
                 new PlanFeature { Id = 9, PlanFacturacionId = 3, Texto = "Facturación electrónica DIAN", Tooltip = "Emisión de facturas electrónicas válidas ante la DIAN." },
                 new PlanFeature { Id = 10, PlanFacturacionId = 3, Texto = "Notas crédito y débito", Tooltip = "Corrección y ajustes de facturas mediante notas crédito y débito electrónicas." },
+                new PlanFeature { Id = 46, PlanFacturacionId = 3, Texto = "Control de inventario", Tooltip = "Descuento automático de stock y control de existencias." },
                 new PlanFeature { Id = 11, PlanFacturacionId = 3, Texto = "Gestión avanzada de clientes y productos", Tooltip = "Administra clientes, productos, precios e impuestos de forma organizada." },
                 new PlanFeature { Id = 12, PlanFacturacionId = 3, Texto = "Reportes y control de facturación", Tooltip = "Consulta reportes básicos de ventas, documentos emitidos y estado de facturación." },
-                new PlanFeature { Id = 13, PlanFacturacionId = 4, Texto = "1 Usuario", Tooltip = "Acceso completo al sistema con control total de la facturación empresarial." },
+
+                // ── Empresarial (4): + inventario, nómina, contabilidad, sucursales ──
+                new PlanFeature { Id = 13, PlanFacturacionId = 4, Texto = "15 Usuarios", Tooltip = "Hasta quince usuarios para equipos grandes." },
                 new PlanFeature { Id = 14, PlanFacturacionId = 4, Texto = "1550 Documentos electrónicos al año", Tooltip = "Pensado para empresas con alto volumen de facturación anual." },
                 new PlanFeature { Id = 15, PlanFacturacionId = 4, Texto = "Facturación electrónica DIAN", Tooltip = "Cumple con todos los requisitos exigidos por la DIAN." },
                 new PlanFeature { Id = 16, PlanFacturacionId = 4, Texto = "Notas crédito y débito ilimitadas", Tooltip = "Emite notas crédito y débito sin restricciones dentro del límite anual." },
+                new PlanFeature { Id = 47, PlanFacturacionId = 4, Texto = "Control de inventario", Tooltip = "Inventario por bodega y existencias en tiempo real." },
+                new PlanFeature { Id = 48, PlanFacturacionId = 4, Texto = "Nómina electrónica", Tooltip = "Liquidación y emisión de nómina electrónica ante la DIAN." },
+                new PlanFeature { Id = 49, PlanFacturacionId = 4, Texto = "Contabilidad integrada", Tooltip = "Causación contable automática de tus documentos." },
+                new PlanFeature { Id = 50, PlanFacturacionId = 4, Texto = "Multi-sucursal", Tooltip = "Administra varias sucursales desde una sola cuenta." },
                 new PlanFeature { Id = 17, PlanFacturacionId = 4, Texto = "Gestión completa de clientes y productos", Tooltip = "Control detallado de clientes, productos, impuestos y precios." },
                 new PlanFeature { Id = 18, PlanFacturacionId = 4, Texto = "Reportes administrativos", Tooltip = "Accede a reportes de ventas y facturación para control interno y contable." },
-                new PlanFeature { Id = 19, PlanFacturacionId = 4, Texto = "Soporte prioritario", Tooltip = "Atención prioritaria para resolución de dudas y soporte técnico." }
+                new PlanFeature { Id = 19, PlanFacturacionId = 4, Texto = "Soporte prioritario", Tooltip = "Atención prioritaria para resolución de dudas y soporte técnico." },
+
+                // ═══ SISTEMA POS (se contrata aparte) ═══
+                // ── POS Esencial (5) ──
+                new PlanFeature { Id = 20, PlanFacturacionId = 5, Texto = "Cumplimiento normativo DIAN", Tooltip = "Documentos POS válidos ante la DIAN." },
+                new PlanFeature { Id = 21, PlanFacturacionId = 5, Texto = "240 Facturas electrónicas anuales desde POS", Tooltip = "Hasta 240 documentos electrónicos al año desde el punto de venta." },
+                new PlanFeature { Id = 22, PlanFacturacionId = 5, Texto = "1 Caja registradora", Tooltip = "Una terminal de venta para atender en mostrador." },
+                new PlanFeature { Id = 23, PlanFacturacionId = 5, Texto = "Control de inventario", Tooltip = "Descuento automático de stock por cada venta." },
+                new PlanFeature { Id = 24, PlanFacturacionId = 5, Texto = "Reportes de ventas diarios", Tooltip = "Total de ventas del día y productos más vendidos." },
+
+                // ── POS Inicio (6) ──
+                new PlanFeature { Id = 25, PlanFacturacionId = 6, Texto = "Cumplimiento normativo DIAN", Tooltip = "Documentos POS válidos ante la DIAN." },
+                new PlanFeature { Id = 26, PlanFacturacionId = 6, Texto = "Facturas electrónicas desde POS ilimitadas", Tooltip = "Sin límite de documentos electrónicos desde el POS." },
+                new PlanFeature { Id = 27, PlanFacturacionId = 6, Texto = "2 Cajas registradoras", Tooltip = "Atiende en dos terminales simultáneas." },
+                new PlanFeature { Id = 28, PlanFacturacionId = 6, Texto = "Inventario con alertas de stock mínimo", Tooltip = "Recibe avisos cuando un producto esté por agotarse." },
+                new PlanFeature { Id = 29, PlanFacturacionId = 6, Texto = "Cierre de caja por turno", Tooltip = "Controla el dinero por turno con apertura y cierre de caja." },
+
+                // ── POS Avanzado (7) ──
+                new PlanFeature { Id = 31, PlanFacturacionId = 7, Texto = "Cumplimiento normativo DIAN", Tooltip = "Documentos POS válidos ante la DIAN." },
+                new PlanFeature { Id = 32, PlanFacturacionId = 7, Texto = "Facturas electrónicas desde POS ilimitadas", Tooltip = "Sin límite de documentos electrónicos desde el POS." },
+                new PlanFeature { Id = 33, PlanFacturacionId = 7, Texto = "Cajas registradoras ilimitadas", Tooltip = "Sin límite en el número de terminales de venta." },
+                new PlanFeature { Id = 34, PlanFacturacionId = 7, Texto = "Inventario avanzado por bodega", Tooltip = "Controla existencias en varias bodegas o ubicaciones." },
+                new PlanFeature { Id = 35, PlanFacturacionId = 7, Texto = "Arqueo y reportes avanzados", Tooltip = "Cuadre de caja detallado y reportes exportables." },
+                new PlanFeature { Id = 36, PlanFacturacionId = 7, Texto = "Soporte prioritario 24/7", Tooltip = "Atención preferencial todos los días a cualquier hora." }
             );
 
             // ── Cupones ───────────────────────────────────────────────────

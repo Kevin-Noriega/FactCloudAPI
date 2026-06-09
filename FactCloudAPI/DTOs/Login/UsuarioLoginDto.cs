@@ -25,6 +25,8 @@ namespace NubeeAPI.DTOs.Login
         public DateTime? FechaExpiracion { get; set; }
         public DateTime? FechaDesactivacion { get; set; }
         public PlanLoginDto? Plan { get; set; }
+        /// <summary>True si el usuario tiene cualquier suscripción activa con acceso a POS.</summary>
+        public bool TienePos { get; set; }
     }
  
 }
