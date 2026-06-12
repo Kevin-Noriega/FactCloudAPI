@@ -19994,8 +19994,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 1,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 1,
                             CodigoTributoDIAN = "01",
                             CuentaCreditoVentasId = 10362,
@@ -20018,8 +20016,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 2,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 2,
                             CodigoTributoDIAN = "01",
                             CuentaCreditoVentasId = 10363,
@@ -20042,8 +20038,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 22,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 22,
                             CodigoTributoDIAN = "01",
                             CuentaCreditoVentasId = 10362,
@@ -20066,8 +20060,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 23,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 23,
                             CodigoTributoDIAN = "01",
                             CuentaCreditoVentasId = 10364,
@@ -20090,8 +20082,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 3,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 3,
                             CodigoTributoDIAN = "05",
                             CuentaCreditoComprasId = 10249,
@@ -20112,8 +20102,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 4,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 4,
                             CodigoTributoDIAN = "05",
                             CuentaCreditoComprasId = 10281,
@@ -20134,8 +20122,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 5,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 5,
                             CodigoTributoDIAN = "05",
                             CuentaCreditoComprasId = 10265,
@@ -20156,8 +20142,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 6,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 6,
                             CodigoTributoDIAN = "05",
                             CuentaCreditoComprasId = 10267,
@@ -20178,8 +20162,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 7,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 7,
                             CodigoTributoDIAN = "05",
                             CuentaCreditoComprasId = 10281,
@@ -20200,8 +20182,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 18,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 18,
                             CodigoTributoDIAN = "05",
                             CuentaCreditoComprasId = 10253,
@@ -20222,8 +20202,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 19,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 19,
                             CodigoTributoDIAN = "05",
                             CuentaCreditoComprasId = 10251,
@@ -20244,8 +20222,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 20,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 20,
                             CodigoTributoDIAN = "05",
                             CuentaCreditoComprasId = 10255,
@@ -20266,8 +20242,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 21,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 21,
                             CodigoTributoDIAN = "05",
                             CuentaCreditoComprasId = 10257,
@@ -20288,8 +20262,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 90,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 90,
                             CodigoTributoDIAN = "05",
                             CuentaCreditoComprasId = 10281,
@@ -20310,8 +20282,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 91,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 91,
                             CodigoTributoDIAN = "05",
                             CuentaCreditoComprasId = 10281,
@@ -20332,8 +20302,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 92,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 92,
                             CodigoTributoDIAN = "05",
                             CuentaCreditoComprasId = 10281,
@@ -20354,8 +20322,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 93,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 93,
                             CodigoTributoDIAN = "05",
                             CuentaCreditoComprasId = 10281,
@@ -20376,8 +20342,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 8,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 8,
                             CodigoTributoDIAN = "06",
                             CuentaCreditoComprasId = 10305,
@@ -20398,8 +20362,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 9,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 9,
                             CodigoTributoDIAN = "06",
                             CuentaCreditoComprasId = 10307,
@@ -20420,8 +20382,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 10,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 10,
                             CodigoTributoDIAN = "06",
                             CuentaCreditoComprasId = 10309,
@@ -20442,8 +20402,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 11,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 11,
                             CodigoTributoDIAN = "06",
                             CuentaCreditoComprasId = 10311,
@@ -20464,8 +20422,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 12,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 12,
                             CodigoTributoDIAN = "06",
                             CuentaCreditoComprasId = 10313,
@@ -20486,8 +20442,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 13,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 13,
                             CodigoTributoDIAN = "06",
                             CuentaCreditoComprasId = 10315,
@@ -20508,8 +20462,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 14,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 14,
                             CodigoTributoDIAN = "06",
                             CuentaCreditoComprasId = 10317,
@@ -20530,8 +20482,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 15,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 15,
                             CodigoTributoDIAN = "04",
                             CuentaCreditoComprasId = 10294,
@@ -20552,8 +20502,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 29,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 29,
                             CodigoTributoDIAN = "04",
                             CuentaCreditoComprasId = 10296,
@@ -20574,8 +20522,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 16,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 16,
                             CodigoTributoDIAN = "04",
                             CuentaCreditoVentasId = 10401,
@@ -20598,8 +20544,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 17,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 17,
                             CodigoTributoDIAN = "04",
                             CuentaCreditoVentasId = 10401,
@@ -20622,8 +20566,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 24,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 24,
                             CodigoTributoDIAN = "ZY",
                             CuentaCreditoVentasId = 10386,
@@ -20646,8 +20588,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 25,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 25,
                             CodigoTributoDIAN = "ZY",
                             CuentaCreditoVentasId = 10387,
@@ -20670,8 +20610,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 94,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 94,
                             CodigoTributoDIAN = "ZA",
                             CuentaCreditoVentasId = 10391,
@@ -20694,8 +20632,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 95,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 95,
                             CodigoTributoDIAN = "ZA",
                             CuentaCreditoVentasId = 10395,
@@ -22627,6 +22563,52 @@ namespace NubeeAPI.Migrations
                     b.ToTable("Usuarios");
                 });
 
+            modelBuilder.Entity("NubeeAPI.Models.Usuarios.CertificadoDigital", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("FechaAceptacionCarta")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("FechaActualizacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("NegocioId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("NombreArchivo")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RutaCifrada")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("UsaCertificadoNubee")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("UsaCertificadoPropio")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("VersionCartaAceptada")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NegocioId")
+                        .IsUnique();
+
+                    b.ToTable("CertificadosDigitales");
+                });
+
             modelBuilder.Entity("NubeeAPI.Models.Usuarios.ConfiguracionDian", b =>
                 {
                     b.Property<int>("Id")
@@ -22635,11 +22617,16 @@ namespace NubeeAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("AmbienteDIAN")
+                    b.Property<int>("AmbienteDIAN")
                         .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasDefaultValue("Habilitacion");
+                        .HasColumnType("int")
+                        .HasDefaultValue(2);
+
+                    b.Property<DateTime?>("FechaActualizacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("FechaVigenciaFinal")
                         .HasColumnType("datetime2");
@@ -22673,6 +22660,9 @@ namespace NubeeAPI.Migrations
                     b.Property<string>("SoftwareProveedor")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("TestSetId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -22712,6 +22702,9 @@ namespace NubeeAPI.Migrations
 
                     b.Property<int?>("DvNit")
                         .HasColumnType("int");
+
+                    b.Property<bool>("HabilitacionCompleta")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Nit")
                         .HasColumnType("nvarchar(450)");
@@ -23499,6 +23492,17 @@ namespace NubeeAPI.Migrations
                     b.Navigation("Cliente");
                 });
 
+            modelBuilder.Entity("NubeeAPI.Models.Usuarios.CertificadoDigital", b =>
+                {
+                    b.HasOne("NubeeAPI.Models.Usuarios.Negocio", "Negocio")
+                        .WithOne("CertificadoDigital")
+                        .HasForeignKey("NubeeAPI.Models.Usuarios.CertificadoDigital", "NegocioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Negocio");
+                });
+
             modelBuilder.Entity("NubeeAPI.Models.Usuarios.ConfiguracionDian", b =>
                 {
                     b.HasOne("NubeeAPI.Models.Usuarios.Negocio", "Negocio")
@@ -23653,6 +23657,8 @@ namespace NubeeAPI.Migrations
 
             modelBuilder.Entity("NubeeAPI.Models.Usuarios.Negocio", b =>
                 {
+                    b.Navigation("CertificadoDigital");
+
                     b.Navigation("ConfiguracionDIAN")
                         .IsRequired();
 

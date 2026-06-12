@@ -2,8 +2,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Http.Resilience;
+using NubeeAPI.Configuration;
 using NubeeAPI.Data;
-using NubeeAPI.Validators;
 using NubeeAPI.Services;
 using NubeeAPI.Services.AuthLogin;
 using NubeeAPI.Services.Clientes;
@@ -13,8 +14,9 @@ using NubeeAPI.Services.Productos;
 using NubeeAPI.Services.Seguridad;
 using NubeeAPI.Services.Usuarios;
 using NubeeAPI.Services.Wompi;
+using NubeeAPI.Services.Habilitacion;          // ⬅ si tu servicio de habilitación está en este namespace
 using NubeeAPI.Utils.Exceptions;
-using Microsoft.Extensions.Http.Resilience;
+using NubeeAPI.Validators;
 using Polly;
 using Serilog;
 using Serilog.Events;
@@ -47,48 +49,47 @@ builder.Host.UseSerilog();
 // ===== CORS =====
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReact", policy => {
+    options.AddPolicy("AllowReact", policy =>
+    {
         policy.SetIsOriginAllowed(origin =>
-        origin.StartsWith("http://localhost") ||
-        origin.StartsWith("https://localhost"))
-        .AllowCredentials()
-        .AllowAnyHeader()
-        .AllowAnyMethod();
-
+                origin.StartsWith("http://localhost") ||
+                origin.StartsWith("https://localhost"))
+              .AllowCredentials()
+              .AllowAnyHeader()
+              .AllowAnyMethod();
     });
 });
 
 // ===== Controllers y JSON =====
 builder.Services.AddControllers()
-.AddJsonOptions(options =>
-{
-    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-    options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
-});
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
 
 // ===== FluentValidation =====
 builder.Services.AddScoped<
     FluentValidation.IValidator<NubeeAPI.Models.Factura>,
-    NubeeAPI.Validators.FacturaFactusValidator>();
+    FacturaFactusValidator>();
 
 // ===== Opciones de Factus (Options pattern + validación al arrancar) =====
-builder.Services.AddOptions<NubeeAPI.Configuration.FactusOptions>()
-    .Bind(builder.Configuration.GetSection(NubeeAPI.Configuration.FactusOptions.SectionName))
+builder.Services.AddOptions<FactusOptions>()
+    .Bind(builder.Configuration.GetSection(FactusOptions.SectionName))
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
-// ===== HttpClient para Factus =====
+// ===== HttpClient para Factus (NOMBRADO) =====
 // Resiliencia con Polly: timeout por intento + circuit breaker.
-// ⚠️ NO se agrega RETRY aquí a propósito: FactusService ya reintenta de forma
-//    "method-aware" (sólo GET; el POST /v2/bills/validate NUNCA se reintenta para
-//    no emitir una factura duplicada ante la DIAN). Un retry a nivel handler
-//    reintentaría también el POST y causaría doble emisión.
+// ⚠️ NO se agrega RETRY aquí a propósito: FactusService ya reintenta solo GET;
+// el POST /v2/bills/validate NUNCA se reintenta para no duplicar facturas.
 builder.Services.AddHttpClient("Factus", client =>
 {
-    client.BaseAddress = new Uri(builder.Configuration["Factus:BaseUrl"] ?? "https://api-sandbox.factus.com.co");
+    var baseUrl = builder.Configuration["Factus:BaseUrl"] ?? "https://api-sandbox.factus.com.co";
+    client.BaseAddress = new Uri(baseUrl);
     client.DefaultRequestHeaders.Accept.Add(
         new MediaTypeWithQualityHeaderValue("application/json"));
-    // Sin tope agresivo: el timeout por intento lo gobierna Polly más abajo.
+    // El timeout real por intento lo gobierna Polly; este es un tope global.
     client.Timeout = TimeSpan.FromSeconds(100);
 })
 .AddResilienceHandler("factus-pipeline", pipeline =>
@@ -97,15 +98,25 @@ builder.Services.AddHttpClient("Factus", client =>
     pipeline.AddTimeout(TimeSpan.FromSeconds(30));
 
     // Circuit breaker: si Factus falla de forma sostenida, abrir el circuito
-    // y dejar de golpear durante un tiempo (protege a Factus y libera hilos).
     pipeline.AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
     {
-        FailureRatio = 0.5,                              // 50% de fallos…
-        SamplingDuration = TimeSpan.FromSeconds(30),     // …en una ventana de 30s
-        MinimumThroughput = 5,                           // con al menos 5 llamadas
-        BreakDuration = TimeSpan.FromSeconds(15)         // abre el circuito 15s
+        FailureRatio = 0.5,                          // 50% fallos…
+        SamplingDuration = TimeSpan.FromSeconds(30), // …en ventana de 30s
+
+        MinimumThroughput = 5,                       // al menos 5 llamadas
+        BreakDuration = TimeSpan.FromSeconds(15)     // circuito abierto 15s
     });
 });
+
+// ===== MemoryCache para token de Factus =====
+builder.Services.AddMemoryCache();
+
+// ===== Servicios de Factus (unificados) =====
+builder.Services.AddScoped<IFactusTokenService, FactusTokenService>();
+builder.Services.AddScoped<IFactusService, FactusService>();   // ⬅ Scoped (NO singleton)
+
+// ===== Servicio de habilitación DIAN/Factus =====
+builder.Services.AddScoped<IHabilitacionService, HabilitacionService>();
 
 // ===== Swagger =====
 builder.Services.AddEndpointsApiExplorer();
@@ -121,20 +132,21 @@ builder.Services.AddSwaggerGen(c =>
         Description = "Ingresa 'Bearer' [espacio] y tu token.\n\nEjemplo: 'Bearer eyJhbGciOiJIUzI1Ni...'"
     });
     c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
-{
-{
-new Microsoft.OpenApi.Models.OpenApiSecurityScheme
-{
-Reference = new Microsoft.OpenApi.Models.OpenApiReference
-{
-Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
-Id = "Bearer"
-}
-},
-new string[] {}
-}
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
 });
-});
+
 builder.Services.AddHttpClient();
 builder.Services.AddSignalR();
 builder.Services.AddScoped<SeguridadService>();
@@ -145,7 +157,7 @@ builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IProductoService, ProductoService>();
 builder.Services.AddScoped<IFacturaService, FacturaService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
-builder.Services.AddSingleton<IFactusService, FactusService>();
+
 builder.Services.AddHttpClient<IWompiService, WompiService>(client =>
 {
     client.DefaultRequestHeaders.Add("Accept", "application/json");
@@ -156,19 +168,18 @@ builder.Services.AddScoped<IDocumentoSoporteService, DocumentoSoporteService>();
 // ===== Base de datos =====
 var conn = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-options.UseSqlServer(conn, sqlServerOptions =>
-{
-    // ✅ Cambiar a 0 reintentos
-    sqlServerOptions.EnableRetryOnFailure(maxRetryCount: 0);
-}));
+    options.UseSqlServer(conn, sqlServerOptions =>
+    {
+        // ✅ Cambiar a 0 reintentos
+        sqlServerOptions.EnableRetryOnFailure(maxRetryCount: 0);
+    }));
 
-// ===== Servicios =====
+// ===== Otros servicios =====
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<ISuscripcionService, SuscripcionService>();
 builder.Services.AddSingleton<NubeeAPI.Services.ConfiguracionService>();
 
 // ===== JWT Config (robusto para diseño) =====
-// Obtenemos configuraciones pero no lanzamos excepción en diseño
 var jwtKeyConfig = builder.Configuration["Jwt:Key"];
 var jwtIssuer = builder.Configuration["Jwt:Issuer"];
 var jwtAudience = builder.Configuration["Jwt:Audience"];
@@ -191,30 +202,30 @@ var signingKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKeyConfig));
 
 // Registrar autenticación normalmente; si signingKey es temporal seguirá funcionando en Dev
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-.AddJwtBearer(options =>
-{
-    // Si no hay clave real, evitamos validaciones estrictas (solo en diseño)
-    if (string.IsNullOrWhiteSpace(builder.Configuration["Jwt:Key"]) && isDevelopment)
+    .AddJwtBearer(options =>
     {
-        options.RequireHttpsMetadata = false;
-        options.Events = new JwtBearerEvents
+        // Si no hay clave real, evitamos validaciones estrictas (solo en diseño)
+        if (string.IsNullOrWhiteSpace(builder.Configuration["Jwt:Key"]) && isDevelopment)
         {
-            OnMessageReceived = context => Task.CompletedTask
-        };
-        return;
-    }
+            options.RequireHttpsMetadata = false;
+            options.Events = new JwtBearerEvents
+            {
+                OnMessageReceived = context => Task.CompletedTask
+            };
+            return;
+        }
 
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = jwtIssuer,
-        ValidAudience = jwtAudience,
-        IssuerSigningKey = signingKey
-    };
-});
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+            IssuerSigningKey = signingKey
+        };
+    });
 
 var app = builder.Build();
 
@@ -257,6 +268,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
 app.MapGet("/api/db-test", async (ApplicationDbContext db) =>
 {
     try
@@ -272,8 +284,8 @@ app.MapGet("/api/db-test", async (ApplicationDbContext db) =>
 
 app.UseCors("AllowReact");
 app.UseHttpsRedirection();
-app.UseAuthentication(); // 3. Autenticación (lee el token)
-app.UseAuthorization(); // 4. Autorización (verifica permisos)
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapHub<NotificacionesHub>("/api/notificacionesHub").AllowAnonymous();
 
 // ===== Auto-creación de tablas y migraciones incrementales =====
@@ -286,7 +298,7 @@ using (var scope = app.Services.CreateScope())
         var context = services.GetRequiredService<ApplicationDbContext>();
         context.Database.EnsureCreated();
 
-        // Columna Rol en Usuarios (EnsureCreated no aplica cambios a tablas existentes)
+        // Columna Rol en Usuarios
         context.Database.ExecuteSqlRaw(@"
             IF NOT EXISTS (
                 SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
@@ -298,7 +310,7 @@ using (var scope = app.Services.CreateScope())
                     CONSTRAINT DF_Usuarios_Rol DEFAULT 'usuario';
             END");
 
-        // Columna NumeroFactus en Facturas (número oficial devuelto por Factus)
+        // Columna NumeroFactus en Facturas
         context.Database.ExecuteSqlRaw(@"
             IF NOT EXISTS (
                 SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
@@ -308,15 +320,14 @@ using (var scope = app.Services.CreateScope())
                 ALTER TABLE Facturas ADD NumeroFactus NVARCHAR(40) NULL;
             END");
 
-        // Corrige el código DIAN del Impoconsumo (INC) en datos ya sembrados:
-        // estándar DIAN/Factus/CUFE = 04 (antes quedó como 02). Idempotente.
+        // Corrección código DIAN del Impoconsumo (INC)
         context.Database.ExecuteSqlRaw(@"
             UPDATE Impuestos
                SET CodigoTributoDIAN = '04'
              WHERE TipoImpuesto = 'Impoconsumo'
                AND CodigoTributoDIAN = '02';");
 
-        // Tabla de desglose de formas de pago de factura (payment_details Factus)
+        // Tabla de desglose de formas de pago de factura
         context.Database.ExecuteSqlRaw(@"
             IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'FacturasFormasPago')
             BEGIN
@@ -331,6 +342,7 @@ using (var scope = app.Services.CreateScope())
                 CREATE INDEX IX_FacturasFormasPago_FacturaId ON FacturasFormasPago(FacturaId);
             END");
 
+        // Tabla AuditoriaAdmin
         context.Database.ExecuteSqlRaw(@"
             IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'AuditoriaAdmin')
             BEGIN
@@ -354,7 +366,6 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-app.MapControllers(); // 5. Finalmente los controllers
+app.MapControllers();
 
 app.Run();
-
