@@ -10,6 +10,7 @@ using NubeeAPI.Services.AuthLogin;
 using NubeeAPI.Services.Clientes;
 using NubeeAPI.Services.Facturas;
 using NubeeAPI.Services.Factus;
+using NubeeAPI.Services.Notificaciones;
 using NubeeAPI.Services.Productos;
 using NubeeAPI.Services.Seguridad;
 using NubeeAPI.Services.Usuarios;
@@ -156,6 +157,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IClienteService, ClienteService>();
 builder.Services.AddScoped<IProductoService, ProductoService>();
 builder.Services.AddScoped<IFacturaService, FacturaService>();
+builder.Services.AddScoped<IPosFacturacionService, PosFacturacionService>();
 builder.Services.AddScoped<IUsuarioService, UsuarioService>();
 
 builder.Services.AddHttpClient<IWompiService, WompiService>(client =>
@@ -164,6 +166,7 @@ builder.Services.AddHttpClient<IWompiService, WompiService>(client =>
     client.Timeout = TimeSpan.FromSeconds(30);
 });
 builder.Services.AddScoped<IDocumentoSoporteService, DocumentoSoporteService>();
+builder.Services.AddScoped<INotificacionService, NotificacionService>();
 
 // ===== Base de datos =====
 var conn = builder.Configuration.GetConnectionString("DefaultConnection");
@@ -356,6 +359,40 @@ using (var scope = app.Services.CreateScope())
                 );
                 CREATE INDEX IX_AuditoriaAdmin_FechaHora ON AuditoriaAdmin(FechaHora DESC);
                 CREATE INDEX IX_AuditoriaAdmin_AdminId   ON AuditoriaAdmin(AdminId);
+            END");
+
+        // Columna FacturaId en PosVentas (enlace venta POS → factura electrónica)
+        context.Database.ExecuteSqlRaw(@"
+            IF NOT EXISTS (
+                SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+                WHERE TABLE_NAME = 'PosVentas' AND COLUMN_NAME = 'FacturaId'
+            )
+            BEGIN
+                ALTER TABLE PosVentas ADD FacturaId INT NULL;
+            END");
+
+        // Tabla de notificaciones in-app (historial / centro de notificaciones)
+        context.Database.ExecuteSqlRaw(@"
+            IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'Notificaciones')
+            BEGIN
+                CREATE TABLE Notificaciones (
+                    Id            INT IDENTITY(1,1) PRIMARY KEY,
+                    UsuarioId     INT NOT NULL,
+                    Tipo          NVARCHAR(20) NOT NULL,
+                    Categoria     NVARCHAR(40) NULL,
+                    Titulo        NVARCHAR(200) NOT NULL,
+                    Mensaje       NVARCHAR(500) NOT NULL,
+                    ReferenciaId  INT NULL,
+                    Enlace        NVARCHAR(300) NULL,
+                    Leida         BIT NOT NULL DEFAULT 0,
+                    FechaCreacion DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
+                    CONSTRAINT FK_Notificaciones_Usuarios FOREIGN KEY (UsuarioId)
+                        REFERENCES Usuarios(Id) ON DELETE CASCADE
+                );
+                CREATE INDEX IX_Notificaciones_Usuario_Leida
+                    ON Notificaciones(UsuarioId, Leida);
+                CREATE INDEX IX_Notificaciones_FechaCreacion
+                    ON Notificaciones(FechaCreacion DESC);
             END");
 
         logger.LogInformation("Base de datos lista.");

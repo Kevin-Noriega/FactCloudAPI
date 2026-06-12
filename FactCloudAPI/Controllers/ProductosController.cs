@@ -1,6 +1,7 @@
 using NubeeAPI.Data;
 using NubeeAPI.DTOs.Productos;
 using NubeeAPI.Models;
+using NubeeAPI.Services.Notificaciones;
 using NubeeAPI.Services.Productos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,11 +20,16 @@ namespace NubeeAPI.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IProductoService _productoService;
+        private readonly INotificacionService _notificaciones;
 
-        public ProductosController(ApplicationDbContext context, IProductoService productoService)
+        public ProductosController(
+            ApplicationDbContext context,
+            IProductoService productoService,
+            INotificacionService notificaciones)
         {
             _context = context;
             _productoService = productoService;
+            _notificaciones = notificaciones;
         }
 
         // GET: api/productos
@@ -59,6 +65,9 @@ namespace NubeeAPI.Controllers
                 var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
                 await _productoService.CrearAsync(dto, usuarioId);
 
+                await _notificaciones.CrearAsync(usuarioId, "success", "Producto creado",
+                    $"El producto '{dto.Nombre}' se creó correctamente.", "producto", enlace: "/productos");
+
                 return Ok(new { message = "Producto creado correctamente" });
             }
             catch (Exception ex)
@@ -75,6 +84,10 @@ namespace NubeeAPI.Controllers
             {
                 var usuarioId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value);
                 await _productoService.ActualizarAsync(id, dto, usuarioId);
+
+                await _notificaciones.CrearAsync(usuarioId, "info", "Producto actualizado",
+                    $"El producto '{dto.Nombre}' se actualizó.", "producto", id, "/productos");
+
                 return NoContent();
             }
             catch (KeyNotFoundException)
@@ -110,6 +123,9 @@ namespace NubeeAPI.Controllers
 
             _context.Productos.Remove(producto);
             await _context.SaveChangesAsync();
+
+            await _notificaciones.CrearAsync(producto.UsuarioId, "warning", "Producto eliminado",
+                $"El producto '{producto.Nombre}' fue eliminado.", "producto");
 
             return NoContent();
         }

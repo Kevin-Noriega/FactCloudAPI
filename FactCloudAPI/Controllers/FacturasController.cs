@@ -27,6 +27,7 @@ namespace NubeeAPI.Controllers
         private readonly ISuscripcionService _suscripcionService; // ? NUEVO
         private readonly IFactusService _factusService;
         private readonly FluentValidation.IValidator<Factura> _facturaValidator;
+        private readonly NubeeAPI.Services.Notificaciones.INotificacionService _notificaciones;
         public FacturasController(
             ApplicationDbContext context,
             IEmailService emailService,
@@ -34,7 +35,8 @@ namespace NubeeAPI.Controllers
             ILogger<FacturasController> logger,
             ISuscripcionService suscripcionService,
              IFactusService factusService,
-             FluentValidation.IValidator<Factura> facturaValidator) // ? NUEVO
+             FluentValidation.IValidator<Factura> facturaValidator,
+             NubeeAPI.Services.Notificaciones.INotificacionService notificaciones) // ? NUEVO
         {
             _context = context;
             _emailService = emailService;
@@ -43,6 +45,7 @@ namespace NubeeAPI.Controllers
             _suscripcionService = suscripcionService;
             _factusService = factusService;// ? NUEVO
             _facturaValidator = facturaValidator;
+            _notificaciones = notificaciones;
         }
 
         // ==================== HELPERS PRIVADOS ====================
@@ -315,6 +318,15 @@ namespace NubeeAPI.Controllers
                 });
             }
 
+            // -- 10b. Notificación in-app persistente ------------------------------
+            await _notificaciones.CrearAsync(usuarioId.Value,
+                esBorrador ? "info" : "success",
+                esBorrador ? "Borrador de factura guardado" : "Factura creada",
+                esBorrador
+                    ? $"Se guardó el borrador de la factura {factura.NumeroFacturaCompleto}."
+                    : $"Factura {factura.NumeroFacturaCompleto} por {factura.TotalFactura:C} creada.",
+                "factura", factura.Id, $"/facturas/{factura.Id}");
+
             // -- 11. Respuesta -----------------------------------------------------
             return CreatedAtAction(nameof(ObtenerFactura), new { id = factura.Id }, new
             {
@@ -413,8 +425,13 @@ namespace NubeeAPI.Controllers
                         mensaje = "No se puede eliminar una factura enviada o validada por la DIAN. Use una Nota Crédito."
                     });
 
+            var numeroEliminado = factura.NumeroFacturaCompleto;
             _context.Facturas.Remove(factura);
             await _context.SaveChangesAsync();
+
+            await _notificaciones.CrearAsync(usuarioId.Value, "warning", "Factura eliminada",
+                $"Se eliminó la factura {numeroEliminado}.", "factura");
+
             return NoContent();
         }
 
@@ -442,6 +459,10 @@ namespace NubeeAPI.Controllers
                 return BadRequest(new { mensaje = "Esta factura ya fue enviada al cliente" });
 
             await _emailService.EnviarFacturaCliente(id);
+
+            await _notificaciones.CrearAsync(usuarioId.Value, "success", "Factura enviada",
+                $"La factura {factura.NumeroFacturaCompleto} se envió a {factura.Cliente.Correo}.",
+                "factura", factura.Id, $"/facturas/{factura.Id}");
 
             return Ok(new
             {
@@ -707,6 +728,12 @@ namespace NubeeAPI.Controllers
             }
 
             await _context.SaveChangesAsync();
+
+            var esPagada = factura.Estado == EstadoFactura.Pagada;
+            await _notificaciones.CrearAsync(usuarioId.Value, "success",
+                esPagada ? "Factura pagada" : "Pago registrado",
+                $"Factura {factura.NumeroFacturaCompleto}: pago de {factura.MontoPagado:C} registrado.",
+                "factura", factura.Id, $"/facturas/{factura.Id}");
 
             return Ok(new
             {
