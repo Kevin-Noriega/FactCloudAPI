@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Options;
 using NubeeAPI.Configuration;
+using NubeeAPI.DTOs.Habilitacion;
 using NubeeAPI.Models;
 using NubeeAPI.Models.Impuestos;
 using NubeeAPI.Models.Usuarios;
@@ -13,9 +14,10 @@ namespace NubeeAPI.Services.Factus
 {
     /// <summary>
     /// Cliente de la API Factus V2 (https://developers.factus.com.co).
-    /// Diseñado para registrarse como Singleton: NO muta el HttpClient compartido
-    /// (cada request lleva su propio encabezado Authorization vía HttpRequestMessage),
-    /// cachea el access_token y lo refresca automáticamente ante un 401.
+    /// Diseñado para registrarse como Singleton:
+    /// - Usa HttpClient de IHttpClientFactory.
+    /// - Cachea el access_token y lo renueva automáticamente ante 401.
+    /// - Soporta cancelación y reintento de red en operaciones idempotentes.
     /// </summary>
     public class FactusService : IFactusService
     {
@@ -26,7 +28,7 @@ namespace NubeeAPI.Services.Factus
         private static readonly JsonSerializerOptions JsonOpts =
             new() { PropertyNameCaseInsensitive = true };
 
-        // Estado del token (protegido por el semáforo)
+        // Estado del token (protegido por semáforo)
         private string _accessToken = "";
         private DateTime _tokenExpiry = DateTime.MinValue;
         private readonly SemaphoreSlim _tokenLock = new(1, 1);
@@ -40,14 +42,15 @@ namespace NubeeAPI.Services.Factus
             _opts = options.Value;
             _logger = logger;
 
-            if (_http.Timeout == System.Threading.Timeout.InfiniteTimeSpan ||
+            // Timeout razonable
+            if (_http.Timeout == Timeout.InfiniteTimeSpan ||
                 _http.Timeout > TimeSpan.FromSeconds(60))
             {
                 _http.Timeout = TimeSpan.FromSeconds(60);
             }
         }
 
-        // ══ Autenticación OAuth2 (password grant) ═════════════════════════
+        // ═══════════ Autenticación OAuth2 (password grant) ════════════════
         private async Task<string> ObtenerTokenAsync(CancellationToken ct)
         {
             await _tokenLock.WaitAsync(ct);
@@ -81,25 +84,78 @@ namespace NubeeAPI.Services.Factus
                             ?? throw new FactusException("Factus devolvió un token vacío", contenido);
 
                 _accessToken = token.AccessToken;
-                // margen de 60s para evitar usar un token a punto de expirar
-                _tokenExpiry = DateTime.UtcNow.AddSeconds(Math.Max(30, token.ExpiresIn - 60));
+                _tokenExpiry = DateTime.UtcNow.AddSeconds(Math.Max(30, token.ExpiresIn - 60)); // margen
                 _logger.LogInformation("Token Factus renovado, expira en ~{Seg}s", token.ExpiresIn);
                 return _accessToken;
             }
-            finally { _tokenLock.Release(); }
+            finally
+            {
+                _tokenLock.Release();
+            }
         }
 
         private void InvalidarToken()
         {
-            // No requiere lock: peor caso, una renovación de más.
-            _tokenExpiry = DateTime.MinValue;
             _accessToken = "";
+            _tokenExpiry = DateTime.MinValue;
+        }
+        // ═══════════ Rangos de numeración ════════════════════════════════
+        public async Task<FactusRangoActivoDto?> ObtenerRangoActivoAsync(
+          int factusRangoId,
+          CancellationToken ct = default)
+        {
+            _logger.LogInformation("Consultando rango Factus. Id={Id}", factusRangoId);
+
+            using var resp = await EnviarAsync(
+                HttpMethod.Get,
+                $"/v2/numbering-ranges/{factusRangoId}",
+                null,
+                ct,
+                reintentarRed: true);
+
+            var body = await resp.Content.ReadAsStringAsync(ct);
+
+            if (resp.StatusCode == HttpStatusCode.NotFound)
+            {
+                _logger.LogWarning("Rango Factus {Id} no encontrado.", factusRangoId);
+                return null;
+            }
+
+            if (!resp.IsSuccessStatusCode)
+            {
+                _logger.LogError("Error consultando rango Factus {Id}: {Status} {Body}",
+                    factusRangoId, resp.StatusCode, body);
+                throw new FactusException(
+                    $"Error consultando rango en Factus ({resp.StatusCode})",
+                    body);
+            }
+
+            using var json = JsonDocument.Parse(body);
+            if (!json.RootElement.TryGetProperty("data", out var dataEl))
+                return null;
+
+            var dto = new FactusRangoActivoDto
+            {
+                id = dataEl.GetProperty("id").GetInt32(),
+                prefix = dataEl.GetProperty("prefix").GetString(),
+                from = dataEl.GetProperty("from").GetInt64(),
+                to = dataEl.GetProperty("to").GetInt64(),
+                current = dataEl.GetProperty("current").GetInt64(),
+                active = dataEl.GetProperty("active").GetBoolean()
+            };
+
+            return dto;
         }
 
-        // ══ Envío genérico con auth por-request + refresh ante 401 ════════
-        // reintentarRed: solo para operaciones idempotentes (GET). NUNCA para POST validate.
+        // ═══════════ Envío genérico con auth + refresh 401 ════════════════
+        /// <summary>
+        /// reintentarRed: solo para GET/operaciones idempotentes.
+        /// </summary>
         private async Task<HttpResponseMessage> EnviarAsync(
-            HttpMethod metodo, string ruta, object? cuerpo, CancellationToken ct,
+            HttpMethod metodo,
+            string ruta,
+            object? cuerpo,
+            CancellationToken ct,
             bool reintentarRed = false)
         {
             const int maxIntentosRed = 3;
@@ -114,6 +170,7 @@ namespace NubeeAPI.Services.Factus
                 using var req = new HttpRequestMessage(metodo, ruta);
                 req.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 req.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
                 if (cuerpo is not null)
                     req.Content = JsonContent.Create(cuerpo);
 
@@ -128,17 +185,16 @@ namespace NubeeAPI.Services.Factus
                 {
                     var espera = TimeSpan.FromMilliseconds(300 * Math.Pow(2, intento - 1));
                     _logger.LogWarning(ex,
-                        "Fallo de red llamando a Factus {Metodo} {Ruta} (intento {Intento}). Reintentando en {Ms}ms",
+                        "Fallo de red Factus {Metodo} {Ruta} (intento {Intento}). Reintentando en {Ms}ms",
                         metodo, ruta, intento, espera.TotalMilliseconds);
                     await Task.Delay(espera, ct);
                     continue;
                 }
 
-                // Token expirado/revocado → refrescar una sola vez y reintentar
                 if (resp.StatusCode == HttpStatusCode.Unauthorized && !tokenRefrescado)
                 {
                     resp.Dispose();
-                    _logger.LogWarning("Factus respondió 401; refrescando token y reintentando {Ruta}", ruta);
+                    _logger.LogWarning("Factus 401 en {Ruta}; refrescando token y reintentando", ruta);
                     InvalidarToken();
                     tokenRefrescado = true;
                     continue;
@@ -147,15 +203,58 @@ namespace NubeeAPI.Services.Factus
                 return resp;
             }
         }
-
-        // ══ Registrar rango de numeración ═════════════════════════════════
-        public async Task<int> RegistrarRangoAsync(ResolucionDIAN resolucion, Negocio negocio, CancellationToken ct = default)
+        public async Task<bool> VerificarEmpresaAsync(
+    string nit,
+    CancellationToken ct = default)
         {
-            // Según la colección Factus V2, para crear un rango de FACTURA electrónica
-            // el código de documento es "21" (NO "01", que es el código del documento factura).
+            try
+            {
+                using var resp = await EnviarAsync(
+                    HttpMethod.Get,
+                    "/v2/companies",
+                    null,
+                    ct,
+                    reintentarRed: true);
+
+                if (!resp.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Factus /v2/companies devolvió {Status}", resp.StatusCode);
+                    return false;
+                }
+
+                var body = await resp.Content.ReadAsStringAsync(ct);
+
+                using var json = JsonDocument.Parse(body);
+                if (json.RootElement.TryGetProperty("data", out var data) &&
+                    data.TryGetProperty("identification_number", out var idNumEl))
+                {
+                    var nitFactus = idNumEl.GetString()?.Replace("-", "") ?? "";
+                    var nitLocal = nit.Replace("-", "");
+                    return nitFactus == nitLocal;
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "No se pudo verificar empresa en Factus para NIT {Nit}", nit);
+                return false;
+            }
+        }
+
+        // ═══════════ Rangos de numeración ════════════════════════════════
+        public async Task<int> RegistrarRangoAsync(
+            ResolucionDIAN resolucion,
+            Negocio negocio,
+            CancellationToken ct = default)
+        {
+            // Según colección Factus V2:
+            // document = 21 (Factura electrónica),
+            // resolution_number = número de autorización DIAN,
+            // from/to y technical_key también se pueden enviar.
             var payload = new
             {
-                document = "21",                       // 21 = Factura electrónica de venta
+                document = 21, // también acepta string "21" según ejemplos
                 prefix = resolucion.Prefijo ?? "",
                 from = resolucion.RangoDesde,
                 to = resolucion.RangoHasta,
@@ -165,7 +264,17 @@ namespace NubeeAPI.Services.Factus
                 technical_key = resolucion.ClaveTecnica ?? ""
             };
 
-            using var resp = await EnviarAsync(HttpMethod.Post, "/v2/numbering-ranges", payload, ct);
+            _logger.LogInformation(
+                "Registrando rango Factus para NIT {Nit}, resolución {Res}",
+                negocio.Nit, resolucion.NumeroAutorizacion);
+
+            using var resp = await EnviarAsync(
+                HttpMethod.Post,
+                "/v2/numbering-ranges",
+                payload,
+                ct,
+                reintentarRed: false);
+
             var contenido = await resp.Content.ReadAsStringAsync(ct);
 
             if (!resp.IsSuccessStatusCode)
@@ -175,16 +284,38 @@ namespace NubeeAPI.Services.Factus
             }
 
             using var json = JsonDocument.Parse(contenido);
-            return json.RootElement.GetProperty("data").GetProperty("id").GetInt32();
+            var id = json.RootElement.GetProperty("data").GetProperty("id").GetInt32();
+
+            _logger.LogInformation("Rango Factus registrado. Id={Id}, Prefijo={Prefijo}", id, resolucion.Prefijo);
+            return id;
         }
 
-        // ══ Enviar factura (POST /v2/bills/validate) ══════════════════════
+        // (Opcional) Obtener rango por id
+        public async Task<string?> ObtenerRangoAsync(int numberingRangeId, CancellationToken ct = default)
+        {
+            using var resp = await EnviarAsync(
+                HttpMethod.Get,
+                $"/v2/numbering-ranges/{numberingRangeId}",
+                null,
+                ct,
+                reintentarRed: true);
+
+            var body = await resp.Content.ReadAsStringAsync(ct);
+            return resp.IsSuccessStatusCode ? body : null;
+        }
+
+        // ═══════════ Enviar factura (POST /v2/bills/validate) ═════════════
         public async Task<FactusRespuestaFactura> EnviarFacturaAsync(Factura factura, CancellationToken ct = default)
         {
             var payload = MapearFactura(factura);
 
-            // POST validate NO es idempotente → sin reintento de red automático.
-            using var resp = await EnviarAsync(HttpMethod.Post, "/v2/bills/validate", payload, ct);
+            using var resp = await EnviarAsync(
+                HttpMethod.Post,
+                "/v2/bills/validate",
+                payload,
+                ct,
+                reintentarRed: false); // NO reintentar, no es idempotente
+
             var contenido = await resp.Content.ReadAsStringAsync(ct);
 
             if (!resp.IsSuccessStatusCode)
@@ -194,41 +325,61 @@ namespace NubeeAPI.Services.Factus
             }
 
             return JsonSerializer.Deserialize<FactusRespuestaFactura>(contenido, JsonOpts)
-                   ?? throw new FactusException("Factus devolvió una respuesta vacía", contenido);
+                   ?? throw new FactusException("Factus devolvió respuesta vacía", contenido);
         }
 
-        // ══ Descargar PDF ═════════════════════════════════════════════════
+        // ═══════════ Descargar PDF / XML ═════════════════════════════════
         public async Task<byte[]> DescargarPdfAsync(string numeroFactus, CancellationToken ct = default)
         {
-            using var resp = await EnviarAsync(HttpMethod.Get, $"/v2/bills/{numeroFactus}/download-pdf", null, ct, reintentarRed: true);
+            using var resp = await EnviarAsync(
+                HttpMethod.Get,
+                $"/v2/bills/{numeroFactus}/download-pdf",
+                null,
+                ct,
+                reintentarRed: true);
+
             if (!resp.IsSuccessStatusCode)
             {
                 var body = await resp.Content.ReadAsStringAsync(ct);
-                throw new FactusException($"Factus no entregó el PDF de {numeroFactus} ({resp.StatusCode})", body);
+                throw new FactusException($"Factus no entregó PDF {numeroFactus} ({resp.StatusCode})", body);
             }
+
             return await resp.Content.ReadAsByteArrayAsync(ct);
         }
 
-        // ══ Descargar XML ═════════════════════════════════════════════════
         public async Task<string> DescargarXmlAsync(string numeroFactus, CancellationToken ct = default)
         {
-            using var resp = await EnviarAsync(HttpMethod.Get, $"/v2/bills/{numeroFactus}/download-xml", null, ct, reintentarRed: true);
+            using var resp = await EnviarAsync(
+                HttpMethod.Get,
+                $"/v2/bills/{numeroFactus}/download-xml",
+                null,
+                ct,
+                reintentarRed: true);
+
+            var body = await resp.Content.ReadAsStringAsync(ct);
+
             if (!resp.IsSuccessStatusCode)
-            {
-                var body = await resp.Content.ReadAsStringAsync(ct);
-                throw new FactusException($"Factus no entregó el XML de {numeroFactus} ({resp.StatusCode})", body);
-            }
-            return await resp.Content.ReadAsStringAsync(ct);
+                throw new FactusException($"Factus no entregó XML {numeroFactus} ({resp.StatusCode})", body);
+
+            return body;
         }
 
-        // ══ Consultar factura (GET /v2/bills/{number}) ════════════════════
+        // ═══════════ Consultar / listar / eliminar facturas ══════════════
         public async Task<string> ConsultarFacturaAsync(string numeroFactus, CancellationToken ct = default)
         {
-            using var resp = await EnviarAsync(HttpMethod.Get, $"/v2/bills/{numeroFactus}", null, ct, reintentarRed: true);
-            var contenido = await resp.Content.ReadAsStringAsync(ct);
+            using var resp = await EnviarAsync(
+                HttpMethod.Get,
+                $"/v2/bills/{numeroFactus}",
+                null,
+                ct,
+                reintentarRed: true);
+
+            var body = await resp.Content.ReadAsStringAsync(ct);
+
             if (!resp.IsSuccessStatusCode)
-                throw new FactusException($"Factus no encontró la factura {numeroFactus} ({resp.StatusCode})", contenido);
-            return contenido;
+                throw new FactusException($"Factus no encontró factura {numeroFactus} ({resp.StatusCode})", body);
+
+            return body;
         }
 
         public async Task<string> ConsultarEstadoAsync(string numeroFactus, CancellationToken ct = default)
@@ -237,67 +388,69 @@ namespace NubeeAPI.Services.Factus
             try
             {
                 using var json = JsonDocument.Parse(contenido);
-                // La factura puede venir como data.bill.status o data.status según el endpoint.
                 if (json.RootElement.TryGetProperty("data", out var data))
                 {
-                    if (data.TryGetProperty("bill", out var bill) &&
-                        bill.TryGetProperty("status", out var st1))
+                    if (data.TryGetProperty("bill", out var bill)
+                        && bill.TryGetProperty("status", out var st1))
                         return st1.ToString();
+
                     if (data.TryGetProperty("status", out var st2))
                         return st2.ToString();
                 }
             }
             catch (JsonException ex)
             {
-                _logger.LogWarning(ex, "No se pudo parsear el estado de la factura {Numero}", numeroFactus);
+                _logger.LogWarning(ex, "No se pudo parsear estado de factura {Numero}", numeroFactus);
             }
+
             return "";
         }
 
-        // ══ Listar facturas ═══════════════════════════════════════════════
-        public async Task<string> ListarFacturasAsync(string? queryString = null, CancellationToken ct = default)
+        public async Task<string> ListarFacturasAsync(string? query = null, CancellationToken ct = default)
         {
             var ruta = "/v2/bills";
-            if (!string.IsNullOrWhiteSpace(queryString))
-                ruta += queryString.StartsWith('?') ? queryString : "?" + queryString;
+            if (!string.IsNullOrWhiteSpace(query))
+                ruta += query.StartsWith('?') ? query : "?" + query;
 
             using var resp = await EnviarAsync(HttpMethod.Get, ruta, null, ct, reintentarRed: true);
-            var contenido = await resp.Content.ReadAsStringAsync(ct);
+            var body = await resp.Content.ReadAsStringAsync(ct);
+
             if (!resp.IsSuccessStatusCode)
-                throw new FactusException($"Factus rechazó el listado ({resp.StatusCode})", contenido);
-            return contenido;
+                throw new FactusException($"Factus rechazó el listado ({resp.StatusCode})", body);
+
+            return body;
         }
 
-        // ══ Eliminar factura no validada ══════════════════════════════════
         public async Task<bool> EliminarFacturaNoValidadaAsync(string referenceCode, CancellationToken ct = default)
         {
             using var resp = await EnviarAsync(
-                HttpMethod.Delete, $"/v2/bills/destroy/reference/{referenceCode}", null, ct);
+                HttpMethod.Delete,
+                $"/v2/bills/destroy/reference/{referenceCode}",
+                null,
+                ct);
 
             if (resp.IsSuccessStatusCode) return true;
 
             var body = await resp.Content.ReadAsStringAsync(ct);
-            _logger.LogWarning("Factus no pudo eliminar la factura {Ref}: {Status} {Body}",
+            _logger.LogWarning("Factus no pudo eliminar factura {Ref}: {Status} {Body}",
                 referenceCode, resp.StatusCode, body);
             return false;
         }
 
-        // ══ Mapeo Factura → payload Factus V2 ═════════════════════════════
+        // ═══════════ Mapeo Factura → payload Factus ══════════════════════
         public static object MapearFactura(Factura f)
         {
             if (f.Cliente is null)
-                throw new InvalidOperationException("La factura no tiene Cliente cargado; inclúyelo antes de enviar a Factus.");
+                throw new InvalidOperationException("La factura no tiene Cliente cargado.");
             if (f.DetalleFacturas is null || f.DetalleFacturas.Count == 0)
-                throw new InvalidOperationException("La factura no tiene ítems (DetalleFacturas) para enviar a Factus.");
+                throw new InvalidOperationException("La factura no tiene ítems.");
 
             var cliente = f.Cliente;
 
             var telefono = cliente.TelefonoFacturacion
-                        ?? cliente.Telefonos?.FirstOrDefault()?.Numero
-                        ?? "";
+                           ?? cliente.Telefonos?.FirstOrDefault()?.Numero
+                           ?? "";
 
-            // ⚠️ OJO: "Natural" también contiene "ur" → no se puede buscar "ur".
-            // Jurídica se detecta por "jur" (Jurídica/Juridica) o el código DIAN "1".
             bool esJuridica =
                 cliente.TipoPersona?.Contains("jur", StringComparison.OrdinalIgnoreCase) == true
                 || cliente.TipoPersona?.Trim() == "1";
@@ -322,7 +475,7 @@ namespace NubeeAPI.Services.Factus
 
             var municipioCodigo = !string.IsNullOrEmpty(cliente.CodigoMunicipio)
                 ? cliente.CodigoMunicipio
-                : "11001"; // Bogotá D.C. como fallback — nunca debe quedar vacío
+                : "11001"; // Bogotá D.C. por defecto
 
             var items = f.DetalleFacturas.Select((d, i) =>
             {
@@ -332,8 +485,6 @@ namespace NubeeAPI.Services.Factus
                         imp.TarifaImpuesto?.ImpuestoConcepto?.CodigoTributoDIAN == "01")
                     ?.TarifaUtilizada ?? 0m;
 
-                // INC = código 04. Se exige Naturaleza Trasladado porque ReteIVA también
-                // usa el código 04 en el seed; sin este filtro una retención se leería como INC.
                 var incLinea = d.Impuestos?
                     .FirstOrDefault(imp =>
                         imp.Naturaleza == NaturalezaFiscal.Trasladado &&
@@ -391,30 +542,26 @@ namespace NubeeAPI.Services.Factus
             {
                 var p = new Dictionary<string, object>
                 {
-                    ["payment_form"] = f.FormaPago,    // "1" contado | "2" crédito (nivel factura)
-                    ["payment_method_code"] = metodo,  // "10", "42", "48", etc.
+                    ["payment_form"] = f.FormaPago,    // "1" contado | "2" crédito
+                    ["payment_method_code"] = metodo,  // "10", "42", etc.
                     ["amount"] = monto
                 };
-                // due_date sólo aplica a crédito (DIAN/Factus no lo exige en contado)
                 if (esCredito) p["due_date"] = dueDate;
                 return p;
             }
 
-            // Desglose de pagos del frontend; si no hay, un único pago con el total.
             var payments = (f.FormasPago is { Count: > 0 })
                 ? f.FormasPago.Select(fp => ConstruirPago(fp.MetodoPagoCodigo, fp.Valor)).ToArray()
                 : new[] { ConstruirPago(f.MedioPago, f.TotalFactura) };
 
             return new
             {
-                // reference_code DEBE ser único por documento en Factus.
-                // Combinamos número + Id para garantizar unicidad y permitir reenvío idempotente.
                 reference_code = string.IsNullOrEmpty(f.NumeroFactura)
                     ? $"FAC-{f.Id}"
                     : $"{f.Prefijo}{f.NumeroFactura}-{f.Id}",
-                document = "01",                       // 01 = Factura de Venta
+                document = "01",                       // 01 = Factura de venta
                 numbering_range_id = f.FactusRangoId,
-                operation_type = f.TipoOperacion,      // "10" = estándar, "09" = mandatos
+                operation_type = f.TipoOperacion,      // "10" estándar, "09" mandatos, etc.
                 send_email = false,
 
                 payment_details = payments,
@@ -433,8 +580,8 @@ namespace NubeeAPI.Services.Factus
                     address = cliente.Direccion ?? "",
                     email = cliente.Correo ?? "",
                     phone = telefono,
-                    legal_organization_code = esJuridica ? 1 : 2,  // 1=Jurídica, 2=Natural
-                    tribute_code = cliente.CodigoTributo ?? "ZZ",  // ZZ = No responsable IVA
+                    legal_organization_code = esJuridica ? 1 : 2,
+                    tribute_code = cliente.CodigoTributo ?? "ZZ",
                     municipality_code = municipioCodigo
                 },
 
@@ -443,14 +590,8 @@ namespace NubeeAPI.Services.Factus
         }
     }
 
-    // ══ DTOs de respuesta Factus ══════════════════════════════════════════
-    public class FactusTokenResponse
-    {
-        [JsonPropertyName("access_token")] public string AccessToken { get; set; } = "";
-        [JsonPropertyName("expires_in")] public int ExpiresIn { get; set; }
-        [JsonPropertyName("token_type")] public string TokenType { get; set; } = "";
-        [JsonPropertyName("refresh_token")] public string? RefreshToken { get; set; }
-    }
+    // ═══════════ DTOs de token y factura ════════════════════════════════
+  
 
     public class FactusRespuestaFactura
     {
@@ -463,8 +604,6 @@ namespace NubeeAPI.Services.Factus
         [JsonPropertyName("number")] public string? Number { get; set; }
         [JsonPropertyName("qr")] public string? Qr { get; set; }
         [JsonPropertyName("status")] public string? Status { get; set; }
-
-        // En /v2/bills/validate Factus anida la factura bajo "bill".
         [JsonPropertyName("bill")] public FactusBill? Bill { get; set; }
     }
 
@@ -477,7 +616,6 @@ namespace NubeeAPI.Services.Factus
         [JsonPropertyName("public_url")] public string? PublicUrl { get; set; }
     }
 
-    // ══ Excepción personalizada con el body de Factus ═════════════════════
     public class FactusException : Exception
     {
         public string FactusBody { get; }

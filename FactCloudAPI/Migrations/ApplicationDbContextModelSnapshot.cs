@@ -19868,12 +19868,6 @@ namespace NubeeAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<bool>("AplicaIVAExcluido")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("AplicaIVAExento")
-                        .HasColumnType("bit");
-
                     b.Property<decimal?>("BaseMinimaCompras")
                         .HasColumnType("decimal(18,2)");
 
@@ -19883,15 +19877,17 @@ namespace NubeeAPI.Migrations
                     b.Property<int>("Codigo")
                         .HasColumnType("int");
 
-                    b.Property<string>("CodigoConceptoExogena")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<string>("CodigoFormatoExogena")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<string>("CodigoTributoDIAN")
                         .HasMaxLength(2)
                         .HasColumnType("nvarchar(2)");
 
                     b.Property<string>("ConceptoRetencionDIAN")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
 
                     b.Property<int?>("CuentaContableId")
                         .HasColumnType("int");
@@ -19922,6 +19918,12 @@ namespace NubeeAPI.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
 
+                    b.Property<bool>("EsBienExcluido")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("EsBienExento")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime>("FechaCreacion")
                         .HasColumnType("datetime2");
 
@@ -19939,6 +19941,16 @@ namespace NubeeAPI.Migrations
                     b.Property<decimal>("Tarifa")
                         .HasColumnType("decimal(7,4)");
 
+                    b.Property<string>("TipoBaseMinimaCompras")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("TipoBaseMinimaVentas")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
                     b.Property<string>("TipoImpuesto")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -19946,6 +19958,12 @@ namespace NubeeAPI.Migrations
 
                     b.Property<int?>("UsuarioId")
                         .HasColumnType("int");
+
+                    b.Property<DateTime>("VigenteDesde")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("VigenteHasta")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -19976,8 +19994,6 @@ namespace NubeeAPI.Migrations
                         new
                         {
                             Id = 1,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 1,
                             CodigoTributoDIAN = "01",
                             CuentaCreditoVentasId = 10362,
@@ -19985,18 +20001,21 @@ namespace NubeeAPI.Migrations
                             CuentaDevolucionComprasId = 10367,
                             CuentaDevolucionVentasId = 10375,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "IVA 19%",
                             PorValor = false,
                             Tarifa = 19.00m,
-                            TipoImpuesto = "IVA"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "IVA",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 2,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 2,
                             CodigoTributoDIAN = "01",
                             CuentaCreditoVentasId = 10363,
@@ -20004,18 +20023,21 @@ namespace NubeeAPI.Migrations
                             CuentaDevolucionComprasId = 10369,
                             CuentaDevolucionVentasId = 10376,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "IVA 5%",
                             PorValor = false,
                             Tarifa = 5.00m,
-                            TipoImpuesto = "IVA"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "IVA",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 22,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 22,
                             CodigoTributoDIAN = "01",
                             CuentaCreditoVentasId = 10362,
@@ -20023,18 +20045,21 @@ namespace NubeeAPI.Migrations
                             CuentaDevolucionComprasId = 10367,
                             CuentaDevolucionVentasId = 10375,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "IVA 0%",
                             PorValor = false,
                             Tarifa = 0.00m,
-                            TipoImpuesto = "IVA"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "IVA",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 23,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 23,
                             CodigoTributoDIAN = "01",
                             CuentaCreditoVentasId = 10364,
@@ -20042,392 +20067,461 @@ namespace NubeeAPI.Migrations
                             CuentaDevolucionComprasId = 10371,
                             CuentaDevolucionVentasId = 10377,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "IVA 16%",
                             PorValor = false,
                             Tarifa = 16.00m,
-                            TipoImpuesto = "IVA"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "IVA",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 3,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 3,
                             CodigoTributoDIAN = "05",
                             CuentaCreditoComprasId = 10249,
                             CuentaDebitoVentasId = 10077,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Retefuente 11%",
                             PorValor = false,
                             Tarifa = 11.00m,
-                            TipoImpuesto = "Retefuente"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "Retefuente",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 4,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 4,
                             CodigoTributoDIAN = "05",
                             CuentaCreditoComprasId = 10281,
                             CuentaDebitoVentasId = 10075,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Retefuente 10%",
                             PorValor = false,
                             Tarifa = 10.00m,
-                            TipoImpuesto = "Retefuente"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "Retefuente",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 5,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 5,
                             CodigoTributoDIAN = "05",
                             CuentaCreditoComprasId = 10265,
                             CuentaDebitoVentasId = 10073,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Retefuente 6%",
                             PorValor = false,
                             Tarifa = 6.00m,
-                            TipoImpuesto = "Retefuente"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "Retefuente",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 6,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 6,
                             CodigoTributoDIAN = "05",
                             CuentaCreditoComprasId = 10267,
                             CuentaDebitoVentasId = 10071,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Retefuente 4%",
                             PorValor = false,
                             Tarifa = 4.00m,
-                            TipoImpuesto = "Retefuente"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "Retefuente",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 7,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 7,
                             CodigoTributoDIAN = "05",
                             CuentaCreditoComprasId = 10281,
                             CuentaDebitoVentasId = 10069,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Retefuente 2.5%",
                             PorValor = false,
                             Tarifa = 2.50m,
-                            TipoImpuesto = "Retefuente"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "Retefuente",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 18,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 18,
                             CodigoTributoDIAN = "05",
                             CuentaCreditoComprasId = 10253,
                             CuentaDebitoVentasId = 10081,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Retefuente 3.5%",
                             PorValor = false,
                             Tarifa = 3.50m,
-                            TipoImpuesto = "Retefuente"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "Retefuente",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 19,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 19,
                             CodigoTributoDIAN = "05",
                             CuentaCreditoComprasId = 10251,
                             CuentaDebitoVentasId = 10079,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Retefuente 7%",
                             PorValor = false,
                             Tarifa = 7.00m,
-                            TipoImpuesto = "Retefuente"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "Retefuente",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 20,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 20,
                             CodigoTributoDIAN = "05",
                             CuentaCreditoComprasId = 10255,
                             CuentaDebitoVentasId = 10083,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Retefuente 2%",
                             PorValor = false,
                             Tarifa = 2.00m,
-                            TipoImpuesto = "Retefuente"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "Retefuente",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 21,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 21,
                             CodigoTributoDIAN = "05",
                             CuentaCreditoComprasId = 10257,
                             CuentaDebitoVentasId = 10085,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Retefuente 1%",
                             PorValor = false,
                             Tarifa = 1.00m,
-                            TipoImpuesto = "Retefuente"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "Retefuente",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 90,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 90,
                             CodigoTributoDIAN = "05",
                             CuentaCreditoComprasId = 10281,
                             CuentaDebitoVentasId = 10069,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Retefuente 1.5%",
                             PorValor = false,
                             Tarifa = 1.50m,
-                            TipoImpuesto = "Retefuente"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "Retefuente",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 91,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 91,
                             CodigoTributoDIAN = "05",
                             CuentaCreditoComprasId = 10281,
                             CuentaDebitoVentasId = 10069,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Retefuente 0.10%",
                             PorValor = false,
                             Tarifa = 0.10m,
-                            TipoImpuesto = "Retefuente"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "Retefuente",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 92,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 92,
                             CodigoTributoDIAN = "05",
                             CuentaCreditoComprasId = 10281,
                             CuentaDebitoVentasId = 10069,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Retefuente 0.50%",
                             PorValor = false,
                             Tarifa = 0.50m,
-                            TipoImpuesto = "Retefuente"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "Retefuente",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 93,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 93,
                             CodigoTributoDIAN = "05",
                             CuentaCreditoComprasId = 10281,
                             CuentaDebitoVentasId = 10069,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Retefuente 20%",
                             PorValor = false,
                             Tarifa = 20.00m,
-                            TipoImpuesto = "Retefuente"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "Retefuente",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 8,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 8,
                             CodigoTributoDIAN = "06",
                             CuentaCreditoComprasId = 10305,
                             CuentaDebitoVentasId = 10095,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "ReteICA 11.04",
                             PorValor = false,
                             Tarifa = 11.04m,
-                            TipoImpuesto = "ReteICA"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "ReteICA",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 9,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 9,
                             CodigoTributoDIAN = "06",
                             CuentaCreditoComprasId = 10307,
                             CuentaDebitoVentasId = 10097,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "ReteICA 13.8",
                             PorValor = false,
                             Tarifa = 13.80m,
-                            TipoImpuesto = "ReteICA"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "ReteICA",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 10,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 10,
                             CodigoTributoDIAN = "06",
                             CuentaCreditoComprasId = 10309,
                             CuentaDebitoVentasId = 10099,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "ReteICA 9.66",
                             PorValor = false,
                             Tarifa = 9.66m,
-                            TipoImpuesto = "ReteICA"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "ReteICA",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 11,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 11,
                             CodigoTributoDIAN = "06",
                             CuentaCreditoComprasId = 10311,
                             CuentaDebitoVentasId = 10101,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "ReteICA 8",
                             PorValor = false,
                             Tarifa = 8.00m,
-                            TipoImpuesto = "ReteICA"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "ReteICA",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 12,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 12,
                             CodigoTributoDIAN = "06",
                             CuentaCreditoComprasId = 10313,
                             CuentaDebitoVentasId = 10103,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "ReteICA 7",
                             PorValor = false,
                             Tarifa = 7.00m,
-                            TipoImpuesto = "ReteICA"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "ReteICA",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 13,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 13,
                             CodigoTributoDIAN = "06",
                             CuentaCreditoComprasId = 10315,
                             CuentaDebitoVentasId = 10105,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "ReteICA 6.9",
                             PorValor = false,
                             Tarifa = 6.90m,
-                            TipoImpuesto = "ReteICA"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "ReteICA",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 14,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 14,
                             CodigoTributoDIAN = "06",
                             CuentaCreditoComprasId = 10317,
                             CuentaDebitoVentasId = 10107,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "ReteICA 4.14",
                             PorValor = false,
                             Tarifa = 4.14m,
-                            TipoImpuesto = "ReteICA"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "ReteICA",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 15,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 15,
                             CodigoTributoDIAN = "04",
                             CuentaCreditoComprasId = 10294,
                             CuentaDebitoVentasId = 10089,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "ReteIVA 15%",
                             PorValor = false,
                             Tarifa = 15.00m,
-                            TipoImpuesto = "ReteIVA"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "ReteIVA",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 29,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 29,
                             CodigoTributoDIAN = "04",
                             CuentaCreditoComprasId = 10296,
                             CuentaDebitoVentasId = 10091,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "ReteIVA 100%",
                             PorValor = false,
                             Tarifa = 100.00m,
-                            TipoImpuesto = "ReteIVA"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "ReteIVA",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 16,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 16,
                             CodigoTributoDIAN = "04",
                             CuentaCreditoVentasId = 10401,
@@ -20435,18 +20529,21 @@ namespace NubeeAPI.Migrations
                             CuentaDevolucionComprasId = 10404,
                             CuentaDevolucionVentasId = 10402,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Impoconsumo 8%",
                             PorValor = false,
                             Tarifa = 8.00m,
-                            TipoImpuesto = "Impoconsumo"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "Impoconsumo",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 17,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 17,
                             CodigoTributoDIAN = "04",
                             CuentaCreditoVentasId = 10401,
@@ -20454,18 +20551,21 @@ namespace NubeeAPI.Migrations
                             CuentaDevolucionComprasId = 10404,
                             CuentaDevolucionVentasId = 10402,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Impoconsumo por valor",
                             PorValor = false,
                             Tarifa = 0.00m,
-                            TipoImpuesto = "Impoconsumo"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "Impoconsumo",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 24,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 24,
                             CodigoTributoDIAN = "ZY",
                             CuentaCreditoVentasId = 10386,
@@ -20473,18 +20573,21 @@ namespace NubeeAPI.Migrations
                             CuentaDevolucionComprasId = 10634,
                             CuentaDevolucionVentasId = 10389,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "AdValorem 20%",
                             PorValor = false,
                             Tarifa = 20.00m,
-                            TipoImpuesto = "Ad-Valorem"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "Ad-Valorem",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 25,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 25,
                             CodigoTributoDIAN = "ZY",
                             CuentaCreditoVentasId = 10387,
@@ -20492,18 +20595,21 @@ namespace NubeeAPI.Migrations
                             CuentaDevolucionComprasId = 10635,
                             CuentaDevolucionVentasId = 10390,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "AdValorem 25%",
                             PorValor = false,
                             Tarifa = 25.00m,
-                            TipoImpuesto = "Ad-Valorem"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "Ad-Valorem",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 94,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 94,
                             CodigoTributoDIAN = "ZA",
                             CuentaCreditoVentasId = 10391,
@@ -20511,18 +20617,21 @@ namespace NubeeAPI.Migrations
                             CuentaDevolucionComprasId = 10394,
                             CuentaDevolucionVentasId = 10392,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Comestibles ultraprocesados 15%",
                             PorValor = false,
                             Tarifa = 15.00m,
-                            TipoImpuesto = "Comestibles ultraprocesados"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "Comestibles ultraprocesados",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         },
                         new
                         {
                             Id = 95,
-                            AplicaIVAExcluido = false,
-                            AplicaIVAExento = false,
                             Codigo = 95,
                             CodigoTributoDIAN = "ZA",
                             CuentaCreditoVentasId = 10395,
@@ -20530,12 +20639,17 @@ namespace NubeeAPI.Migrations
                             CuentaDevolucionComprasId = 10398,
                             CuentaDevolucionVentasId = 10396,
                             EnUso = true,
+                            EsBienExcluido = false,
+                            EsBienExento = false,
                             FechaCreacion = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
                             GeneraInformacionExogena = false,
                             Nombre = "Comestibles ultraprocesados 20%",
                             PorValor = false,
                             Tarifa = 20.00m,
-                            TipoImpuesto = "Comestibles ultraprocesados"
+                            TipoBaseMinimaCompras = "Pesos",
+                            TipoBaseMinimaVentas = "Pesos",
+                            TipoImpuesto = "Comestibles ultraprocesados",
+                            VigenteDesde = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
                         });
                 });
 
@@ -22449,6 +22563,52 @@ namespace NubeeAPI.Migrations
                     b.ToTable("Usuarios");
                 });
 
+            modelBuilder.Entity("NubeeAPI.Models.Usuarios.CertificadoDigital", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("FechaAceptacionCarta")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("FechaActualizacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("NegocioId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("NombreArchivo")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RutaCifrada")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("UsaCertificadoNubee")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("UsaCertificadoPropio")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("VersionCartaAceptada")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NegocioId")
+                        .IsUnique();
+
+                    b.ToTable("CertificadosDigitales");
+                });
+
             modelBuilder.Entity("NubeeAPI.Models.Usuarios.ConfiguracionDian", b =>
                 {
                     b.Property<int>("Id")
@@ -22457,11 +22617,16 @@ namespace NubeeAPI.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("AmbienteDIAN")
+                    b.Property<int>("AmbienteDIAN")
                         .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasDefaultValue("Habilitacion");
+                        .HasColumnType("int")
+                        .HasDefaultValue(2);
+
+                    b.Property<DateTime?>("FechaActualizacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("FechaVigenciaFinal")
                         .HasColumnType("datetime2");
@@ -22495,6 +22660,9 @@ namespace NubeeAPI.Migrations
                     b.Property<string>("SoftwareProveedor")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("TestSetId")
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -22534,6 +22702,9 @@ namespace NubeeAPI.Migrations
 
                     b.Property<int?>("DvNit")
                         .HasColumnType("int");
+
+                    b.Property<bool>("HabilitacionCompleta")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Nit")
                         .HasColumnType("nvarchar(450)");
@@ -23321,6 +23492,17 @@ namespace NubeeAPI.Migrations
                     b.Navigation("Cliente");
                 });
 
+            modelBuilder.Entity("NubeeAPI.Models.Usuarios.CertificadoDigital", b =>
+                {
+                    b.HasOne("NubeeAPI.Models.Usuarios.Negocio", "Negocio")
+                        .WithOne("CertificadoDigital")
+                        .HasForeignKey("NubeeAPI.Models.Usuarios.CertificadoDigital", "NegocioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Negocio");
+                });
+
             modelBuilder.Entity("NubeeAPI.Models.Usuarios.ConfiguracionDian", b =>
                 {
                     b.HasOne("NubeeAPI.Models.Usuarios.Negocio", "Negocio")
@@ -23475,6 +23657,8 @@ namespace NubeeAPI.Migrations
 
             modelBuilder.Entity("NubeeAPI.Models.Usuarios.Negocio", b =>
                 {
+                    b.Navigation("CertificadoDigital");
+
                     b.Navigation("ConfiguracionDIAN")
                         .IsRequired();
 

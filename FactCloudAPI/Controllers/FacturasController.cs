@@ -342,10 +342,10 @@ namespace NubeeAPI.Controllers
                 ambiente = resolucion.TipoAmbiente == 2 ? "Pruebas" : "Producción"
             });
         }
-    
 
 
-       
+
+
         // PUT: api/Facturas/5
         [HttpPut("{id}")]
         public async Task<IActionResult> ActualizarFactura(int id, [FromBody] Factura factura)
@@ -417,13 +417,13 @@ namespace NubeeAPI.Controllers
             // âœ… No permitir eliminar facturas ya enviadas o validadas por la DIAN
             if (factura.EnviadaDIAN || factura.Estado == EstadoFactura.Validada)
 
-            // ? No permitir eliminar facturas ya enviadas o validadas por la DIAN
-            if (factura.EnviadaDIAN || factura.Estado == EstadoFactura.Validada)
+                // ? No permitir eliminar facturas ya enviadas o validadas por la DIAN
+                if (factura.EnviadaDIAN || factura.Estado == EstadoFactura.Validada)
 
-                return BadRequest(new
-                {
-                    mensaje = "No se puede eliminar una factura enviada o validada por la DIAN. Use una Nota Crédito."
-                });
+                    return BadRequest(new
+                    {
+                        mensaje = "No se puede eliminar una factura enviada o validada por la DIAN. Use una Nota Crédito."
+                    });
 
             var numeroEliminado = factura.NumeroFacturaCompleto;
             _context.Facturas.Remove(factura);

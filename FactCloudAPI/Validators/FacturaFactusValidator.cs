@@ -1,4 +1,4 @@
-using FluentValidation;
+﻿using FluentValidation;
 using NubeeAPI.Models;
 
 namespace NubeeAPI.Validators

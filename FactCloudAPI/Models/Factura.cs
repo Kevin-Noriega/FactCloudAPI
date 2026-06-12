@@ -26,16 +26,16 @@ namespace NubeeAPI.Models
         // ==================== RESOLUCIÓN DIAN ====================
 
         /// <summary>Número resolución DIAN (14 dígitos exactos) → sts:InvoiceAuthorization</summary>
-        
+
         [StringLength(14, MinimumLength = 14, ErrorMessage = "La autorización DIAN debe tener exactamente 14 dígitos")]
-        public string? NumeroAutorizacion { get; set; } 
+        public string? NumeroAutorizacion { get; set; }
 
         /// <summary>Fecha inicio vigencia resolución → sts:StartDate</summary>
-      
+
         public DateTime? FechaInicioAutorizacion { get; set; }
 
         /// <summary>Fecha fin vigencia resolución → sts:EndDate</summary>
-      
+
         public DateTime? FechaFinAutorizacion { get; set; }
 
         /// <summary>Número inicial del rango autorizado → sts:From</summary>
@@ -57,7 +57,7 @@ namespace NubeeAPI.Models
         /// ID del rango Factus copiado desde ResolucionDIAN al momento de emitir.
         /// Necesario para el payload de Factus.
         /// </summary>
-        
+
         public int FactusRangoId { get; set; }
 
 

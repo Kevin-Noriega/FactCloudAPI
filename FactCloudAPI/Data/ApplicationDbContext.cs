@@ -46,6 +46,7 @@ namespace NubeeAPI.Data
         public DbSet<Transaccion> Transacciones { get; set; }
         public DbSet<ContactoCliente> ContactosCliente { get; set; }
         public DbSet<ResolucionDIAN> ResolucionesDIAN { get; set; }
+        public DbSet<CertificadoDigital> CertificadosDigitales { get; set; } = null!;
         public DbSet<UsuarioAddon> UsuariosAddons { get; set; }
         public DbSet<RepresentanteLegal> RepresentantesLegales { get; set; }
 
@@ -213,6 +214,7 @@ namespace NubeeAPI.Data
             // ══════════════════════════════════════════════════════════════
             // CONFIGURACION DIAN
             // ══════════════════════════════════════════════════════════════
+            
             modelBuilder.Entity<ConfiguracionDian>(entity =>
             {
                 entity.HasKey(c => c.Id);
@@ -238,9 +240,9 @@ namespace NubeeAPI.Data
                 entity.Property(c => c.RangoNumeracionHasta)
                       .HasMaxLength(20);
 
+                // AmbienteDIAN ahora es int: 1=Producción, 2=Habilitación
                 entity.Property(c => c.AmbienteDIAN)
-                      .HasMaxLength(20)
-                      .HasDefaultValue("Habilitacion");
+                      .HasDefaultValue(2);
             });
 
             // ══════════════════════════════════════════════════════════════
@@ -857,7 +859,7 @@ namespace NubeeAPI.Data
                 entity.Ignore(e => e.TarifaDisplay);
             });
 
-           
+
 
             // ══════════════════════════════════════════════════════════════
             // POS — TURNO

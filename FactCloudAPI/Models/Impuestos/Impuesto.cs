@@ -49,14 +49,26 @@ namespace NubeeAPI.Models.Impuestos
         [Required]
         [Column(TypeName = "decimal(7,4)")]
         public decimal Tarifa { get; set; }
-        // Faltan en el modelo Impuesto:
-        public decimal? BaseMinimaVentas { get; set; }    // UVT mínimos para aplicar
+        // Histórico de tarifas (nuevo)
+        public DateTime VigenteDesde { get; set; } = new DateTime(2025, 1, 1);
+        public DateTime? VigenteHasta { get; set; }
+
+        // Concepto DIAN retención (nuevo)
+        [MaxLength(10)] public string? ConceptoRetencionDIAN { get; set; }
+
+        // Bases mínimas separadas por contexto (nuevo)
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal? BaseMinimaVentas { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
         public decimal? BaseMinimaCompras { get; set; }
-        public bool AplicaIVAExcluido { get; set; }       // bienes excluidos
-        public bool AplicaIVAExento { get; set; }          // bienes exentos
-        public string? ConceptoRetencionDIAN { get; set; } // tabla 6.2.4
-        public bool GeneraInformacionExogena { get; set; } // Res. 162/2023
-        public string? CodigoConceptoExogena { get; set; } // formato 1001, 1002...
+        [MaxLength(10)] public string TipoBaseMinimaVentas { get; set; } = "Pesos";
+        [MaxLength(10)] public string TipoBaseMinimaCompras { get; set; } = "Pesos";
+
+        // Clasificación adicional (nuevo)
+        public bool EsBienExcluido { get; set; }
+        public bool EsBienExento { get; set; }
+        public bool GeneraInformacionExogena { get; set; }
+        [MaxLength(10)] public string? CodigoFormatoExogena { get; set; }
 
         /// <summary>
         /// Si es true, el impuesto se calcula sobre un valor fijo (no porcentaje).

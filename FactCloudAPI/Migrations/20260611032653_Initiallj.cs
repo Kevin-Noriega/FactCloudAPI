@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace NubeeAPI.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Initiallj : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -64,9 +64,15 @@ namespace NubeeAPI.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Codigo = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     Nombre = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Tipo = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Descripcion = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     PrecioAnual = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
                     Destacado = table.Column<bool>(type: "bit", nullable: false),
+                    IncluyePOS = table.Column<bool>(type: "bit", nullable: false),
+                    IncluyeInventario = table.Column<bool>(type: "bit", nullable: false),
+                    IncluyeNomina = table.Column<bool>(type: "bit", nullable: false),
+                    IncluyeContabilidad = table.Column<bool>(type: "bit", nullable: false),
+                    IncluyeSucursales = table.Column<bool>(type: "bit", nullable: false),
                     DescuentoPorcentaje = table.Column<int>(type: "int", nullable: true),
                     DescuentoActivo = table.Column<bool>(type: "bit", nullable: false),
                     LimiteDocumentosAnuales = table.Column<int>(type: "int", nullable: true),
@@ -277,12 +283,14 @@ namespace NubeeAPI.Migrations
                     DepartamentoCodigo = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
                     Ciudad = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     CiudadCodigo = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    CodigoMunicipio = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: true),
                     Direccion = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
                     CodigoPostal = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
                     Pais = table.Column<string>(type: "nvarchar(5)", maxLength: 5, nullable: false),
                     ActividadEconomicaCIIU = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
                     Correo = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     RegimenTributario = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
+                    CodigoTributo = table.Column<string>(type: "nvarchar(5)", maxLength: 5, nullable: true),
                     RegimenFiscal = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     NombreContactoFacturacion = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     ApellidoContactoFacturacion = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
@@ -309,6 +317,34 @@ namespace NubeeAPI.Migrations
                         principalTable: "Usuarios",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "ConfiguracionesImpresionPos",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UsuarioId = table.Column<int>(type: "int", nullable: false),
+                    MetodoImpresion = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false, defaultValue: "navegador"),
+                    ImpresoraDefecto = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: true),
+                    TamanoPapel = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: true),
+                    Copias = table.Column<int>(type: "int", nullable: false),
+                    ImpresionSimple = table.Column<bool>(type: "bit", nullable: false),
+                    MargenSuperior = table.Column<int>(type: "int", nullable: false),
+                    MargenInferior = table.Column<int>(type: "int", nullable: false),
+                    MargenIzquierdo = table.Column<int>(type: "int", nullable: false),
+                    MargenDerecho = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ConfiguracionesImpresionPos", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_ConfiguracionesImpresionPos_Usuarios_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "Usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -392,6 +428,28 @@ namespace NubeeAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "EtiquetasPos",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UsuarioId = table.Column<int>(type: "int", nullable: false),
+                    Nombre = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Activa = table.Column<bool>(type: "bit", nullable: false, defaultValue: true),
+                    FechaCreacion = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_EtiquetasPos", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_EtiquetasPos_Usuarios_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "Usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "FotoPerfils",
                 columns: table => new
                 {
@@ -444,6 +502,30 @@ namespace NubeeAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "MovimientosCajaPos",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UsuarioId = table.Column<int>(type: "int", nullable: false),
+                    Tipo = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Monto = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Descripcion = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: true),
+                    NumeroComprobante = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    Fecha = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MovimientosCajaPos", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_MovimientosCajaPos_Usuarios_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "Usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Negocios",
                 columns: table => new
                 {
@@ -460,6 +542,7 @@ namespace NubeeAPI.Migrations
                     Telefono = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Correo = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DatosFacturacionCompletos = table.Column<bool>(type: "bit", nullable: false, defaultValue: false),
+                    HabilitacionCompleta = table.Column<bool>(type: "bit", nullable: false),
                     TipoPersona = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ActividadEconomicaCIIU = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UsuarioId = table.Column<int>(type: "int", nullable: false)
@@ -564,6 +647,39 @@ namespace NubeeAPI.Migrations
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_SuscripcionesFacturacion_Usuarios_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "Usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "TurnosPos",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UsuarioId = table.Column<int>(type: "int", nullable: false),
+                    NumeroTurno = table.Column<int>(type: "int", nullable: false),
+                    VendedorNombre = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    FechaApertura = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    FechaCierre = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    BaseInicial = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    TotalEfectivoReal = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
+                    TotalTarjeta = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
+                    TotalPagosLinea = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
+                    TotalOtros = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
+                    TotalEsperado = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
+                    Diferencia = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: true),
+                    Observaciones = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    CerradoPorNombre = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    Estado = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false, defaultValue: "Abierto")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TurnosPos", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_TurnosPos_Usuarios_UsuarioId",
                         column: x => x.UsuarioId,
                         principalTable: "Usuarios",
                         principalColumn: "Id",
@@ -716,6 +832,7 @@ namespace NubeeAPI.Migrations
                     RangoNumeracionDesde = table.Column<long>(type: "bigint", nullable: false),
                     RangoNumeracionHasta = table.Column<long>(type: "bigint", nullable: false),
                     ClaveTecnica = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: true),
+                    FactusRangoId = table.Column<int>(type: "int", nullable: false),
                     TipoAmbiente = table.Column<int>(type: "int", nullable: false, defaultValue: 2),
                     TipoFactura = table.Column<string>(type: "nvarchar(2)", maxLength: 2, nullable: false, defaultValue: "01"),
                     TipoOperacion = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false, defaultValue: "10"),
@@ -745,6 +862,7 @@ namespace NubeeAPI.Migrations
                     FechaLimiteEnvioDIAN = table.Column<DateTime>(type: "datetime2", nullable: true),
                     FechaEnvioDIAN = table.Column<DateTime>(type: "datetime2", nullable: true),
                     RespuestaDIAN = table.Column<string>(type: "nvarchar(1000)", maxLength: 1000, nullable: true),
+                    NumeroFactus = table.Column<string>(type: "nvarchar(40)", maxLength: 40, nullable: true),
                     EnviadaCliente = table.Column<bool>(type: "bit", nullable: false),
                     FechaEnvioCliente = table.Column<DateTime>(type: "datetime2", nullable: true),
                     XmlBase64 = table.Column<string>(type: "nvarchar(max)", nullable: true)
@@ -838,6 +956,17 @@ namespace NubeeAPI.Migrations
                     Nombre = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     TipoImpuesto = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
                     Tarifa = table.Column<decimal>(type: "decimal(7,4)", nullable: false),
+                    VigenteDesde = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    VigenteHasta = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ConceptoRetencionDIAN = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: true),
+                    BaseMinimaVentas = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    BaseMinimaCompras = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    TipoBaseMinimaVentas = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    TipoBaseMinimaCompras = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    EsBienExcluido = table.Column<bool>(type: "bit", nullable: false),
+                    EsBienExento = table.Column<bool>(type: "bit", nullable: false),
+                    GeneraInformacionExogena = table.Column<bool>(type: "bit", nullable: false),
+                    CodigoFormatoExogena = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: true),
                     PorValor = table.Column<bool>(type: "bit", nullable: false),
                     CodigoTributoDIAN = table.Column<string>(type: "nvarchar(2)", maxLength: 2, nullable: true),
                     CuentaDebitoVentasId = table.Column<int>(type: "int", nullable: true),
@@ -933,21 +1062,52 @@ namespace NubeeAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "CertificadosDigitales",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    NegocioId = table.Column<int>(type: "int", nullable: false),
+                    UsaCertificadoPropio = table.Column<bool>(type: "bit", nullable: false),
+                    RutaCifrada = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PasswordHash = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    NombreArchivo = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UsaCertificadoNubee = table.Column<bool>(type: "bit", nullable: false),
+                    FechaAceptacionCarta = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    VersionCartaAceptada = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    FechaCreacion = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    FechaActualizacion = table.Column<DateTime>(type: "datetime2", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_CertificadosDigitales", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_CertificadosDigitales_Negocios_NegocioId",
+                        column: x => x.NegocioId,
+                        principalTable: "Negocios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ConfiguracionesDian",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    NegocioId = table.Column<int>(type: "int", nullable: false),
                     SoftwareProveedor = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
                     SoftwarePIN = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: true),
                     PrefijoAutorizadoDIAN = table.Column<string>(type: "nvarchar(4)", maxLength: 4, nullable: true),
                     NumeroResolucionDIAN = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: true),
                     RangoNumeracionDesde = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
                     RangoNumeracionHasta = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    AmbienteDIAN = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true, defaultValue: "Habilitacion"),
                     FechaVigenciaInicio = table.Column<DateTime>(type: "datetime2", nullable: true),
                     FechaVigenciaFinal = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    NegocioId = table.Column<int>(type: "int", nullable: false)
+                    TestSetId = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    AmbienteDIAN = table.Column<int>(type: "int", nullable: false, defaultValue: 2),
+                    FechaCreacion = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    FechaActualizacion = table.Column<DateTime>(type: "datetime2", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -1067,6 +1227,44 @@ namespace NubeeAPI.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "PosVentas",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    UsuarioId = table.Column<int>(type: "int", nullable: false),
+                    TurnoId = table.Column<int>(type: "int", nullable: true),
+                    NumeroVenta = table.Column<int>(type: "int", nullable: false),
+                    Fecha = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    ClienteNombre = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Subtotal = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Impuestos = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Total = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Efectivo = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Tarjeta = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    PagosLinea = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Otros = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Credito = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Estado = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false, defaultValue: "Registrada")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PosVentas", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PosVentas_TurnosPos_TurnoId",
+                        column: x => x.TurnoId,
+                        principalTable: "TurnosPos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.SetNull);
+                    table.ForeignKey(
+                        name: "FK_PosVentas_Usuarios_UsuarioId",
+                        column: x => x.UsuarioId,
+                        principalTable: "Usuarios",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "DetalleFacturas",
                 columns: table => new
                 {
@@ -1106,6 +1304,27 @@ namespace NubeeAPI.Migrations
                         column: x => x.ProductoId1,
                         principalTable: "Productos",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "FacturasFormasPago",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    FacturaId = table.Column<int>(type: "int", nullable: false),
+                    MetodoPagoCodigo = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    Valor = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_FacturasFormasPago", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_FacturasFormasPago_Facturas_FacturaId",
+                        column: x => x.FacturaId,
+                        principalTable: "Facturas",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -1224,6 +1443,31 @@ namespace NubeeAPI.Migrations
                         column: x => x.UsuarioId1,
                         principalTable: "Usuarios",
                         principalColumn: "Id");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "PosVentaDetalles",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    PosVentaId = table.Column<int>(type: "int", nullable: false),
+                    ProductoId = table.Column<int>(type: "int", nullable: true),
+                    Nombre = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
+                    Cantidad = table.Column<decimal>(type: "decimal(12,2)", precision: 12, scale: 2, nullable: false),
+                    PrecioUnitario = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false),
+                    Descuento = table.Column<decimal>(type: "decimal(6,2)", precision: 6, scale: 2, nullable: false),
+                    TotalLinea = table.Column<decimal>(type: "decimal(18,2)", precision: 18, scale: 2, nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_PosVentaDetalles", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_PosVentaDetalles_PosVentas_PosVentaId",
+                        column: x => x.PosVentaId,
+                        principalTable: "PosVentas",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -5974,13 +6218,16 @@ namespace NubeeAPI.Migrations
 
             migrationBuilder.InsertData(
                 table: "PlanesFacturacion",
-                columns: new[] { "Id", "Activo", "Codigo", "Descripcion", "DescuentoActivo", "DescuentoPorcentaje", "Destacado", "DuracionMeses", "LimiteDocumentosAnuales", "LimiteUsuarios", "Nombre", "PrecioAnual" },
+                columns: new[] { "Id", "Activo", "Codigo", "Descripcion", "DescuentoActivo", "DescuentoPorcentaje", "Destacado", "DuracionMeses", "IncluyeContabilidad", "IncluyeInventario", "IncluyeNomina", "IncluyePOS", "IncluyeSucursales", "LimiteDocumentosAnuales", "LimiteUsuarios", "Nombre", "PrecioAnual", "Tipo" },
                 values: new object[,]
                 {
-                    { 1, true, "STARTER", "Ideal para emprendedores iniciando", true, 15, false, 12, 30, 1, "Starter", 135000m },
-                    { 2, true, "BASICO", "Para pequeños negocios en crecimiento", true, 10, false, 12, 140, 1, "Básico", 300000m },
-                    { 3, true, "PROFESIONAL", "Perfecto para PYMES establecidas", true, 10, false, 12, 540, 1, "Profesional", 770000m },
-                    { 4, true, "EMPRESARIAL", "Solución completa para empresas grandes", true, 15, false, 12, 1550, 1, "Empresarial", 1300000m }
+                    { 1, true, "STARTER", "Ideal para emprendedores iniciando", true, 15, false, 12, false, false, false, false, false, 30, 1, "Starter", 135000m, "FACTURACION" },
+                    { 2, true, "BASICO", "Para pequeños negocios en crecimiento", true, 10, false, 12, false, true, false, false, false, 140, 2, "Básico", 300000m, "FACTURACION" },
+                    { 3, true, "PROFESIONAL", "Perfecto para PYMES establecidas", true, 10, true, 12, false, true, false, false, false, 540, 5, "Profesional", 770000m, "FACTURACION" },
+                    { 4, true, "EMPRESARIAL", "Solución completa para empresas grandes", true, 15, false, 12, true, true, true, false, true, 1550, 15, "Empresarial", 1300000m, "FACTURACION" },
+                    { 5, true, "POS_ESENCIAL", "Punto de venta para empezar a vender desde el mostrador", false, null, true, 12, false, true, false, true, false, 240, 1, "Sistema POS Esencial", 345000m, "POS" },
+                    { 6, true, "POS_INICIO", "Para negocios con mayor volumen de ventas", true, 10, false, 12, false, true, false, true, false, null, 2, "Sistema POS Inicio", 585900m, "POS" },
+                    { 7, true, "POS_AVANZADO", "Operación profesional con inventario y reportes avanzados", true, 15, false, 12, false, true, false, true, true, null, 5, "Sistema POS Avanzado", 899900m, "POS" }
                 });
 
             migrationBuilder.InsertData(
@@ -6004,41 +6251,41 @@ namespace NubeeAPI.Migrations
 
             migrationBuilder.InsertData(
                 table: "Impuestos",
-                columns: new[] { "Id", "Codigo", "CodigoTributoDIAN", "CuentaContableId", "CuentaContableId1", "CuentaCreditoComprasId", "CuentaCreditoVentasId", "CuentaDebitoComprasId", "CuentaDebitoVentasId", "CuentaDevolucionComprasId", "CuentaDevolucionVentasId", "EnUso", "FechaCreacion", "Nombre", "PorValor", "Tarifa", "TipoImpuesto", "UsuarioId" },
+                columns: new[] { "Id", "BaseMinimaCompras", "BaseMinimaVentas", "Codigo", "CodigoFormatoExogena", "CodigoTributoDIAN", "ConceptoRetencionDIAN", "CuentaContableId", "CuentaContableId1", "CuentaCreditoComprasId", "CuentaCreditoVentasId", "CuentaDebitoComprasId", "CuentaDebitoVentasId", "CuentaDevolucionComprasId", "CuentaDevolucionVentasId", "EnUso", "EsBienExcluido", "EsBienExento", "FechaCreacion", "GeneraInformacionExogena", "Nombre", "PorValor", "Tarifa", "TipoBaseMinimaCompras", "TipoBaseMinimaVentas", "TipoImpuesto", "UsuarioId", "VigenteDesde", "VigenteHasta" },
                 values: new object[,]
                 {
-                    { 1, 1, "01", null, null, null, 10362, 10366, null, 10367, 10375, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "IVA 19%", false, 19.00m, "IVA", null },
-                    { 2, 2, "01", null, null, null, 10363, 10368, null, 10369, 10376, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "IVA 5%", false, 5.00m, "IVA", null },
-                    { 3, 3, "05", null, null, 10249, null, null, 10077, null, null, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Retefuente 11%", false, 11.00m, "Retefuente", null },
-                    { 4, 4, "05", null, null, 10281, null, null, 10075, null, null, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Retefuente 10%", false, 10.00m, "Retefuente", null },
-                    { 5, 5, "05", null, null, 10265, null, null, 10073, null, null, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Retefuente 6%", false, 6.00m, "Retefuente", null },
-                    { 6, 6, "05", null, null, 10267, null, null, 10071, null, null, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Retefuente 4%", false, 4.00m, "Retefuente", null },
-                    { 7, 7, "05", null, null, 10281, null, null, 10069, null, null, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Retefuente 2.5%", false, 2.50m, "Retefuente", null },
-                    { 8, 8, "06", null, null, 10305, null, null, 10095, null, null, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "ReteICA 11.04", false, 11.04m, "ReteICA", null },
-                    { 9, 9, "06", null, null, 10307, null, null, 10097, null, null, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "ReteICA 13.8", false, 13.80m, "ReteICA", null },
-                    { 10, 10, "06", null, null, 10309, null, null, 10099, null, null, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "ReteICA 9.66", false, 9.66m, "ReteICA", null },
-                    { 11, 11, "06", null, null, 10311, null, null, 10101, null, null, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "ReteICA 8", false, 8.00m, "ReteICA", null },
-                    { 12, 12, "06", null, null, 10313, null, null, 10103, null, null, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "ReteICA 7", false, 7.00m, "ReteICA", null },
-                    { 13, 13, "06", null, null, 10315, null, null, 10105, null, null, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "ReteICA 6.9", false, 6.90m, "ReteICA", null },
-                    { 14, 14, "06", null, null, 10317, null, null, 10107, null, null, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "ReteICA 4.14", false, 4.14m, "ReteICA", null },
-                    { 15, 15, "04", null, null, 10294, null, null, 10089, null, null, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "ReteIVA 15%", false, 15.00m, "ReteIVA", null },
-                    { 16, 16, "02", null, null, null, 10401, 10403, null, 10404, 10402, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Impoconsumo 8%", false, 8.00m, "Impoconsumo", null },
-                    { 17, 17, "02", null, null, null, 10401, 10403, null, 10404, 10402, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Impoconsumo por valor", false, 0.00m, "Impoconsumo", null },
-                    { 18, 18, "05", null, null, 10253, null, null, 10081, null, null, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Retefuente 3.5%", false, 3.50m, "Retefuente", null },
-                    { 19, 19, "05", null, null, 10251, null, null, 10079, null, null, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Retefuente 7%", false, 7.00m, "Retefuente", null },
-                    { 20, 20, "05", null, null, 10255, null, null, 10083, null, null, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Retefuente 2%", false, 2.00m, "Retefuente", null },
-                    { 21, 21, "05", null, null, 10257, null, null, 10085, null, null, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Retefuente 1%", false, 1.00m, "Retefuente", null },
-                    { 22, 22, "01", null, null, null, 10362, 10366, null, 10367, 10375, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "IVA 0%", false, 0.00m, "IVA", null },
-                    { 23, 23, "01", null, null, null, 10364, 10370, null, 10371, 10377, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "IVA 16%", false, 16.00m, "IVA", null },
-                    { 24, 24, "ZY", null, null, null, 10386, 10632, null, 10634, 10389, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "AdValorem 20%", false, 20.00m, "Ad-Valorem", null },
-                    { 25, 25, "ZY", null, null, null, 10387, 10633, null, 10635, 10390, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "AdValorem 25%", false, 25.00m, "Ad-Valorem", null },
-                    { 29, 29, "04", null, null, 10296, null, null, 10091, null, null, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "ReteIVA 100%", false, 100.00m, "ReteIVA", null },
-                    { 90, 90, "05", null, null, 10281, null, null, 10069, null, null, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Retefuente 1.5%", false, 1.50m, "Retefuente", null },
-                    { 91, 91, "05", null, null, 10281, null, null, 10069, null, null, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Retefuente 0.10%", false, 0.10m, "Retefuente", null },
-                    { 92, 92, "05", null, null, 10281, null, null, 10069, null, null, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Retefuente 0.50%", false, 0.50m, "Retefuente", null },
-                    { 93, 93, "05", null, null, 10281, null, null, 10069, null, null, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Retefuente 20%", false, 20.00m, "Retefuente", null },
-                    { 94, 94, "ZA", null, null, null, 10391, 10393, null, 10394, 10392, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Comestibles ultraprocesados 15%", false, 15.00m, "Comestibles ultraprocesados", null },
-                    { 95, 95, "ZA", null, null, null, 10395, 10397, null, 10398, 10396, true, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Comestibles ultraprocesados 20%", false, 20.00m, "Comestibles ultraprocesados", null }
+                    { 1, null, null, 1, null, "01", null, null, null, null, 10362, 10366, null, 10367, 10375, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "IVA 19%", false, 19.00m, "Pesos", "Pesos", "IVA", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 2, null, null, 2, null, "01", null, null, null, null, 10363, 10368, null, 10369, 10376, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "IVA 5%", false, 5.00m, "Pesos", "Pesos", "IVA", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 3, null, null, 3, null, "05", null, null, null, 10249, null, null, 10077, null, null, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "Retefuente 11%", false, 11.00m, "Pesos", "Pesos", "Retefuente", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 4, null, null, 4, null, "05", null, null, null, 10281, null, null, 10075, null, null, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "Retefuente 10%", false, 10.00m, "Pesos", "Pesos", "Retefuente", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 5, null, null, 5, null, "05", null, null, null, 10265, null, null, 10073, null, null, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "Retefuente 6%", false, 6.00m, "Pesos", "Pesos", "Retefuente", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 6, null, null, 6, null, "05", null, null, null, 10267, null, null, 10071, null, null, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "Retefuente 4%", false, 4.00m, "Pesos", "Pesos", "Retefuente", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 7, null, null, 7, null, "05", null, null, null, 10281, null, null, 10069, null, null, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "Retefuente 2.5%", false, 2.50m, "Pesos", "Pesos", "Retefuente", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 8, null, null, 8, null, "06", null, null, null, 10305, null, null, 10095, null, null, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "ReteICA 11.04", false, 11.04m, "Pesos", "Pesos", "ReteICA", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 9, null, null, 9, null, "06", null, null, null, 10307, null, null, 10097, null, null, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "ReteICA 13.8", false, 13.80m, "Pesos", "Pesos", "ReteICA", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 10, null, null, 10, null, "06", null, null, null, 10309, null, null, 10099, null, null, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "ReteICA 9.66", false, 9.66m, "Pesos", "Pesos", "ReteICA", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 11, null, null, 11, null, "06", null, null, null, 10311, null, null, 10101, null, null, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "ReteICA 8", false, 8.00m, "Pesos", "Pesos", "ReteICA", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 12, null, null, 12, null, "06", null, null, null, 10313, null, null, 10103, null, null, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "ReteICA 7", false, 7.00m, "Pesos", "Pesos", "ReteICA", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 13, null, null, 13, null, "06", null, null, null, 10315, null, null, 10105, null, null, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "ReteICA 6.9", false, 6.90m, "Pesos", "Pesos", "ReteICA", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 14, null, null, 14, null, "06", null, null, null, 10317, null, null, 10107, null, null, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "ReteICA 4.14", false, 4.14m, "Pesos", "Pesos", "ReteICA", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 15, null, null, 15, null, "04", null, null, null, 10294, null, null, 10089, null, null, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "ReteIVA 15%", false, 15.00m, "Pesos", "Pesos", "ReteIVA", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 16, null, null, 16, null, "04", null, null, null, null, 10401, 10403, null, 10404, 10402, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "Impoconsumo 8%", false, 8.00m, "Pesos", "Pesos", "Impoconsumo", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 17, null, null, 17, null, "04", null, null, null, null, 10401, 10403, null, 10404, 10402, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "Impoconsumo por valor", false, 0.00m, "Pesos", "Pesos", "Impoconsumo", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 18, null, null, 18, null, "05", null, null, null, 10253, null, null, 10081, null, null, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "Retefuente 3.5%", false, 3.50m, "Pesos", "Pesos", "Retefuente", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 19, null, null, 19, null, "05", null, null, null, 10251, null, null, 10079, null, null, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "Retefuente 7%", false, 7.00m, "Pesos", "Pesos", "Retefuente", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 20, null, null, 20, null, "05", null, null, null, 10255, null, null, 10083, null, null, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "Retefuente 2%", false, 2.00m, "Pesos", "Pesos", "Retefuente", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 21, null, null, 21, null, "05", null, null, null, 10257, null, null, 10085, null, null, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "Retefuente 1%", false, 1.00m, "Pesos", "Pesos", "Retefuente", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 22, null, null, 22, null, "01", null, null, null, null, 10362, 10366, null, 10367, 10375, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "IVA 0%", false, 0.00m, "Pesos", "Pesos", "IVA", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 23, null, null, 23, null, "01", null, null, null, null, 10364, 10370, null, 10371, 10377, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "IVA 16%", false, 16.00m, "Pesos", "Pesos", "IVA", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 24, null, null, 24, null, "ZY", null, null, null, null, 10386, 10632, null, 10634, 10389, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "AdValorem 20%", false, 20.00m, "Pesos", "Pesos", "Ad-Valorem", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 25, null, null, 25, null, "ZY", null, null, null, null, 10387, 10633, null, 10635, 10390, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "AdValorem 25%", false, 25.00m, "Pesos", "Pesos", "Ad-Valorem", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 29, null, null, 29, null, "04", null, null, null, 10296, null, null, 10091, null, null, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "ReteIVA 100%", false, 100.00m, "Pesos", "Pesos", "ReteIVA", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 90, null, null, 90, null, "05", null, null, null, 10281, null, null, 10069, null, null, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "Retefuente 1.5%", false, 1.50m, "Pesos", "Pesos", "Retefuente", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 91, null, null, 91, null, "05", null, null, null, 10281, null, null, 10069, null, null, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "Retefuente 0.10%", false, 0.10m, "Pesos", "Pesos", "Retefuente", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 92, null, null, 92, null, "05", null, null, null, 10281, null, null, 10069, null, null, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "Retefuente 0.50%", false, 0.50m, "Pesos", "Pesos", "Retefuente", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 93, null, null, 93, null, "05", null, null, null, 10281, null, null, 10069, null, null, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "Retefuente 20%", false, 20.00m, "Pesos", "Pesos", "Retefuente", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 94, null, null, 94, null, "ZA", null, null, null, null, 10391, 10393, null, 10394, 10392, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "Comestibles ultraprocesados 15%", false, 15.00m, "Pesos", "Pesos", "Comestibles ultraprocesados", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null },
+                    { 95, null, null, 95, null, "ZA", null, null, null, null, 10395, 10397, null, 10398, 10396, true, false, false, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), false, "Comestibles ultraprocesados 20%", false, 20.00m, "Pesos", "Pesos", "Comestibles ultraprocesados", null, new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), null }
                 });
 
             migrationBuilder.InsertData(
@@ -6048,23 +6295,45 @@ namespace NubeeAPI.Migrations
                 {
                     { 1, 1, "1 Usuario", "Cuenta individual para emprendedores que están empezando." },
                     { 2, 1, "30 Documentos anuales", "Emite hasta 30 facturas electrónicas al año." },
-                    { 3, 1, "Funciones básicas", "Creación de facturas, gestión de clientes y productos. Reportes simples incluidos." },
-                    { 4, 2, "1 Usuario", "Cuenta individual perfecta para emprendedores y negocios unipersonales." },
+                    { 3, 1, "Facturación electrónica DIAN", "Creación de facturas, gestión de clientes y productos. Reportes simples incluidos." },
+                    { 4, 2, "2 Usuarios", "Hasta dos usuarios para tu negocio." },
                     { 5, 2, "140 Documentos electrónicos al año", "Perfecto para negocios que emiten hasta 8 documentos diarios." },
-                    { 6, 2, "Funciones básicas", "Creación de facturas, gestión de clientes, productos, notas débito y crédito." },
-                    { 7, 3, "1 Usuario", "Cuenta individual con acceso completo a todas las funcionalidades." },
+                    { 6, 2, "Facturación electrónica DIAN", "Creación de facturas, gestión de clientes, productos, notas débito y crédito." },
+                    { 7, 3, "5 Usuarios", "Hasta cinco usuarios con acceso al sistema." },
                     { 8, 3, "540 Documentos electrónicos al año", "Ideal para PYMES que facturan de forma constante durante todo el año." },
                     { 9, 3, "Facturación electrónica DIAN", "Emisión de facturas electrónicas válidas ante la DIAN." },
                     { 10, 3, "Notas crédito y débito", "Corrección y ajustes de facturas mediante notas crédito y débito electrónicas." },
                     { 11, 3, "Gestión avanzada de clientes y productos", "Administra clientes, productos, precios e impuestos de forma organizada." },
                     { 12, 3, "Reportes y control de facturación", "Consulta reportes básicos de ventas, documentos emitidos y estado de facturación." },
-                    { 13, 4, "1 Usuario", "Acceso completo al sistema con control total de la facturación empresarial." },
+                    { 13, 4, "15 Usuarios", "Hasta quince usuarios para equipos grandes." },
                     { 14, 4, "1550 Documentos electrónicos al año", "Pensado para empresas con alto volumen de facturación anual." },
                     { 15, 4, "Facturación electrónica DIAN", "Cumple con todos los requisitos exigidos por la DIAN." },
                     { 16, 4, "Notas crédito y débito ilimitadas", "Emite notas crédito y débito sin restricciones dentro del límite anual." },
                     { 17, 4, "Gestión completa de clientes y productos", "Control detallado de clientes, productos, impuestos y precios." },
                     { 18, 4, "Reportes administrativos", "Accede a reportes de ventas y facturación para control interno y contable." },
-                    { 19, 4, "Soporte prioritario", "Atención prioritaria para resolución de dudas y soporte técnico." }
+                    { 19, 4, "Soporte prioritario", "Atención prioritaria para resolución de dudas y soporte técnico." },
+                    { 20, 5, "Cumplimiento normativo DIAN", "Documentos POS válidos ante la DIAN." },
+                    { 21, 5, "240 Facturas electrónicas anuales desde POS", "Hasta 240 documentos electrónicos al año desde el punto de venta." },
+                    { 22, 5, "1 Caja registradora", "Una terminal de venta para atender en mostrador." },
+                    { 23, 5, "Control de inventario", "Descuento automático de stock por cada venta." },
+                    { 24, 5, "Reportes de ventas diarios", "Total de ventas del día y productos más vendidos." },
+                    { 25, 6, "Cumplimiento normativo DIAN", "Documentos POS válidos ante la DIAN." },
+                    { 26, 6, "Facturas electrónicas desde POS ilimitadas", "Sin límite de documentos electrónicos desde el POS." },
+                    { 27, 6, "2 Cajas registradoras", "Atiende en dos terminales simultáneas." },
+                    { 28, 6, "Inventario con alertas de stock mínimo", "Recibe avisos cuando un producto esté por agotarse." },
+                    { 29, 6, "Cierre de caja por turno", "Controla el dinero por turno con apertura y cierre de caja." },
+                    { 31, 7, "Cumplimiento normativo DIAN", "Documentos POS válidos ante la DIAN." },
+                    { 32, 7, "Facturas electrónicas desde POS ilimitadas", "Sin límite de documentos electrónicos desde el POS." },
+                    { 33, 7, "Cajas registradoras ilimitadas", "Sin límite en el número de terminales de venta." },
+                    { 34, 7, "Inventario avanzado por bodega", "Controla existencias en varias bodegas o ubicaciones." },
+                    { 35, 7, "Arqueo y reportes avanzados", "Cuadre de caja detallado y reportes exportables." },
+                    { 36, 7, "Soporte prioritario 24/7", "Atención preferencial todos los días a cualquier hora." },
+                    { 45, 2, "Control de inventario", "Administra existencias y stock de tus productos." },
+                    { 46, 3, "Control de inventario", "Descuento automático de stock y control de existencias." },
+                    { 47, 4, "Control de inventario", "Inventario por bodega y existencias en tiempo real." },
+                    { 48, 4, "Nómina electrónica", "Liquidación y emisión de nómina electrónica ante la DIAN." },
+                    { 49, 4, "Contabilidad integrada", "Causación contable automática de tus documentos." },
+                    { 50, 4, "Multi-sucursal", "Administra varias sucursales desde una sola cuenta." }
                 });
 
             migrationBuilder.CreateIndex(
@@ -6095,6 +6364,12 @@ namespace NubeeAPI.Migrations
                 column: "CuentaDebitoId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_CertificadosDigitales_NegocioId",
+                table: "CertificadosDigitales",
+                column: "NegocioId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Clientes_UsuarioId",
                 table: "Clientes",
                 column: "UsuarioId");
@@ -6103,6 +6378,12 @@ namespace NubeeAPI.Migrations
                 name: "IX_ConfiguracionesDian_NegocioId",
                 table: "ConfiguracionesDian",
                 column: "NegocioId",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_ConfiguracionesImpresionPos_UsuarioId",
+                table: "ConfiguracionesImpresionPos",
+                column: "UsuarioId",
                 unique: true);
 
             migrationBuilder.CreateIndex(
@@ -6215,6 +6496,11 @@ namespace NubeeAPI.Migrations
                 column: "UsuarioId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_EtiquetasPos_UsuarioId",
+                table: "EtiquetasPos",
+                column: "UsuarioId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Facturas_ClienteId",
                 table: "Facturas",
                 column: "ClienteId");
@@ -6258,6 +6544,11 @@ namespace NubeeAPI.Migrations
                 name: "IX_Facturas_UsuarioId_FechaEmision",
                 table: "Facturas",
                 columns: new[] { "UsuarioId", "FechaEmision" });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_FacturasFormasPago_FacturaId",
+                table: "FacturasFormasPago",
+                column: "FacturaId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_FormasPagoNotaCredito_NotaCreditoId",
@@ -6344,6 +6635,11 @@ namespace NubeeAPI.Migrations
                 name: "IX_MapeosContablesTarifa_CuentaContableId",
                 table: "MapeosContablesTarifa",
                 column: "CuentaContableId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MovimientosCajaPos_UsuarioId_Fecha",
+                table: "MovimientosCajaPos",
+                columns: new[] { "UsuarioId", "Fecha" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Negocios_Nit",
@@ -6450,6 +6746,21 @@ namespace NubeeAPI.Migrations
                 column: "PlanFacturacionId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_PosVentaDetalles_PosVentaId",
+                table: "PosVentaDetalles",
+                column: "PosVentaId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PosVentas_TurnoId",
+                table: "PosVentas",
+                column: "TurnoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_PosVentas_UsuarioId_Fecha",
+                table: "PosVentas",
+                columns: new[] { "UsuarioId", "Fecha" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Productos_CodigoInterno",
                 table: "Productos",
                 column: "CodigoInterno");
@@ -6539,6 +6850,16 @@ namespace NubeeAPI.Migrations
                 column: "ClienteId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_TurnosPos_UsuarioId",
+                table: "TurnosPos",
+                column: "UsuarioId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TurnosPos_UsuarioId_Estado",
+                table: "TurnosPos",
+                columns: new[] { "UsuarioId", "Estado" });
+
+            migrationBuilder.CreateIndex(
                 name: "IX_UsuariosAddons_AddonId",
                 table: "UsuariosAddons",
                 column: "AddonId");
@@ -6564,7 +6885,13 @@ namespace NubeeAPI.Migrations
                 name: "Autorretenciones");
 
             migrationBuilder.DropTable(
+                name: "CertificadosDigitales");
+
+            migrationBuilder.DropTable(
                 name: "ConfiguracionesDian");
+
+            migrationBuilder.DropTable(
+                name: "ConfiguracionesImpresionPos");
 
             migrationBuilder.DropTable(
                 name: "ConfiguracionesImpuestoEmpresa");
@@ -6594,6 +6921,12 @@ namespace NubeeAPI.Migrations
                 name: "DocumentosSoporte");
 
             migrationBuilder.DropTable(
+                name: "EtiquetasPos");
+
+            migrationBuilder.DropTable(
+                name: "FacturasFormasPago");
+
+            migrationBuilder.DropTable(
                 name: "FormasPagoNotaCredito");
 
             migrationBuilder.DropTable(
@@ -6609,10 +6942,16 @@ namespace NubeeAPI.Migrations
                 name: "MapeosContablesTarifa");
 
             migrationBuilder.DropTable(
+                name: "MovimientosCajaPos");
+
+            migrationBuilder.DropTable(
                 name: "PerfilesTributarios");
 
             migrationBuilder.DropTable(
                 name: "PlanFeature");
+
+            migrationBuilder.DropTable(
+                name: "PosVentaDetalles");
 
             migrationBuilder.DropTable(
                 name: "RefreshTokens");
@@ -6657,6 +6996,9 @@ namespace NubeeAPI.Migrations
                 name: "NotasDebito");
 
             migrationBuilder.DropTable(
+                name: "PosVentas");
+
+            migrationBuilder.DropTable(
                 name: "TarifasImpuestos");
 
             migrationBuilder.DropTable(
@@ -6676,6 +7018,9 @@ namespace NubeeAPI.Migrations
 
             migrationBuilder.DropTable(
                 name: "Facturas");
+
+            migrationBuilder.DropTable(
+                name: "TurnosPos");
 
             migrationBuilder.DropTable(
                 name: "ImpuestosConceptos");
