@@ -13,12 +13,12 @@ using System.Security.Claims;
 public class AuthController : ControllerBase
 {
     private readonly ApplicationDbContext _context;
-    private readonly IAuthService _authService; // ? Inyectar el service
+    private readonly IAuthService _authService;
 
     public AuthController(ApplicationDbContext context, IAuthService authService)
     {
         _context = context;
-        _authService = authService; // ? Inyectar
+        _authService = authService;
     }
     [HttpPost("login")]
     [AllowAnonymous]
@@ -33,22 +33,22 @@ public class AuthController : ControllerBase
 
         if (usuario == null)
         {
-            Console.WriteLine("✗ Usuario no encontrado");
+            Console.WriteLine("Usuario no encontrado");
             return Unauthorized(new { message = "Credenciales incorrectas" });
         }
 
         if (!BCrypt.Net.BCrypt.Verify(model.Contrasena, usuario.ContrasenaHash))
         {
-            Console.WriteLine("✗ Contraseña incorrecta");
+            Console.WriteLine("Contraseña incorrecta");
             return Unauthorized(new { message = "Credenciales incorrectas" });
         }
 
-        Console.WriteLine($"✓ Usuario autenticado: {usuario.Correo}");
+        Console.WriteLine($"Usuario autenticado: {usuario.Correo}");
 
         // 2. Verificar estado
         if (!usuario.Estado)
         {
-            Console.WriteLine("✗ Usuario desactivado");
+            Console.WriteLine("Usuario desactivado");
             var diasRestantes = (int)(usuario.FechaDesactivacion!.Value.AddDays(30) - DateTime.Now).TotalDays;
             return StatusCode(423, new { diasRestantes, mensaje = "Reactivar cuenta" });
         }

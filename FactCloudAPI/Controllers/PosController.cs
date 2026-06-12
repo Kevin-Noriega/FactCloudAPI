@@ -3,6 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using NubeeAPI.Data;
 using NubeeAPI.Models.Pos;
+using NubeeAPI.Services.Facturas;
+using NubeeAPI.Services.Notificaciones;
+using NubeeAPI.Utils.Exceptions;
 using System.Security.Claims;
 
 namespace NubeeAPI.Controllers
@@ -17,10 +20,17 @@ namespace NubeeAPI.Controllers
     public class PosController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly INotificacionService _notificaciones;
+        private readonly IPosFacturacionService _posFacturacion;
 
-        public PosController(ApplicationDbContext context)
+        public PosController(
+            ApplicationDbContext context,
+            INotificacionService notificaciones,
+            IPosFacturacionService posFacturacion)
         {
             _context = context;
+            _notificaciones = notificaciones;
+            _posFacturacion = posFacturacion;
         }
 
         private int UsuarioId =>
@@ -315,6 +325,8 @@ namespace NubeeAPI.Controllers
 
             decimal subtotal = 0, impuestos = 0;
             var detalles = new List<PosVentaDetalle>();
+            var stockBajo = new List<(string nombre, int disponible)>();
+            var stockAgotado = new List<string>();
 
             foreach (var item in dto.Items)
             {
@@ -340,8 +352,16 @@ namespace NubeeAPI.Controllers
 
                 // Descuenta inventario (solo productos físicos del catálogo)
                 if (prod != null && !prod.EsServicio)
+                {
                     prod.CantidadDisponible =
                         (prod.CantidadDisponible ?? 0) - (int)Math.Ceiling(cantidad);
+
+                    var disponible = prod.CantidadDisponible ?? 0;
+                    if (disponible <= 0)
+                        stockAgotado.Add(prod.Nombre);
+                    else if (disponible <= prod.CantidadMinima)
+                        stockBajo.Add((prod.Nombre, disponible));
+                }
             }
 
             subtotal = Math.Round(subtotal, 2);
@@ -378,6 +398,54 @@ namespace NubeeAPI.Controllers
             _context.PosVentas.Add(venta);
             await _context.SaveChangesAsync();
 
+            // ── Notificaciones ────────────────────────────────────────────────
+            await _notificaciones.CrearAsync(UsuarioId, "success", "Venta POS registrada",
+                $"Venta #{venta.NumeroVenta} por {venta.Total:C} ({venta.ClienteNombre}).",
+                "pos", venta.Id, "/pos");
+
+            foreach (var s in stockAgotado)
+                await _notificaciones.CrearAsync(UsuarioId, "error", "Stock agotado",
+                    $"El producto '{s}' quedó sin existencias.", "producto", enlace: "/productos");
+
+            foreach (var (nombre, disponible) in stockBajo)
+                await _notificaciones.CrearAsync(UsuarioId, "warning", "Stock bajo",
+                    $"El producto '{nombre}' tiene stock bajo ({disponible} unidades).",
+                    "producto", enlace: "/productos");
+
+            // ── Facturación electrónica DIAN (best-effort) ────────────────────
+            // La venta YA quedó guardada: si la emisión falla (ítems manuales, sin
+            // resolución vigente, etc.) no se pierde la venta; se avisa al cajero.
+            int? facturaId = null;
+            string? facturaNumero = null;
+            string? facturaError = null;
+            if (dto.EmitirFactura)
+            {
+                try
+                {
+                    var factura = await _posFacturacion.EmitirDesdeVentaAsync(venta, UsuarioId);
+                    facturaId = factura.Id;
+                    facturaNumero = factura.NumeroFacturaCompleto;
+
+                    await _notificaciones.CrearAsync(UsuarioId, "success", "Factura electrónica emitida",
+                        $"Factura {facturaNumero} generada desde la venta POS #{venta.NumeroVenta}.",
+                        "factura", factura.Id, $"/facturas/{factura.Id}");
+                }
+                catch (BusinessException ex)
+                {
+                    facturaError = ex.Message;
+                    await _notificaciones.CrearAsync(UsuarioId, "warning", "Venta sin factura electrónica",
+                        $"Venta POS #{venta.NumeroVenta} registrada, pero no se emitió factura: {ex.Message}",
+                        "pos", venta.Id, "/pos");
+                }
+                catch (Exception)
+                {
+                    facturaError = "Error inesperado al emitir la factura electrónica.";
+                    await _notificaciones.CrearAsync(UsuarioId, "error", "Error al emitir factura",
+                        $"La venta POS #{venta.NumeroVenta} se registró pero falló la emisión de la factura electrónica.",
+                        "pos", venta.Id, "/pos");
+                }
+            }
+
             return Ok(new
             {
                 id = venta.Id,
@@ -388,6 +456,9 @@ namespace NubeeAPI.Controllers
                 total = venta.Total,
                 turnoId = venta.TurnoId,
                 clienteNombre = venta.ClienteNombre,
+                facturaId,
+                facturaNumero,
+                facturaError,
             });
         }
 
@@ -771,6 +842,9 @@ namespace NubeeAPI.Controllers
         public string? ClienteNombre { get; set; }
         public List<VentaItemDto> Items { get; set; } = new();
         public List<VentaPagoDto> Pagos { get; set; } = new();
+
+        /// <summary>Emitir factura electrónica DIAN al cerrar la venta (por defecto sí).</summary>
+        public bool EmitirFactura { get; set; } = true;
     }
 
     public class VentaItemDto

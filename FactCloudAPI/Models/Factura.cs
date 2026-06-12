@@ -243,7 +243,7 @@ namespace NubeeAPI.Models
 
         public void CalcularFechas()
         {
-            // ⚠️ Formato DIAN obligatorio: HH:mm:ss-05:00 (Colombia UTC-0500)
+            // formato DIAN: HH:mm:ss-05:00 (Colombia UTC-0500)
             if (string.IsNullOrEmpty(HoraEmision))
                 HoraEmision = FechaEmision.ToString("HH:mm:ss") + "-05:00";
 
