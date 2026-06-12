@@ -38,6 +38,9 @@ namespace NubeeAPI.Models.Pos
         [MaxLength(20)]
         public string Estado { get; set; } = "Registrada";
 
+        /// <summary>Factura electrónica DIAN emitida a partir de esta venta (si aplica).</summary>
+        public int? FacturaId { get; set; }
+
         public ICollection<PosVentaDetalle> Detalles { get; set; } = new List<PosVentaDetalle>();
     }
 

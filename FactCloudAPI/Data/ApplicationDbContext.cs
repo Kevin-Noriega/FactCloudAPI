@@ -73,6 +73,9 @@ namespace NubeeAPI.Data
         public DbSet<PosVenta> PosVentas { get; set; }
         public DbSet<PosVentaDetalle> PosVentaDetalles { get; set; }
 
+        // ── Notificaciones in-app ──────────────────────────────────────────
+        public DbSet<Notificacion> Notificaciones { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
